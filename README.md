@@ -1,2 +1,2 @@
-# asal-1
+# ASAL
 Answer Set Automata Learning
