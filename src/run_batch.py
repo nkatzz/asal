@@ -35,17 +35,22 @@ sequences in the sample is proportional to that ratio in the entire training set
 """
 mini_batch_size = 30
 
+dataset = "maritime"
+fold = "fold_0"
+
 """
 Path to the training set file.
 """
 train_path = os.path.normpath(
-    os.getcwd() + os.sep + os.pardir + os.sep + 'data' + os.sep + 'Maritime_TRAIN_SAX_8_ASP.csv')
+    os.getcwd() + os.sep + os.pardir + os.sep + 'data' + os.sep +
+    dataset + os.sep + 'folds' + os.sep + fold + os.sep + 'train.csv')
 
 """
 Path to the testing set file.
 """
 test_path = os.path.normpath(
-    os.getcwd() + os.sep + os.pardir + os.sep + 'data' + os.sep + 'Maritime_TEST_SAX_8_ASP.csv')
+    os.getcwd() + os.sep + os.pardir + os.sep + 'data' + os.sep +
+    dataset + os.sep + 'folds' + os.sep + fold + os.sep + 'test.csv')
 
 if __name__ == '__main__':
     time_limit = float('inf') if t_lim == 'inf' else t_lim
