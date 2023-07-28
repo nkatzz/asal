@@ -9,7 +9,7 @@
 % We represent states by integers. The start state is always 1. Regarding the accepting
 % state, for simplicity we restrict ourselves to automata with a unique accepting state
 % which equals the max_states number provided as a runtime arg. A declaration of the
-% accepting state is included in template.lp
+% accepting state is included in template.lp, which is generated at runtime.
 %------------------------------------------------------------------------------------------
 start(1).
 state(S) :- transition(S,_,_).
