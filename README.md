@@ -6,7 +6,7 @@ ASAL is a framework for representing and learning symbolic automata-based comple
 
 _Katzouris N. & Paliouras G., Answer Set Automata: A Learnable Pattern Specification Framework for Complex Event Recognition, ECAI 2023._ ([link](https://cer.iit.demokritos.gr/publications/papers/2022/ilp-2022.pdf))
 
-To use the software you will need the [Clingo](https://potassco.org/clingo) ASP solver. It is advised to check the instructions on the Clingo web page for potential changes in the first command below. 
+To use the software you will need the Clingo ASP solver. It is advised to check the instructions on the [Clingo web page](https://potassco.org/clingo) for potential changes in the first command below. 
 
 ```
 conda create -n asal -c conda-forge clingo
