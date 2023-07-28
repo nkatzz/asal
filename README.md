@@ -8,17 +8,14 @@ ASAL is a framework for representing and learning symbolic automata-based comple
 
 To use the software you will need the [Clingo](https://potassco.org/clingo) ASP solver. It is advised to check the instructions on the Clingo web page for potential changes in the first command below. 
 
-```conda create -n asal -c conda-forge clingo```
-
-```conda activate asal```
-
-```conda install pip```
-
-```git clone https://github.com/nkatzz/asal.git```
-
-```cd asal```
-
-```pip install -r requirements.txt```
+```
+conda create -n asal -c conda-forge clingo
+conda activate asal
+conda install pip
+git clone https://github.com/nkatzz/asal.git
+cd asal
+pip install -r requirements.txt
+```
 
 In the ```src``` folder there are two scripts from which the batch and the incremental, Monte Carlo Tree Search-based versions of ASAL can be run. The hyper-parameters/runtime arguments that control a run are explained in comments therein. The arguments can be tweaked by editing a script, since there is no CLI at this point. 
 
