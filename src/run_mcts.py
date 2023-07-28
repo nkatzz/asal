@@ -31,17 +31,22 @@ As in run_batch.py
 """
 mini_batch_size = 30
 
+dataset = "maritime"
+fold = "fold_0"
+
 """
 Path to the training set file.
 """
 train_path = os.path.normpath(
-    os.getcwd() + os.sep + os.pardir + os.sep + 'data' + os.sep + 'Maritime_TRAIN_SAX_8_ASP.csv')
+    os.getcwd() + os.sep + os.pardir + os.sep + 'data' + os.sep +
+    dataset + os.sep + 'folds' + os.sep + fold + os.sep + 'train.csv')
 
 """
 Path to the testing set file.
 """
 test_path = os.path.normpath(
-    os.getcwd() + os.sep + os.pardir + os.sep + 'data' + os.sep + 'Maritime_TEST_SAX_8_ASP.csv')
+    os.getcwd() + os.sep + os.pardir + os.sep + 'data' + os.sep +
+    dataset + os.sep + 'folds' + os.sep + fold + os.sep + 'test.csv')
 
 """
 If true the training set is shuffled before a MCTS run.
@@ -94,4 +99,4 @@ if __name__ == "__main__":
     test_model_mproc(mcts.best_model, test_path, str(target_class), mini_batch_size)
 
     logger.info(yellow(f'On testing set: TPs, FPs, FNs: {mcts.best_model.global_performance_counts}, '
-                      f'F1-score: {mcts.best_model.global_performance}'))
+                       f'F1-score: {mcts.best_model.global_performance}'))
