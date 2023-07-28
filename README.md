@@ -4,9 +4,15 @@ Answer Set Automata Learning
 
 ASAL is a framework for representing and learning symbolic automata-based complex event patterns in Answer Set Programming. See the related paper for more information on the learning task and the available data:
 
-[Katzouris N. & Paliouras G., Answer Set Automata: A Learnable Pattern Specification Framework for Complex Event Recognition, ECAI 2023]([https://cer.iit.demokritos.gr/publications/papers/2023/katz_2023.pdf](https://cer.iit.demokritos.gr/publications/papers/2022/ilp-2022.pdf))
+[Katzouris N. & Paliouras G., Answer Set Automata: A Learnable Pattern Specification Framework for Complex Event Recognition, ECAI 2023](https://cer.iit.demokritos.gr/publications/papers/2022/ilp-2022.pdf)
 
-To use the software, install Clingo by following the instructions at https://potassco.org/clingo/. See the requirements.txt file for additional required python libraries.
+To use the software you will need the [Clingo](https://potassco.org/clingo) ASP solver (check the instructions in the Clingo web page for potential changes in the first command below). 
+
+```conda create -n asal -c conda-forge clingo```
+
+
+
+install Clingo by following the instructions at. See the requirements.txt file for additional required python libraries.
 
 In the ```src``` folder there are two scripts from which the batch and the incremental, Monte Carlo Tree Search-based versions of ASAL can be run. The hyper-parameters/runtime arguments that control a run are explained in comments therein. The arguments can be tweaked by editing a script, since there is no CLI at this point. 
 
