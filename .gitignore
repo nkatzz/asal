@@ -1,4 +1,5 @@
-/src/run.log
+run.log
+template.lp
 __pycache__/
 venv
 .idea
