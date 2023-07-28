@@ -28,7 +28,7 @@ python run_mcts.py
 
 With the two scripts above the batch and the incremental, Monte Carlo Tree Search-based versions of ASAL can be run. The hyper-parameters/runtime arguments that control a run are explained in comments in the scripts. The arguments can be tweaked by editing a script, since there is no CLI at this point. 
 
-To select a particular dataset/fold to run modify the ```dataset```, ```fold```, ```train_path``` and ```test_path``` variables in a run script to reflect a train/test pair for a particular dataset/fold in the ```data``` folder. Again, see the paper above for info on these datasets/tasks.
+To select a particular dataset/fold to run modify the ```dataset``` and ```fold``` variables in the run scripts. See the paper above for info on the datasets in the ```data``` folder.
 
 <!---
 To use RPNI/EDSM the LearnLib library is required: https://learnlib.de/. Follow the instructions to install the software. Then use the ```to_rpni``` method in ```src/asal/auxils.py``` to convert the input seqs to RPNI format, by providing the path to a train/test file and follow the LearnLib instructions to run the respective methods (rpni/edsm).
