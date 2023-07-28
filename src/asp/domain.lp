@@ -27,12 +27,41 @@ categorical(none).
 % value(A,V) :- seq(S,obs(A,V),_), attribute(A).  % This is used in the generate part, it does not affect inference.
 value(A,V) :- attribute(A), symbol(V).
 
+%*
+% CAVIAR
+alphabetNum(1..10).
+seq(SeqId,obs(p1,X),T) :- seq(SeqId,p1(X),T).
+seq(SeqId,obs(p2,X),T) :- seq(SeqId,p2(X),T).
+seq(SeqId,obs(eucl_dist,X),T) :- seq(SeqId,eucl_dist(X),T).
+seq(SeqId,obs(orient_diff,X),T) :- seq(SeqId,orient_diff(X),T).
+numerical(eucl_dist; orient_diff).
+categorical(p1; p2).
+value(eucl_dist,V) :- symbol(V).
+value(orient_diff,V) :- symbol(V).
+value(p1,walking). value(p1,active). value(p1,inactive).
+value(p2,walking). value(p2,active). value(p2,inactive).
+*%
+
+%*
+% BIO
+alphabetNum(1..10).
+seq(SeqId,obs(alive,X),T) :- seq(SeqId,alive(X),T).
+seq(SeqId,obs(necrotic,X),T) :- seq(SeqId,necrotic(X),T).
+seq(SeqId,obs(apoptotic,X),T) :- seq(SeqId,apoptotic(X),T).
+numerical(alive; necrotic; apoptotic).
+categorical(none).
+value(A,V) :- attribute(A), symbol(V).
+*%
+
 symbol(@get_symbol(Y)) :- alphabetNum(Y).
 index(Y,@get_index(Y)) :- symbol(Y).
 
 attribute(A) :- numerical(A).
 attribute(A) :- categorical(A).
 :- numerical(A), categorical(A).
+
+% holds(decrease(A),S,T) :- seq(S,obs(A,X),T), seq(S,obs(A,Y),T-1), X < Y, numerical(A).
+% holds(increase(A),S,T) :- seq(S,obs(A,X),T), seq(S,obs(A,Y),T-1), X > Y, numerical(A).
 
 holds(lt(A1,A2),SeqId,T) :- seq(SeqId,obs(A1,X),T), seq(SeqId,obs(A2,Y),T), X < Y, numerical(A1), numerical(A2), A1 != A2.
 holds(at_most(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y <= X, symbol(X).   % , value(A,X)
