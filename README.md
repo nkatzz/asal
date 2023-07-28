@@ -2,6 +2,10 @@
 Answer Set Automata Learning
 ----------------------------
 
+Learning symbolic automata-based complex event patterns in Answer Set Programming. See the related paper for more info:
+
+[Katzouris N. & Paliouras G., Answer Set Automata: A Learnable Pattern Specification Framework for Complex Event Recognition, ECAI 2023](https://cer.iit.demokritos.gr/publications/papers/2023/katz_2023.pdf)
+
 Install Clingo by following the instructions at https://potassco.org/clingo/. The software has been tested with Python 3.10 and Clingo 5.6.2. See the requirements.txt file for additional required python libraries.
 
 In the ```src``` folder there are two scripts from which the batch and the incremental, MCTS-based versions of ASAL can be run. The hyper-parameters/runtime arguments that control a run are explained in comments therein. The arguments can be tweaked by editing a script, since there is no CLI at this point. 
