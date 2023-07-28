@@ -17,7 +17,7 @@ cd asal
 pip install -r requirements.txt
 ```
 
-In the ```src``` folder there are two scripts from which the batch and the incremental, Monte Carlo Tree Search-based versions of ASAL can be run. The hyper-parameters/runtime arguments that control a run are explained in comments therein. The arguments can be tweaked by editing a script, since there is no CLI at this point. 
+In the ```asal/src``` folder there are two scripts from which the batch and the incremental, Monte Carlo Tree Search-based versions of ASAL can be run. The hyper-parameters/runtime arguments that control a run are explained in comments therein. The arguments can be tweaked by editing a script, since there is no CLI at this point. 
 
 To select a particular dataset/fold to run modify the ```dataset```, ```fold```, ```train_path``` and ```test_path``` variables to reflect a train/test pair for a particular dataset/fold in the ```data``` folder. Again, see the paper above for info on these datasets/tasks. The scripts are run in the regular way, i.e. ```python run_mcts.py```.
 <!---
