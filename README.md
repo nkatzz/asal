@@ -2,7 +2,7 @@
 Answer Set Automata Learning
 ----------------------------
 
-ASAL is a framework for representing and learning symbolic automata-based complex event patterns in Answer Set Programming. See the related paper for more information:
+ASAL is a framework for representing and learning symbolic automata-based complex event patterns in Answer Set Programming. See the following related paper for more information:
 
 _Katzouris N. & Paliouras G., Answer Set Automata: A Learnable Pattern Specification Framework for Complex Event Recognition, ECAI 2023._ ([link](https://cer.iit.demokritos.gr/publications/papers/2022/ilp-2022.pdf))
 
