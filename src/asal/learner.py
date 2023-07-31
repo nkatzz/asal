@@ -36,7 +36,9 @@ class Learner:
         self.aim_for_opt = True if time_lim == float('inf') else False
         self.generated_automata = []
         self.model_from_solver = []
-        cores = '-t{0}'.format(multiprocessing.cpu_count())
+        cores_num = multiprocessing.cpu_count()
+        # 64 threads is the implementation defined limit for Clingo
+        cores = f'-t{cores_num if cores_num <= 64 else 64}' 
         self.ctl = clingo.Control([cores])
         self.return_multiple_models = False
         self.grounding_time = 0.0
