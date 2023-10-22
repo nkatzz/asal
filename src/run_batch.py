@@ -11,43 +11,31 @@ from src.asal.structs import Automaton
 from src.asal.test_model_multproc import test_model_mproc
 from src.asal.logger import *
 
-"""
-Time limit (in seconds) for the solver to find a solution. You might want to adapt this parameter
-based on your computer's specs. The given time limit of 2 minutes was deemed adequate for runs 
-performed on a computer with 12 3.2GHz processors and 16 GBs of RAM. 
-You may set this to 'inf' to disable time limit.
-"""
+# Time limit (in seconds) for the solver to find a solution. You might want to adapt this parameter
+# based on your computer's specs. The given time limit of 2 minutes was deemed adequate for runs
+# performed on a computer with 12 3.2GHz processors and 16 GBs of RAM.
+# You may set this to 'inf' to disable time limit.
 t_lim = 120
 
-"""
-Max number of states in the learnt automaton
-"""
+# Max number of states in the learnt automaton
 max_states = 5
 
-"""
-The target (positive) class (we are in a binary classification setting).
-"""
+# The target (positive) class (we are in a binary classification setting).
 target_class = 1
 
-"""
-The size (number of sequences) in a training sample. The ratio of positive/negative 
-sequences in the sample is proportional to that ratio in the entire training set. 
-"""
+# The size (number of sequences) in a training sample. The ratio of positive/negative
+# sequences in the sample is proportional to that ratio in the entire training set.
 mini_batch_size = 30
 
 dataset = "maritime"
 fold = "fold_0"
 
-"""
-Path to the training set file.
-"""
+# Path to the training set file.
 train_path = os.path.normpath(
     os.getcwd() + os.sep + os.pardir + os.sep + 'data' + os.sep +
     dataset + os.sep + 'folds' + os.sep + fold + os.sep + 'train.csv')
 
-"""
-Path to the testing set file.
-"""
+# Path to the testing set file.
 test_path = os.path.normpath(
     os.getcwd() + os.sep + os.pardir + os.sep + 'data' + os.sep +
     dataset + os.sep + 'folds' + os.sep + fold + os.sep + 'test.csv')
