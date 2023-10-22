@@ -68,7 +68,6 @@ if not torch.cuda.is_available():
 """
 
 
-# Define the LSTM model architecture again
 class LSTMClassifier(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers):
         super(LSTMClassifier, self).__init__()
@@ -155,27 +154,23 @@ class ComplexDiscretizeAndClassify(nn.Module):
         return out.squeeze(1)
 
 
-# Instantiate the model and move it to the appropriate device
-# Instantiate the model
 input_size = num_features
 hidden_size = 64
 num_layers = 3
 
+# Instantiate the model and move it to the appropriate device
 if not symbolize:
     model = LSTMClassifier(input_size, hidden_size, num_layers).to(device)
 else:
     model = DiscretizeAndClassify(input_size, hidden_size, num_layers, num_symbols)
     # model = ComplexDiscretizeAndClassify(input_size, hidden_size, num_layers, num_symbols)
 
-# Display the model architecture and the device being used
-print(model, device)
-
 # Binary Cross Entropy Loss as the loss function
 criterion = nn.BCELoss()
 
 optimizer = optim.Adam(model.parameters(), lr=0.001)  # You can adjust the learning rate
 
-# verification
+# Display the model architecture and the device being used
 print(model, criterion, optimizer, device)
 
 # Converting the dataset into PyTorch tensors and moving them to the appropriate device.
@@ -199,14 +194,15 @@ test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=Fa
 for epoch in range(num_epochs):
     model.train()  # set to training mode.
     for batch_X, batch_y in train_loader:
+        batch_X, batch_y = batch_X.to(device), batch_y.to(device)
         optimizer.zero_grad()
         outputs = model(batch_X)
         loss = criterion(outputs, batch_y)
         loss.backward()
         optimizer.step()
 
-    if (epoch+1) % 10 == 0:
-        print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}')
+    if (epoch + 1) % 10 == 0:
+        print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
 
 # Evaluation with batches
 model.eval()  # set to testing mode.
