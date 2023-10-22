@@ -11,68 +11,48 @@ from src.asal.mcts import RootNode, MCTSRun
 from src.asal.test_model_multproc import test_model_mproc
 from src.asal.logger import *
 
-"""
-As in run_batch.py
-"""
+
+# As in run_batch.py
 t_lim = 120
 
-"""
-As in run_batch.py
-"""
+# As in run_batch.py
 max_states = 4
 
-"""
-As in run_batch.py
-"""
-target_class = 1
+# As in run_batch.py
+target_class = 2
 
-"""
-As in run_batch.py
-"""
-mini_batch_size = 30
+# As in run_batch.py
+mini_batch_size = 50
 
-dataset = "maritime"
+# dataset = "maritime"
+dataset = "avg_robot"  # To use this you need to set a higher priority to minimizing FPs, FNs, due to the small num. of positive exmpls per batch.
 fold = "fold_0"
 
-"""
-Path to the training set file.
-"""
+# Path to the training set file.
 train_path = os.path.normpath(
     os.getcwd() + os.sep + os.pardir + os.sep + 'data' + os.sep +
     dataset + os.sep + 'folds' + os.sep + fold + os.sep + 'train.csv')
 
-"""
-Path to the testing set file.
-"""
+# Path to the testing set file.
 test_path = os.path.normpath(
     os.getcwd() + os.sep + os.pardir + os.sep + 'data' + os.sep +
     dataset + os.sep + 'folds' + os.sep + fold + os.sep + 'test.csv')
 
-"""
-If true the training set is shuffled before a MCTS run.
-"""
+# If true the training set is shuffled before a MCTS run.
 shuffle = False
 
-"""
-A "seed" minibatch to kick-start the MCTS run
-"""
+# A "seed" minibatch to kick-start the MCTS run
 selected_mini_batch = 1  # Randomize this.
 
-"""
-Max number of MCTS iterations.
-"""
+# Max number of MCTS iterations.
 mcts_iterations = 10
 
-"""
-Exploration rate for MCTS.
-"""
+# Exploration rate for MCTS.
 expl_rate = 0.005
 
-"""
-Max number of children to add to a node. Each child is a revision of the automaton
-that corresponds to the parent node. This parameter controls the "horizontal" expansion
-of the search tree at each iteration.
-"""
+# Max number of children to add to a node. Each child is a revision of the automaton
+# that corresponds to the parent node. This parameter controls the "horizontal" expansion
+# of the search tree at each iteration.
 max_children = 10  # 100
 
 if __name__ == "__main__":

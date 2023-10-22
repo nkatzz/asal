@@ -31,8 +31,11 @@ holds(body(I,J),S,T) :- rule(I), conjunction(J), sequence(S), time(T), holds(F,S
 {body(I,J,at_most(A,V)) : rule(I), conjunction(J), numerical(A), value(A,V)}.
 {body(I,J,at_least(A,V)) : rule(I), conjunction(J), numerical(A), value(A,V)}.
 {body(I,J,lt(A1,A2)) : rule(I), conjunction(J), numerical(A1), numerical(A2), A1 != A2}.
-{body(I,J,equals(A,V)) : rule(I), conjunction(J), categorical(A), value(A,V)}.
+% {body(I,J,equals(A,V)) : rule(I), conjunction(J), categorical(A), value(A,V)}.
 % {body(I,J,neg(A,V)) : rule(I), conjunction(J), categorical(A), value(A,V)}.
+
+% {body(I,J,increase(A)) : rule(I), conjunction(J), numerical(A)}.
+% {body(I,J,decrease(A)) : rule(I), conjunction(J), numerical(A)}.
 
 {conjunction(1..2)}.
 
@@ -41,17 +44,17 @@ holds(body(I,J),S,T) :- rule(I), conjunction(J), sequence(S), time(T), holds(F,S
 %--------------------------------------------
 used_attribute(A) :- body(_,_,at_least(A,_)).
 used_attribute(A) :- body(_,_,at_most(A,_)).
-used_attribute(A) :- body(_,_,equals(A,_)).
+% used_attribute(A) :- body(_,_,equals(A,_)).
 % used_attribute(A) :- body(_,_,neg(A,_)).
 used_attribute(A) :- body(_,_,lt(A,_)).
 used_attribute(A) :- body(_,_,lt(_,A)).
 
-#minimize{1@2,Seq: falseNegative(Seq)}.
-#minimize{1@2,Seq: falsePositive(Seq)}.
+#minimize{1@3,Seq: falseNegative(Seq)}.
+#minimize{1@3,Seq: falsePositive(Seq)}.
 #minimize{C@2,I,J,F: body(I,J,F), cost(F,C)}.
 #minimize{1@2,X: used_attribute(X)}.
 
-targetClass(1).
+targetClass(2).
 
 positive(SeqId) :- class(SeqId,X), targetClass(X).
 negative(SeqId) :- class(SeqId,X), not targetClass(X).

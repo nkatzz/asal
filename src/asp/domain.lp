@@ -14,7 +14,10 @@ def get_index(symbol):
 
 #end.
 
-% Maritime.
+%*
+%----------%
+% Maritime %
+%----------%
 alphabetNum(1..8).
 seq(SeqId,obs(longitude,X),T) :- seq(SeqId,longitude(X),T).
 seq(SeqId,obs(latitude,X),T) :- seq(SeqId,latitude(X),T).
@@ -26,9 +29,107 @@ numerical(longitude; latitude; speed; heading; course_over_ground).
 categorical(none).
 % value(A,V) :- seq(S,obs(A,V),_), attribute(A).  % This is used in the generate part, it does not affect inference.
 value(A,V) :- attribute(A), symbol(V).
+symbol(@get_symbol(Y)) :- alphabetNum(Y).
+index(Y,@get_index(Y)) :- symbol(Y).
+*%
+
+
+%----------------------------------%
+% AVG robot (all spatial features) %
+%----------------------------------%
+alphabetNum(0..9).
+seq(SeqId,obs(px,X),T) :- seq(SeqId,px(X),T).
+seq(SeqId,obs(py,X),T) :- seq(SeqId,py(X),T).
+seq(SeqId,obs(pz,X),T) :- seq(SeqId,pz(X),T).
+seq(SeqId,obs(ox,X),T) :- seq(SeqId,ox(X),T).
+seq(SeqId,obs(oy,X),T) :- seq(SeqId,oy(X),T).
+seq(SeqId,obs(oz,X),T) :- seq(SeqId,oz(X),T).
+seq(SeqId,obs(ow,X),T) :- seq(SeqId,ow(X),T).
+seq(SeqId,obs(vx,X),T) :- seq(SeqId,vx(X),T).
+seq(SeqId,obs(vy,X),T) :- seq(SeqId,vy(X),T).
+seq(SeqId,obs(vz,X),T) :- seq(SeqId,vz(X),T).
+
+attribute(px; py; pz; ox; oy, oz; ow; vx; vy; vz).
+numerical(px; py; pz; ox; oy, oz; ow; vx; vy; vz).
+
+% attribute(px; py; ox; oy; vx; vy).
+% numerical(px; py; ox; oy; vx; vy).
+
+% attribute(px; py; ox; vx; vy).
+% numerical(px; py; ox; vx; vy).
+
+categorical(none).
+
+value(A,V) :- attribute(A), symbol(V).
+symbol(Y) :- alphabetNum(Y).
+
 
 %*
-% CAVIAR
+%----------------------------------%
+% AVG robot (latent features) %
+%----------------------------------%
+alphabetNum(0..9).
+seq(SeqId,obs(latent_0,X),T) :- seq(SeqId,latent_0(X),T).
+seq(SeqId,obs(latent_1,X),T) :- seq(SeqId,latent_1(X),T).
+seq(SeqId,obs(latent_2,X),T) :- seq(SeqId,latent_2(X),T).
+seq(SeqId,obs(latent_3,X),T) :- seq(SeqId,latent_3(X),T).
+
+attribute(latent_0; latent_1; latent_2; latent_3).
+numerical(latent_0; latent_1; latent_2; latent_3).
+
+categorical(none).
+
+value(A,V) :- attribute(A), symbol(V).
+symbol(Y) :- alphabetNum(Y).
+*%
+
+%*
+%----------------------------------%
+% AVG robot (discretized PCA) %
+%----------------------------------%
+alphabetNum(0..9).
+seq(SeqId,obs(f1,X),T) :- seq(SeqId,f1(X),T).
+seq(SeqId,obs(f2,X),T) :- seq(SeqId,f2(X),T).
+seq(SeqId,obs(f3,X),T) :- seq(SeqId,f3(X),T).
+seq(SeqId,obs(f4,X),T) :- seq(SeqId,f4(X),T).
+seq(SeqId,obs(f5,X),T) :- seq(SeqId,f5(X),T).
+
+attribute(f1; f2; f3; f4; f5).
+numerical(f1; f2; f3; f4; f5).
+
+categorical(none).
+
+value(A,V) :- attribute(A), symbol(V).
+symbol(Y) :- alphabetNum(Y).
+*%
+
+%*
+%-------------------------------------------%
+% AVG robot (coords and simple events only) %
+%-------------------------------------------%
+alphabetNum(0..9).
+seq(SeqId,obs(px,X),T) :- seq(SeqId,px(X),T).
+seq(SeqId,obs(py,X),T) :- seq(SeqId,py(X),T).
+seq(SeqId,obs(idle,X),T) :- seq(SeqId,idle(X),T).
+seq(SeqId,obs(linear,X),T) :- seq(SeqId,linear(X),T).
+seq(SeqId,obs(rotational,X),T) :- seq(SeqId,rotational(X),T).
+
+attribute(px; py; pz; idle; linear; rotational).
+numerical(px; py; pz).
+categorical(idle; linear; rotational).
+
+value(px,V) :- symbol(V).
+value(py,V) :- symbol(V).
+value(pz,V) :- symbol(V).
+symbol(Y) :- alphabetNum(Y).
+
+value(idle,1). value(idle,0). value(linear,1). value(linear,0). value(rotational,1). value(rotational,0).
+*%
+
+%*
+%------- %
+% CAVIAR %
+%------- %
 alphabetNum(1..10).
 seq(SeqId,obs(p1,X),T) :- seq(SeqId,p1(X),T).
 seq(SeqId,obs(p2,X),T) :- seq(SeqId,p2(X),T).
@@ -40,10 +141,14 @@ value(eucl_dist,V) :- symbol(V).
 value(orient_diff,V) :- symbol(V).
 value(p1,walking). value(p1,active). value(p1,inactive).
 value(p2,walking). value(p2,active). value(p2,inactive).
+symbol(@get_symbol(Y)) :- alphabetNum(Y).
+index(Y,@get_index(Y)) :- symbol(Y).
 *%
 
 %*
-% BIO
+%-----%
+% BIO %
+%-----%
 alphabetNum(1..10).
 seq(SeqId,obs(alive,X),T) :- seq(SeqId,alive(X),T).
 seq(SeqId,obs(necrotic,X),T) :- seq(SeqId,necrotic(X),T).
@@ -51,10 +156,9 @@ seq(SeqId,obs(apoptotic,X),T) :- seq(SeqId,apoptotic(X),T).
 numerical(alive; necrotic; apoptotic).
 categorical(none).
 value(A,V) :- attribute(A), symbol(V).
-*%
-
 symbol(@get_symbol(Y)) :- alphabetNum(Y).
 index(Y,@get_index(Y)) :- symbol(Y).
+*%
 
 attribute(A) :- numerical(A).
 attribute(A) :- categorical(A).
@@ -63,10 +167,14 @@ attribute(A) :- categorical(A).
 % holds(decrease(A),S,T) :- seq(S,obs(A,X),T), seq(S,obs(A,Y),T-1), X < Y, numerical(A).
 % holds(increase(A),S,T) :- seq(S,obs(A,X),T), seq(S,obs(A,Y),T-1), X > Y, numerical(A).
 
+%-------------------------------------------------------------------------------------------------------------------------
+% If a predicate is commented out below, in order to be excluded from the language bias,
+% the corresponding choice rule and the corresponding used_attribute/1 predicate in induce.lp should also be commented-out.
+%-------------------------------------------------------------------------------------------------------------------------
 holds(lt(A1,A2),SeqId,T) :- seq(SeqId,obs(A1,X),T), seq(SeqId,obs(A2,Y),T), X < Y, numerical(A1), numerical(A2), A1 != A2.
 holds(at_most(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y <= X, symbol(X).   % , value(A,X)
 holds(at_least(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y >= X, symbol(X).  % , value(A,X)
-holds(equals(A,X),SeqId,T) :- seq(SeqId,obs(A,X),T), categorical(A).
+% holds(equals(A,X),SeqId,T) :- seq(SeqId,obs(A,X),T), categorical(A), A != none.
 % holds(neg(E,X),SeqId,T) :- seq(SeqId,obs(E,Y),T), value(E,X), Y != X.
 
 % Costs for adding an atom to a transition rule.
@@ -76,7 +184,6 @@ cost(at_least(A,V),1) :- value(A,V).
 cost(equals(A,V),1) :- value(A,V).
 cost(neg(A,V),2) :- value(A,V).
 
-targetClass(1).
 positive(SeqId) :- class(SeqId,X), targetClass(X).
 negative(SeqId) :- class(SeqId,X), not targetClass(X).
 

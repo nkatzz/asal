@@ -170,6 +170,8 @@ class MCTSRun:
         self.total_training_time = None
         self.root_node = RootNode()
         self.tried_models = []
+
+        # Generate a seed automaton
         self.expand_root()
 
     def run_mcts(self):
