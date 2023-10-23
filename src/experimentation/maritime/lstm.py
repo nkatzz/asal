@@ -31,7 +31,7 @@ test_with_symbols = True
 # The number of symbols to use for discretization
 num_symbols = 10
 
-num_epochs = 3
+num_epochs = 1000
 
 file_path = '/media/nkatz/storage/asal-seqs/maritime/Maritime-time-series/Maritime.csv'
 df = pd.read_csv(file_path)
