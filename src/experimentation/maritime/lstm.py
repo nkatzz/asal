@@ -228,6 +228,7 @@ print(classification_report(all_labels, all_outputs))
 
 
 # Process the entire dataset and save the symbolic sequences to a CSV
+"""
 def to_symbolic_seqs(model, data_loader):
     symbolic_sequences = []
     labels = []
@@ -248,3 +249,4 @@ def to_symbolic_seqs(model, data_loader):
 
 to_symbolic_seqs(model, train_loader)
 to_symbolic_seqs(model, test_loader)
+"""
