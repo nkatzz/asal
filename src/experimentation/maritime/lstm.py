@@ -31,7 +31,7 @@ test_with_symbols = True
 # The number of symbols to use for discretization
 num_symbols = 10
 
-num_epochs = 1000
+num_epochs = 3
 
 file_path = '/media/nkatz/storage/asal-seqs/maritime/Maritime-time-series/Maritime.csv'
 df = pd.read_csv(file_path)
@@ -109,8 +109,8 @@ class DiscretizeAndClassify(nn.Module):
         if argmax_discretize or (test_with_symbols and not self.training):
             x = torch.argmax(x, dim=2)  # Convert to symbols
 
-            # Convert the indices of the symbols into one-hot encoded vectors,
-            # ensuring that the input to the LSTM has the correct feature size.
+            # Convert the indices of the symbols into one-hot encoded vectors, ensuring that the input
+            # to the LSTM has the correct feature size.
             x = nn.functional.one_hot(x, num_classes=num_symbols).float()
 
         # Classify
@@ -144,8 +144,14 @@ class ComplexDiscretizeAndClassify(nn.Module):
         # More complex discretization
         x = self.encoder(x)
         x = self.softmax(x)
-        x = torch.argmax(x, dim=2)
-        x = nn.functional.one_hot(x, num_classes=num_symbols).float()
+
+        # pick the most likely symbol from the softmax distributions.
+        if argmax_discretize or (test_with_symbols and not self.training):
+            x = torch.argmax(x, dim=2)  # Convert to symbols
+
+            # Convert the indices of the symbols into one-hot encoded vectors, ensuring that the input
+            # to the LSTM has the correct feature size.
+            x = nn.functional.one_hot(x, num_classes=num_symbols).float()
 
         # Classify
         out, _ = self.lstm(x)
@@ -162,8 +168,10 @@ num_layers = 3
 if not symbolize:
     model = LSTMClassifier(input_size, hidden_size, num_layers).to(device)
 else:
-    model = DiscretizeAndClassify(input_size, hidden_size, num_layers, num_symbols)
-    # model = ComplexDiscretizeAndClassify(input_size, hidden_size, num_layers, num_symbols)
+    # model = DiscretizeAndClassify(input_size, hidden_size, num_layers, num_symbols)
+    model = ComplexDiscretizeAndClassify(input_size, hidden_size, num_layers, num_symbols)
+
+model.to(device)
 
 # Binary Cross Entropy Loss as the loss function
 criterion = nn.BCELoss()
@@ -217,3 +225,26 @@ with torch.no_grad():
 
 # Print classification report
 print(classification_report(all_labels, all_outputs))
+
+
+# Process the entire dataset and save the symbolic sequences to a CSV
+def to_symbolic_seqs(model, data_loader):
+    symbolic_sequences = []
+    labels = []
+    for batch_X, batch_y in data_loader:
+        with torch.no_grad():
+            probabilities = model(batch_X)
+            symbols = torch.argmax(probabilities, dim=2)
+            symbolic_sequences.extend(symbols.cpu().numpy())
+            labels.extend(batch_y.cpu().numpy())
+
+    # Convert to DataFrame
+    df = pd.DataFrame(symbolic_sequences)
+    df['label'] = labels
+
+    # Save to CSV
+    df.to_csv('symbolic_sequences.csv', index=False, header=False)
+
+
+to_symbolic_seqs(model, train_loader)
+to_symbolic_seqs(model, test_loader)
