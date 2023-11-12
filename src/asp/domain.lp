@@ -34,6 +34,7 @@ index(Y,@get_index(Y)) :- symbol(Y).
 *%
 
 
+%*
 %----------------------------------%
 % AVG robot (all spatial features) %
 %----------------------------------%
@@ -62,6 +63,7 @@ categorical(none).
 
 value(A,V) :- attribute(A), symbol(V).
 symbol(Y) :- alphabetNum(Y).
+*%
 
 
 %*
@@ -160,9 +162,9 @@ symbol(@get_symbol(Y)) :- alphabetNum(Y).
 index(Y,@get_index(Y)) :- symbol(Y).
 *%
 
-attribute(A) :- numerical(A).
-attribute(A) :- categorical(A).
-:- numerical(A), categorical(A).
+% attribute(A) :- numerical(A).
+% attribute(A) :- categorical(A).
+% :- numerical(A), categorical(A).
 
 % holds(decrease(A),S,T) :- seq(S,obs(A,X),T), seq(S,obs(A,Y),T-1), X < Y, numerical(A).
 % holds(increase(A),S,T) :- seq(S,obs(A,X),T), seq(S,obs(A,Y),T-1), X > Y, numerical(A).
@@ -171,18 +173,32 @@ attribute(A) :- categorical(A).
 % If a predicate is commented out below, in order to be excluded from the language bias,
 % the corresponding choice rule and the corresponding used_attribute/1 predicate in induce.lp should also be commented-out.
 %-------------------------------------------------------------------------------------------------------------------------
-holds(lt(A1,A2),SeqId,T) :- seq(SeqId,obs(A1,X),T), seq(SeqId,obs(A2,Y),T), X < Y, numerical(A1), numerical(A2), A1 != A2.
-holds(at_most(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y <= X, symbol(X).   % , value(A,X)
-holds(at_least(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y >= X, symbol(X).  % , value(A,X)
+% holds(lt(A1,A2),SeqId,T) :- seq(SeqId,obs(A1,X),T), seq(SeqId,obs(A2,Y),T), X < Y, numerical(A1), numerical(A2), A1 != A2.
+% holds(at_most(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y <= X, symbol(X).   % , value(A,X)
+% holds(at_least(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y >= X, symbol(X).  % , value(A,X)
 % holds(equals(A,X),SeqId,T) :- seq(SeqId,obs(A,X),T), categorical(A), A != none.
 % holds(neg(E,X),SeqId,T) :- seq(SeqId,obs(E,Y),T), value(E,X), Y != X.
 
+
+%----------------------------------
+% Used for BSC ductal/lobular data.
+%----------------------------------
+holds(enriched(Pathway),SeqId,T) :- seq(SeqId,enriched(Pathway),T).
+holds(not_enriched(Pathway),SeqId,T) :- seq(SeqId,not_enriched(Pathway),T).
+pathway(P) :- seq(_, enriched(P), _).
+pathway(P) :- seq(_, not_enriched(P), _).
+
+
+
 % Costs for adding an atom to a transition rule.
-cost(lt(A1,A2),1) :- attribute(A1), attribute(A2).
-cost(at_most(A,V),1) :- value(A,V).
-cost(at_least(A,V),1) :- value(A,V).
-cost(equals(A,V),1) :- value(A,V).
-cost(neg(A,V),2) :- value(A,V).
+% cost(lt(A1,A2),1) :- attribute(A1), attribute(A2).
+% cost(at_most(A,V),1) :- value(A,V).
+% cost(at_least(A,V),1) :- value(A,V).
+% cost(equals(A,V),1) :- value(A,V).
+% cost(neg(A,V),1) :- value(A,V).
+
+cost(enriched(A),1) :- pathway(A).
+cost(not_enriched(A),1) :- pathway(A).
 
 positive(SeqId) :- class(SeqId,X), targetClass(X).
 negative(SeqId) :- class(SeqId,X), not targetClass(X).

@@ -16,16 +16,17 @@ from src.asal.logger import *
 t_lim = 120
 
 # As in run_batch.py
-max_states = 4
+max_states = 3
 
 # As in run_batch.py
-target_class = 2
+target_class = 0
 
 # As in run_batch.py
-mini_batch_size = 50
+mini_batch_size = 100
 
 # dataset = "maritime"
-dataset = "avg_robot"  # To use this you need to set a higher priority to minimizing FPs, FNs, due to the small num. of positive exmpls per batch.
+# dataset = "avg_robot"  # To use this you need to set a higher priority to minimizing FPs, FNs, due to the small num. of positive exmpls per batch.
+dataset = "bsc_ductal"
 fold = "fold_0"
 
 # Path to the training set file.
