@@ -13,20 +13,21 @@ from src.asal.logger import *
 
 
 # As in run_batch.py
-t_lim = 120
+t_lim = 240
 
 # As in run_batch.py
-max_states = 3
+max_states = 7
 
 # As in run_batch.py
-target_class = 0
+target_class = 1
 
 # As in run_batch.py
 mini_batch_size = 100
 
 # dataset = "maritime"
 # dataset = "avg_robot"  # To use this you need to set a higher priority to minimizing FPs, FNs, due to the small num. of positive exmpls per batch.
-dataset = "bsc_ductal"
+# dataset = "bsc_lobular"
+dataset = "weather"
 fold = "fold_0"
 
 # Path to the training set file.
@@ -43,10 +44,10 @@ test_path = os.path.normpath(
 shuffle = False
 
 # A "seed" minibatch to kick-start the MCTS run
-selected_mini_batch = 1  # Randomize this.
+selected_mini_batch = 0  # Randomize this.
 
 # Max number of MCTS iterations.
-mcts_iterations = 10
+mcts_iterations = 1
 
 # Exploration rate for MCTS.
 expl_rate = 0.005
@@ -62,10 +63,12 @@ if __name__ == "__main__":
     seed_data = train_data[selected_mini_batch]
     root = RootNode()
 
+    # This learns something from the seed mini-batch.
     mcts = MCTSRun(train_data, train_path, seed_data, mini_batch_size, tmpl,
                    t_lim, mcts_iterations, expl_rate, target_class, max_children, models_num='0')
 
-    mcts.run_mcts()
+    if mcts_iterations > 1:  # revise from new batches.
+        mcts.run_mcts()
 
     logger.info(green(f'\nBest model found:\n{mcts.best_model.show(mode="""reasoning""")}\n\n'
                       f'F1-score on training set: {mcts.best_model.global_performance} '
