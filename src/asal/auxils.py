@@ -163,7 +163,7 @@ def split_data_rev(train_path: str, target_class: str, mini_batch_size: int, shu
     if _pos == {}:
         print('THERE MIGHT BE A PROBLEM WITH THE CLASS LABEL. NO POS EXAMPLES FOUND!')
     pos_chunked = chunk_list(_pos, pos_per_batch)
-    neg_chunked = chunk_list(_neg, neg_per_batch)
+    neg_chunked = chunk_list(_neg, neg_per_batch) if _neg else []
 
     # Zip positive and negatives together, to get mini-batches that contain both types of
     # examples. The ratio of positive/negative examples in each mini-batch follows the one
@@ -172,19 +172,22 @@ def split_data_rev(train_path: str, target_class: str, mini_batch_size: int, shu
     # mini-batches with 2 positive in each and 50 mini-batches with 10 negative examples in each
     # after the zip operation we'll have 40 mini-batches with 12 examples in each and 10
     # "leftover" mini-batches with 10 negative examples in each one.
-    largest = pos_chunked if len(pos_chunked) >= len(neg_chunked) else neg_chunked
-    difference = abs(len(pos_chunked) - len(neg_chunked))
-    tail = largest[-difference:] if difference > 0 else []  # Keep the leftovers
-    zipped = list(zip(pos_chunked, neg_chunked))
+    if _neg:  # Standard case, where we have both positive and negative seqs.
+        largest = pos_chunked if len(pos_chunked) >= len(neg_chunked) else neg_chunked
+        difference = abs(len(pos_chunked) - len(neg_chunked))
+        tail = largest[-difference:] if difference > 0 else []  # Keep the leftovers
+        zipped = list(zip(pos_chunked, neg_chunked))
 
-    # Zipped consists of pairs (2-tuples) of mini-batches: (x,y), where x is a mini-batch of positive
-    # and y is a mini-batch of negative examples (note that x,y are still dictionaries). We merge
-    # these dicts together for each entry in zipped:
-    mini_batches = [{**x, **y} for (x, y) in zipped]
-    for i in tail:
-        mini_batches.append(i)  # We also add the leftovers to the list of mini_batches
+        # Zipped consists of pairs (2-tuples) of mini-batches: (x,y), where x is a mini-batch of positive
+        # and y is a mini-batch of negative examples (note that x,y are still dictionaries). We merge
+        # these dicts together for each entry in zipped:
+        mini_batches = [{**x, **y} for (x, y) in zipped]
+        for i in tail:
+            mini_batches.append(i)  # We also add the leftovers to the list of mini_batches
 
-    return mini_batches
+        return mini_batches
+    else:  # No negatives, for a setting where we are learning a fixed-size automaton that accepts all input seqs.
+        return pos_chunked
 
 
 def extract_data(mini_batch: dict[int: list[str]]):
