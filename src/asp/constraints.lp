@@ -7,6 +7,14 @@
 :- body(I,_,_), not transition(_,I,_).
 :- transition(I,f(I,J),J), I != J, not body(f(I,J),_,_).  % #count{J,F: body(I,J,F)} = 0
 
+%---------------------------------------------------------------------------------------------
+% Remove redundant stuff like
+% f(1,2) :- a, not f(1,3).
+% f(1,3) :- a.
+% The first rule here is never satisfied, yet, it might be generated unless explicitly pruned.
+%---------------------------------------------------------------------------------------------
+:- body(f(S,S1),_,A), body(f(S,S2),_,A), S1 != S2.
+
 %----------------------------------------------------------------------------------------------
 % Always include self-loops for all states that appear in the automaton (skip-till-next-match).
 %----------------------------------------------------------------------------------------------
@@ -20,7 +28,7 @@
 :- state(S), S != 1, S != 2, not accepting(S), #count{S1: state(S1), S1 = S - 1, S1 != 1} = 0.
 
 %---------------------------------------------------------------------------------------------
-% Symmetry breaking Impose an ordering on the conjunction ids to avoid symmetric solutions.
+% Symmetry breaking. Impose an ordering on the conjunction ids to avoid symmetric solutions.
 %---------------------------------------------------------------------------------------------
 :- body(I,J,_), J != 1, #count{J1: body(I,J1,_), J1 < J} = 0.
 
@@ -31,6 +39,11 @@ reachable_from(X,Y) :- transition(X,_,Y).
 reachable_from(X,Z) :- reachable_from(X,Y), reachable_from(Y,Z).
 stranded_state(X) :- reachable_from(1,X), not reachable_from(X,S), accepting(S).
 :- stranded_state(X), state(X).
+
+%---------------------------------------------------------------------------------------------
+% Prune useless states that are not reachable from the start state.
+%---------------------------------------------------------------------------------------------
+:- not reachable_from(1,S), state(S).
 
 %---------------------------------------------------------------------------------------------
 % Prune automata with unreachable states.

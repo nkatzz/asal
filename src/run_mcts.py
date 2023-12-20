@@ -13,10 +13,10 @@ from src.asal.logger import *
 
 
 # As in run_batch.py
-t_lim = 60
+t_lim = 120
 
 # As in run_batch.py
-max_states = 8
+max_states = 6
 
 # As in run_batch.py
 target_class = 1
