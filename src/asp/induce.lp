@@ -61,6 +61,16 @@ used_attribute(A) :- body(_,_,equals(A,_)).
 #minimize{C@2,I,J,F: body(I,J,F), cost(F,C)}.
 #minimize{1@2,X: used_attribute(X)}.
 
+%----------------------------------------------
+% Used for learning in a positive-only setting.
+%----------------------------------------------
+% :- #count{F: rule(F)} < 6.
+% guard_length(I,J,N) :- rule(I), conjunction(J), #count{F: body(I,J,F)} = N.
+% :- guard_length(I,J,N), N < 3.
+
+% disjunctive_guard(I) :- rule(I), #count{F,J: body(I,J,F), J > 1} > 1.
+% :- #count{I: disjunctive_guard(I)} = 0.
+
 targetClass(1).
 
 positive(SeqId) :- class(SeqId,X), targetClass(X).
