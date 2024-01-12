@@ -1,0 +1,500 @@
+seq(0,cloudy(0),0). seq(0,cloudy(0),1). seq(0,cloudy(0),2). seq(0,cloudy(0),3). class(0,1).
+seq(0,foggy(1),0). seq(0,foggy(1),1). seq(0,foggy(1),2). seq(0,foggy(1),3). class(0,1).
+seq(0,rainy(0),0). seq(0,rainy(0),1). seq(0,rainy(0),2). seq(0,rainy(0),3). class(0,1).
+seq(0,snowy(1),0). seq(0,snowy(0),1). seq(0,snowy(0),2). seq(0,snowy(0),3). class(0,1).
+seq(0,sunny(0),0). seq(0,sunny(1),1). seq(0,sunny(0),2). seq(0,sunny(1),3). class(0,1).
+seq(1,cloudy(1),0). seq(1,cloudy(1),1). seq(1,cloudy(1),2). seq(1,cloudy(0),3). seq(1,cloudy(1),4). seq(1,cloudy(1),5). seq(1,cloudy(1),6). seq(1,cloudy(0),7). class(1,1).
+seq(1,foggy(0),0). seq(1,foggy(0),1). seq(1,foggy(0),2). seq(1,foggy(1),3). seq(1,foggy(0),4). seq(1,foggy(0),5). seq(1,foggy(0),6). seq(1,foggy(1),7). class(1,1).
+seq(1,rainy(1),0). seq(1,rainy(0),1). seq(1,rainy(0),2). seq(1,rainy(0),3). seq(1,rainy(0),4). seq(1,rainy(0),5). seq(1,rainy(0),6). seq(1,rainy(0),7). class(1,1).
+seq(1,snowy(0),0). seq(1,snowy(0),1). seq(1,snowy(0),2). seq(1,snowy(0),3). seq(1,snowy(0),4). seq(1,snowy(0),5). seq(1,snowy(0),6). seq(1,snowy(0),7). class(1,1).
+seq(1,sunny(0),0). seq(1,sunny(0),1). seq(1,sunny(0),2). seq(1,sunny(0),3). seq(1,sunny(0),4). seq(1,sunny(0),5). seq(1,sunny(0),6). seq(1,sunny(0),7). class(1,1).
+seq(2,cloudy(0),0). seq(2,cloudy(0),1). seq(2,cloudy(1),2). seq(2,cloudy(1),3). seq(2,cloudy(0),4). class(2,0).
+seq(2,foggy(1),0). seq(2,foggy(1),1). seq(2,foggy(0),2). seq(2,foggy(0),3). seq(2,foggy(1),4). class(2,0).
+seq(2,rainy(0),0). seq(2,rainy(0),1). seq(2,rainy(0),2). seq(2,rainy(0),3). seq(2,rainy(0),4). class(2,0).
+seq(2,snowy(0),0). seq(2,snowy(1),1). seq(2,snowy(0),2). seq(2,snowy(0),3). seq(2,snowy(0),4). class(2,0).
+seq(2,sunny(0),0). seq(2,sunny(0),1). seq(2,sunny(0),2). seq(2,sunny(0),3). seq(2,sunny(1),4). class(2,0).
+seq(3,cloudy(0),0). seq(3,cloudy(0),1). seq(3,cloudy(0),2). seq(3,cloudy(0),3). seq(3,cloudy(0),4). class(3,1).
+seq(3,foggy(1),0). seq(3,foggy(1),1). seq(3,foggy(1),2). seq(3,foggy(1),3). seq(3,foggy(1),4). class(3,1).
+seq(3,rainy(1),0). seq(3,rainy(1),1). seq(3,rainy(0),2). seq(3,rainy(1),3). seq(3,rainy(0),4). class(3,1).
+seq(3,snowy(0),0). seq(3,snowy(0),1). seq(3,snowy(1),2). seq(3,snowy(0),3). seq(3,snowy(1),4). class(3,1).
+seq(3,sunny(0),0). seq(3,sunny(0),1). seq(3,sunny(0),2). seq(3,sunny(1),3). seq(3,sunny(0),4). class(3,1).
+seq(4,cloudy(1),0). seq(4,cloudy(0),1). seq(4,cloudy(1),2). seq(4,cloudy(0),3). seq(4,cloudy(0),4). seq(4,cloudy(0),5). class(4,0).
+seq(4,foggy(0),0). seq(4,foggy(1),1). seq(4,foggy(0),2). seq(4,foggy(1),3). seq(4,foggy(1),4). seq(4,foggy(1),5). class(4,0).
+seq(4,rainy(0),0). seq(4,rainy(1),1). seq(4,rainy(1),2). seq(4,rainy(1),3). seq(4,rainy(0),4). seq(4,rainy(0),5). class(4,0).
+seq(4,snowy(0),0). seq(4,snowy(0),1). seq(4,snowy(0),2). seq(4,snowy(0),3). seq(4,snowy(0),4). seq(4,snowy(0),5). class(4,0).
+seq(4,sunny(0),0). seq(4,sunny(0),1). seq(4,sunny(0),2). seq(4,sunny(1),3). seq(4,sunny(1),4). seq(4,sunny(1),5). class(4,0).
+seq(5,cloudy(0),0). seq(5,cloudy(0),1). seq(5,cloudy(0),2). seq(5,cloudy(1),3). seq(5,cloudy(0),4). seq(5,cloudy(0),5). class(5,0).
+seq(5,foggy(1),0). seq(5,foggy(1),1). seq(5,foggy(1),2). seq(5,foggy(0),3). seq(5,foggy(1),4). seq(5,foggy(1),5). class(5,0).
+seq(5,rainy(1),0). seq(5,rainy(0),1). seq(5,rainy(0),2). seq(5,rainy(0),3). seq(5,rainy(0),4). seq(5,rainy(0),5). class(5,0).
+seq(5,snowy(0),0). seq(5,snowy(0),1). seq(5,snowy(0),2). seq(5,snowy(0),3). seq(5,snowy(0),4). seq(5,snowy(1),5). class(5,0).
+seq(5,sunny(1),0). seq(5,sunny(0),1). seq(5,sunny(1),2). seq(5,sunny(0),3). seq(5,sunny(0),4). seq(5,sunny(0),5). class(5,0).
+seq(6,cloudy(0),0). seq(6,cloudy(0),1). seq(6,cloudy(0),2). seq(6,cloudy(1),3). seq(6,cloudy(1),4). seq(6,cloudy(1),5). class(6,1).
+seq(6,foggy(1),0). seq(6,foggy(1),1). seq(6,foggy(1),2). seq(6,foggy(0),3). seq(6,foggy(0),4). seq(6,foggy(0),5). class(6,1).
+seq(6,rainy(0),0). seq(6,rainy(1),1). seq(6,rainy(0),2). seq(6,rainy(0),3). seq(6,rainy(0),4). seq(6,rainy(0),5). class(6,1).
+seq(6,snowy(0),0). seq(6,snowy(0),1). seq(6,snowy(1),2). seq(6,snowy(0),3). seq(6,snowy(0),4). seq(6,snowy(0),5). class(6,1).
+seq(6,sunny(0),0). seq(6,sunny(1),1). seq(6,sunny(0),2). seq(6,sunny(0),3). seq(6,sunny(0),4). seq(6,sunny(0),5). class(6,1).
+seq(7,cloudy(0),0). seq(7,cloudy(0),1). seq(7,cloudy(1),2). class(7,1).
+seq(7,foggy(1),0). seq(7,foggy(1),1). seq(7,foggy(0),2). class(7,1).
+seq(7,rainy(1),0). seq(7,rainy(0),1). seq(7,rainy(0),2). class(7,1).
+seq(7,snowy(0),0). seq(7,snowy(0),1). seq(7,snowy(0),2). class(7,1).
+seq(7,sunny(1),0). seq(7,sunny(0),1). seq(7,sunny(0),2). class(7,1).
+seq(8,cloudy(0),0). seq(8,cloudy(0),1). seq(8,cloudy(0),2). seq(8,cloudy(0),3). seq(8,cloudy(0),4). class(8,0).
+seq(8,foggy(1),0). seq(8,foggy(1),1). seq(8,foggy(1),2). seq(8,foggy(1),3). seq(8,foggy(1),4). class(8,0).
+seq(8,rainy(1),0). seq(8,rainy(0),1). seq(8,rainy(1),2). seq(8,rainy(0),3). seq(8,rainy(0),4). class(8,0).
+seq(8,snowy(0),0). seq(8,snowy(0),1). seq(8,snowy(0),2). seq(8,snowy(0),3). seq(8,snowy(0),4). class(8,0).
+seq(8,sunny(0),0). seq(8,sunny(0),1). seq(8,sunny(0),2). seq(8,sunny(0),3). seq(8,sunny(0),4). class(8,0).
+seq(9,cloudy(0),0). seq(9,cloudy(0),1). seq(9,cloudy(0),2). seq(9,cloudy(0),3). seq(9,cloudy(0),4). seq(9,cloudy(1),5). seq(9,cloudy(1),6). seq(9,cloudy(0),7). class(9,1).
+seq(9,foggy(1),0). seq(9,foggy(1),1). seq(9,foggy(1),2). seq(9,foggy(1),3). seq(9,foggy(1),4). seq(9,foggy(0),5). seq(9,foggy(0),6). seq(9,foggy(1),7). class(9,1).
+seq(9,rainy(1),0). seq(9,rainy(0),1). seq(9,rainy(1),2). seq(9,rainy(0),3). seq(9,rainy(1),4). seq(9,rainy(0),5). seq(9,rainy(0),6). seq(9,rainy(1),7). class(9,1).
+seq(9,snowy(0),0). seq(9,snowy(1),1). seq(9,snowy(0),2). seq(9,snowy(1),3). seq(9,snowy(0),4). seq(9,snowy(0),5). seq(9,snowy(0),6). seq(9,snowy(0),7). class(9,1).
+seq(9,sunny(0),0). seq(9,sunny(0),1). seq(9,sunny(1),2). seq(9,sunny(0),3). seq(9,sunny(1),4). seq(9,sunny(0),5). seq(9,sunny(0),6). seq(9,sunny(1),7). class(9,1).
+seq(10,cloudy(0),0). seq(10,cloudy(0),1). seq(10,cloudy(1),2). seq(10,cloudy(0),3). seq(10,cloudy(1),4). class(10,0).
+seq(10,foggy(1),0). seq(10,foggy(1),1). seq(10,foggy(0),2). seq(10,foggy(1),3). seq(10,foggy(0),4). class(10,0).
+seq(10,rainy(0),0). seq(10,rainy(0),1). seq(10,rainy(0),2). seq(10,rainy(1),3). seq(10,rainy(0),4). class(10,0).
+seq(10,snowy(0),0). seq(10,snowy(0),1). seq(10,snowy(0),2). seq(10,snowy(1),3). seq(10,snowy(0),4). class(10,0).
+seq(10,sunny(0),0). seq(10,sunny(1),1). seq(10,sunny(0),2). seq(10,sunny(0),3). seq(10,sunny(0),4). class(10,0).
+seq(11,cloudy(0),0). seq(11,cloudy(0),1). seq(11,cloudy(0),2). seq(11,cloudy(0),3). seq(11,cloudy(1),4). seq(11,cloudy(0),5). seq(11,cloudy(0),6). seq(11,cloudy(0),7). class(11,1).
+seq(11,foggy(1),0). seq(11,foggy(1),1). seq(11,foggy(1),2). seq(11,foggy(1),3). seq(11,foggy(0),4). seq(11,foggy(1),5). seq(11,foggy(1),6). seq(11,foggy(1),7). class(11,1).
+seq(11,rainy(1),0). seq(11,rainy(0),1). seq(11,rainy(1),2). seq(11,rainy(0),3). seq(11,rainy(0),4). seq(11,rainy(0),5). seq(11,rainy(0),6). seq(11,rainy(0),7). class(11,1).
+seq(11,snowy(0),0). seq(11,snowy(0),1). seq(11,snowy(0),2). seq(11,snowy(0),3). seq(11,snowy(0),4). seq(11,snowy(0),5). seq(11,snowy(1),6). seq(11,snowy(1),7). class(11,1).
+seq(11,sunny(0),0). seq(11,sunny(0),1). seq(11,sunny(0),2). seq(11,sunny(1),3). seq(11,sunny(0),4). seq(11,sunny(0),5). seq(11,sunny(0),6). seq(11,sunny(0),7). class(11,1).
+seq(12,cloudy(1),0). seq(12,cloudy(0),1). seq(12,cloudy(0),2). seq(12,cloudy(0),3). class(12,0).
+seq(12,foggy(0),0). seq(12,foggy(1),1). seq(12,foggy(1),2). seq(12,foggy(1),3). class(12,0).
+seq(12,rainy(0),0). seq(12,rainy(1),1). seq(12,rainy(0),2). seq(12,rainy(0),3). class(12,0).
+seq(12,snowy(0),0). seq(12,snowy(0),1). seq(12,snowy(0),2). seq(12,snowy(0),3). class(12,0).
+seq(12,sunny(0),0). seq(12,sunny(0),1). seq(12,sunny(0),2). seq(12,sunny(1),3). class(12,0).
+seq(13,cloudy(0),0). seq(13,cloudy(0),1). seq(13,cloudy(1),2). seq(13,cloudy(0),3). seq(13,cloudy(0),4). class(13,0).
+seq(13,foggy(1),0). seq(13,foggy(1),1). seq(13,foggy(0),2). seq(13,foggy(1),3). seq(13,foggy(1),4). class(13,0).
+seq(13,rainy(0),0). seq(13,rainy(0),1). seq(13,rainy(0),2). seq(13,rainy(1),3). seq(13,rainy(0),4). class(13,0).
+seq(13,snowy(0),0). seq(13,snowy(1),1). seq(13,snowy(0),2). seq(13,snowy(0),3). seq(13,snowy(1),4). class(13,0).
+seq(13,sunny(1),0). seq(13,sunny(0),1). seq(13,sunny(0),2). seq(13,sunny(0),3). seq(13,sunny(0),4). class(13,0).
+seq(14,cloudy(1),0). seq(14,cloudy(0),1). seq(14,cloudy(0),2). seq(14,cloudy(1),3). seq(14,cloudy(0),4). seq(14,cloudy(0),5). seq(14,cloudy(0),6). class(14,0).
+seq(14,foggy(0),0). seq(14,foggy(1),1). seq(14,foggy(1),2). seq(14,foggy(0),3). seq(14,foggy(1),4). seq(14,foggy(1),5). seq(14,foggy(0),6). class(14,0).
+seq(14,rainy(0),0). seq(14,rainy(0),1). seq(14,rainy(1),2). seq(14,rainy(0),3). seq(14,rainy(0),4). seq(14,rainy(1),5). seq(14,rainy(0),6). class(14,0).
+seq(14,snowy(0),0). seq(14,snowy(1),1). seq(14,snowy(1),2). seq(14,snowy(0),3). seq(14,snowy(0),4). seq(14,snowy(1),5). seq(14,snowy(1),6). class(14,0).
+seq(14,sunny(0),0). seq(14,sunny(0),1). seq(14,sunny(0),2). seq(14,sunny(0),3). seq(14,sunny(1),4). seq(14,sunny(0),5). seq(14,sunny(0),6). class(14,0).
+seq(15,cloudy(0),0). seq(15,cloudy(0),1). seq(15,cloudy(1),2). seq(15,cloudy(1),3). seq(15,cloudy(0),4). seq(15,cloudy(0),5). seq(15,cloudy(0),6). class(15,1).
+seq(15,foggy(1),0). seq(15,foggy(1),1). seq(15,foggy(0),2). seq(15,foggy(0),3). seq(15,foggy(1),4). seq(15,foggy(1),5). seq(15,foggy(1),6). class(15,1).
+seq(15,rainy(1),0). seq(15,rainy(0),1). seq(15,rainy(0),2). seq(15,rainy(0),3). seq(15,rainy(0),4). seq(15,rainy(0),5). seq(15,rainy(0),6). class(15,1).
+seq(15,snowy(0),0). seq(15,snowy(0),1). seq(15,snowy(0),2). seq(15,snowy(1),3). seq(15,snowy(0),4). seq(15,snowy(1),5). seq(15,snowy(1),6). class(15,1).
+seq(15,sunny(0),0). seq(15,sunny(0),1). seq(15,sunny(0),2). seq(15,sunny(0),3). seq(15,sunny(0),4). seq(15,sunny(0),5). seq(15,sunny(0),6). class(15,1).
+seq(16,cloudy(1),0). seq(16,cloudy(0),1). seq(16,cloudy(0),2). class(16,0).
+seq(16,foggy(0),0). seq(16,foggy(1),1). seq(16,foggy(1),2). class(16,0).
+seq(16,rainy(0),0). seq(16,rainy(0),1). seq(16,rainy(0),2). class(16,0).
+seq(16,snowy(0),0). seq(16,snowy(1),1). seq(16,snowy(1),2). class(16,0).
+seq(16,sunny(0),0). seq(16,sunny(0),1). seq(16,sunny(0),2). class(16,0).
+seq(17,cloudy(0),0). seq(17,cloudy(0),1). seq(17,cloudy(0),2). seq(17,cloudy(0),3). seq(17,cloudy(1),4). seq(17,cloudy(0),5). seq(17,cloudy(0),6). seq(17,cloudy(0),7). seq(17,cloudy(0),8). class(17,0).
+seq(17,foggy(1),0). seq(17,foggy(1),1). seq(17,foggy(1),2). seq(17,foggy(0),3). seq(17,foggy(0),4). seq(17,foggy(1),5). seq(17,foggy(1),6). seq(17,foggy(1),7). seq(17,foggy(1),8). class(17,0).
+seq(17,rainy(0),0). seq(17,rainy(1),1). seq(17,rainy(0),2). seq(17,rainy(0),3). seq(17,rainy(0),4). seq(17,rainy(0),5). seq(17,rainy(0),6). seq(17,rainy(0),7). seq(17,rainy(0),8). class(17,0).
+seq(17,snowy(0),0). seq(17,snowy(1),1). seq(17,snowy(0),2). seq(17,snowy(1),3). seq(17,snowy(0),4). seq(17,snowy(0),5). seq(17,snowy(0),6). seq(17,snowy(0),7). seq(17,snowy(0),8). class(17,0).
+seq(17,sunny(0),0). seq(17,sunny(0),1). seq(17,sunny(0),2). seq(17,sunny(0),3). seq(17,sunny(0),4). seq(17,sunny(0),5). seq(17,sunny(1),6). seq(17,sunny(0),7). seq(17,sunny(1),8). class(17,0).
+seq(18,cloudy(0),0). seq(18,cloudy(0),1). seq(18,cloudy(0),2). seq(18,cloudy(1),3). seq(18,cloudy(0),4). seq(18,cloudy(0),5). seq(18,cloudy(0),6). seq(18,cloudy(0),7). class(18,0).
+seq(18,foggy(1),0). seq(18,foggy(1),1). seq(18,foggy(1),2). seq(18,foggy(0),3). seq(18,foggy(1),4). seq(18,foggy(1),5). seq(18,foggy(1),6). seq(18,foggy(1),7). class(18,0).
+seq(18,rainy(1),0). seq(18,rainy(0),1). seq(18,rainy(0),2). seq(18,rainy(0),3). seq(18,rainy(0),4). seq(18,rainy(0),5). seq(18,rainy(0),6). seq(18,rainy(0),7). class(18,0).
+seq(18,snowy(0),0). seq(18,snowy(0),1). seq(18,snowy(0),2). seq(18,snowy(0),3). seq(18,snowy(0),4). seq(18,snowy(1),5). seq(18,snowy(0),6). seq(18,snowy(0),7). class(18,0).
+seq(18,sunny(1),0). seq(18,sunny(1),1). seq(18,sunny(0),2). seq(18,sunny(0),3). seq(18,sunny(0),4). seq(18,sunny(0),5). seq(18,sunny(0),6). seq(18,sunny(0),7). class(18,0).
+seq(19,cloudy(1),0). seq(19,cloudy(0),1). seq(19,cloudy(0),2). seq(19,cloudy(0),3). class(19,1).
+seq(19,foggy(0),0). seq(19,foggy(1),1). seq(19,foggy(1),2). seq(19,foggy(1),3). class(19,1).
+seq(19,rainy(0),0). seq(19,rainy(1),1). seq(19,rainy(1),2). seq(19,rainy(0),3). class(19,1).
+seq(19,snowy(0),0). seq(19,snowy(1),1). seq(19,snowy(0),2). seq(19,snowy(0),3). class(19,1).
+seq(19,sunny(0),0). seq(19,sunny(0),1). seq(19,sunny(0),2). seq(19,sunny(1),3). class(19,1).
+seq(20,cloudy(0),0). seq(20,cloudy(0),1). seq(20,cloudy(0),2). class(20,1).
+seq(20,foggy(0),0). seq(20,foggy(1),1). seq(20,foggy(0),2). class(20,1).
+seq(20,rainy(0),0). seq(20,rainy(1),1). seq(20,rainy(0),2). class(20,1).
+seq(20,snowy(1),0). seq(20,snowy(0),1). seq(20,snowy(0),2). class(20,1).
+seq(20,sunny(0),0). seq(20,sunny(0),1). seq(20,sunny(1),2). class(20,1).
+seq(21,cloudy(0),0). seq(21,cloudy(0),1). seq(21,cloudy(1),2). seq(21,cloudy(0),3). seq(21,cloudy(1),4). seq(21,cloudy(0),5). seq(21,cloudy(1),6). seq(21,cloudy(0),7). seq(21,cloudy(0),8). class(21,1).
+seq(21,foggy(1),0). seq(21,foggy(1),1). seq(21,foggy(0),2). seq(21,foggy(1),3). seq(21,foggy(0),4). seq(21,foggy(1),5). seq(21,foggy(0),6). seq(21,foggy(1),7). seq(21,foggy(1),8). class(21,1).
+seq(21,rainy(0),0). seq(21,rainy(1),1). seq(21,rainy(0),2). seq(21,rainy(0),3). seq(21,rainy(0),4). seq(21,rainy(0),5). seq(21,rainy(0),6). seq(21,rainy(0),7). seq(21,rainy(1),8). class(21,1).
+seq(21,snowy(0),0). seq(21,snowy(0),1). seq(21,snowy(0),2). seq(21,snowy(0),3). seq(21,snowy(0),4). seq(21,snowy(0),5). seq(21,snowy(0),6). seq(21,snowy(1),7). seq(21,snowy(0),8). class(21,1).
+seq(21,sunny(0),0). seq(21,sunny(0),1). seq(21,sunny(0),2). seq(21,sunny(0),3). seq(21,sunny(0),4). seq(21,sunny(1),5). seq(21,sunny(0),6). seq(21,sunny(0),7). seq(21,sunny(1),8). class(21,1).
+seq(22,cloudy(0),0). seq(22,cloudy(0),1). seq(22,cloudy(0),2). seq(22,cloudy(0),3). seq(22,cloudy(1),4). class(22,0).
+seq(22,foggy(1),0). seq(22,foggy(1),1). seq(22,foggy(1),2). seq(22,foggy(1),3). seq(22,foggy(0),4). class(22,0).
+seq(22,rainy(0),0). seq(22,rainy(0),1). seq(22,rainy(0),2). seq(22,rainy(0),3). seq(22,rainy(0),4). class(22,0).
+seq(22,snowy(0),0). seq(22,snowy(0),1). seq(22,snowy(1),2). seq(22,snowy(1),3). seq(22,snowy(0),4). class(22,0).
+seq(22,sunny(1),0). seq(22,sunny(0),1). seq(22,sunny(0),2). seq(22,sunny(0),3). seq(22,sunny(0),4). class(22,0).
+seq(23,cloudy(0),0). seq(23,cloudy(1),1). seq(23,cloudy(0),2). seq(23,cloudy(1),3). seq(23,cloudy(0),4). seq(23,cloudy(0),5). class(23,1).
+seq(23,foggy(1),0). seq(23,foggy(0),1). seq(23,foggy(1),2). seq(23,foggy(0),3). seq(23,foggy(1),4). seq(23,foggy(1),5). class(23,1).
+seq(23,rainy(0),0). seq(23,rainy(0),1). seq(23,rainy(0),2). seq(23,rainy(0),3). seq(23,rainy(1),4). seq(23,rainy(1),5). class(23,1).
+seq(23,snowy(0),0). seq(23,snowy(0),1). seq(23,snowy(0),2). seq(23,snowy(0),3). seq(23,snowy(1),4). seq(23,snowy(0),5). class(23,1).
+seq(23,sunny(0),0). seq(23,sunny(0),1). seq(23,sunny(1),2). seq(23,sunny(0),3). seq(23,sunny(0),4). seq(23,sunny(0),5). class(23,1).
+seq(24,cloudy(0),0). seq(24,cloudy(0),1). seq(24,cloudy(0),2). seq(24,cloudy(1),3). seq(24,cloudy(0),4). seq(24,cloudy(0),5). class(24,1).
+seq(24,foggy(1),0). seq(24,foggy(1),1). seq(24,foggy(1),2). seq(24,foggy(0),3). seq(24,foggy(1),4). seq(24,foggy(1),5). class(24,1).
+seq(24,rainy(0),0). seq(24,rainy(0),1). seq(24,rainy(0),2). seq(24,rainy(0),3). seq(24,rainy(0),4). seq(24,rainy(1),5). class(24,1).
+seq(24,snowy(0),0). seq(24,snowy(0),1). seq(24,snowy(1),2). seq(24,snowy(0),3). seq(24,snowy(0),4). seq(24,snowy(1),5). class(24,1).
+seq(24,sunny(0),0). seq(24,sunny(1),1). seq(24,sunny(0),2). seq(24,sunny(0),3). seq(24,sunny(0),4). seq(24,sunny(0),5). class(24,1).
+seq(25,cloudy(1),0). seq(25,cloudy(0),1). seq(25,cloudy(0),2). seq(25,cloudy(0),3). seq(25,cloudy(1),4). seq(25,cloudy(1),5). class(25,1).
+seq(25,foggy(0),0). seq(25,foggy(1),1). seq(25,foggy(1),2). seq(25,foggy(1),3). seq(25,foggy(0),4). seq(25,foggy(0),5). class(25,1).
+seq(25,rainy(0),0). seq(25,rainy(0),1). seq(25,rainy(0),2). seq(25,rainy(0),3). seq(25,rainy(0),4). seq(25,rainy(0),5). class(25,1).
+seq(25,snowy(0),0). seq(25,snowy(1),1). seq(25,snowy(0),2). seq(25,snowy(1),3). seq(25,snowy(0),4). seq(25,snowy(0),5). class(25,1).
+seq(25,sunny(0),0). seq(25,sunny(0),1). seq(25,sunny(0),2). seq(25,sunny(0),3). seq(25,sunny(0),4). seq(25,sunny(0),5). class(25,1).
+seq(26,cloudy(1),0). seq(26,cloudy(1),1). seq(26,cloudy(0),2). seq(26,cloudy(0),3). class(26,0).
+seq(26,foggy(0),0). seq(26,foggy(0),1). seq(26,foggy(1),2). seq(26,foggy(1),3). class(26,0).
+seq(26,rainy(0),0). seq(26,rainy(0),1). seq(26,rainy(0),2). seq(26,rainy(0),3). class(26,0).
+seq(26,snowy(0),0). seq(26,snowy(0),1). seq(26,snowy(0),2). seq(26,snowy(0),3). class(26,0).
+seq(26,sunny(0),0). seq(26,sunny(0),1). seq(26,sunny(0),2). seq(26,sunny(1),3). class(26,0).
+seq(27,cloudy(0),0). seq(27,cloudy(1),1). seq(27,cloudy(0),2). seq(27,cloudy(0),3). seq(27,cloudy(0),4). seq(27,cloudy(0),5). seq(27,cloudy(0),6). seq(27,cloudy(0),7). seq(27,cloudy(1),8). class(27,1).
+seq(27,foggy(1),0). seq(27,foggy(0),1). seq(27,foggy(1),2). seq(27,foggy(0),3). seq(27,foggy(1),4). seq(27,foggy(1),5). seq(27,foggy(1),6). seq(27,foggy(1),7). seq(27,foggy(0),8). class(27,1).
+seq(27,rainy(1),0). seq(27,rainy(0),1). seq(27,rainy(1),2). seq(27,rainy(0),3). seq(27,rainy(0),4). seq(27,rainy(1),5). seq(27,rainy(1),6). seq(27,rainy(0),7). seq(27,rainy(0),8). class(27,1).
+seq(27,snowy(0),0). seq(27,snowy(0),1). seq(27,snowy(0),2). seq(27,snowy(1),3). seq(27,snowy(0),4). seq(27,snowy(1),5). seq(27,snowy(0),6). seq(27,snowy(0),7). seq(27,snowy(0),8). class(27,1).
+seq(27,sunny(0),0). seq(27,sunny(0),1). seq(27,sunny(1),2). seq(27,sunny(0),3). seq(27,sunny(0),4). seq(27,sunny(0),5). seq(27,sunny(0),6). seq(27,sunny(0),7). seq(27,sunny(0),8). class(27,1).
+seq(28,cloudy(0),0). seq(28,cloudy(0),1). seq(28,cloudy(1),2). class(28,0).
+seq(28,foggy(1),0). seq(28,foggy(1),1). seq(28,foggy(0),2). class(28,0).
+seq(28,rainy(1),0). seq(28,rainy(1),1). seq(28,rainy(0),2). class(28,0).
+seq(28,snowy(1),0). seq(28,snowy(0),1). seq(28,snowy(0),2). class(28,0).
+seq(28,sunny(0),0). seq(28,sunny(0),1). seq(28,sunny(0),2). class(28,0).
+seq(29,cloudy(0),0). seq(29,cloudy(0),1). seq(29,cloudy(0),2). seq(29,cloudy(0),3). class(29,0).
+seq(29,foggy(1),0). seq(29,foggy(1),1). seq(29,foggy(1),2). seq(29,foggy(1),3). class(29,0).
+seq(29,rainy(1),0). seq(29,rainy(0),1). seq(29,rainy(1),2). seq(29,rainy(1),3). class(29,0).
+seq(29,snowy(0),0). seq(29,snowy(0),1). seq(29,snowy(0),2). seq(29,snowy(0),3). class(29,0).
+seq(29,sunny(0),0). seq(29,sunny(0),1). seq(29,sunny(0),2). seq(29,sunny(0),3). class(29,0).
+seq(30,cloudy(0),0). seq(30,cloudy(0),1). seq(30,cloudy(0),2). seq(30,cloudy(0),3). class(30,1).
+seq(30,foggy(1),0). seq(30,foggy(1),1). seq(30,foggy(1),2). seq(30,foggy(0),3). class(30,1).
+seq(30,rainy(0),0). seq(30,rainy(0),1). seq(30,rainy(0),2). seq(30,rainy(0),3). class(30,1).
+seq(30,snowy(0),0). seq(30,snowy(1),1). seq(30,snowy(0),2). seq(30,snowy(1),3). class(30,1).
+seq(30,sunny(1),0). seq(30,sunny(0),1). seq(30,sunny(0),2). seq(30,sunny(0),3). class(30,1).
+seq(31,cloudy(0),0). seq(31,cloudy(0),1). seq(31,cloudy(0),2). seq(31,cloudy(0),3). seq(31,cloudy(0),4). seq(31,cloudy(0),5). seq(31,cloudy(0),6). seq(31,cloudy(0),7). class(31,0).
+seq(31,foggy(1),0). seq(31,foggy(1),1). seq(31,foggy(1),2). seq(31,foggy(1),3). seq(31,foggy(1),4). seq(31,foggy(1),5). seq(31,foggy(1),6). seq(31,foggy(1),7). class(31,0).
+seq(31,rainy(0),0). seq(31,rainy(0),1). seq(31,rainy(1),2). seq(31,rainy(1),3). seq(31,rainy(0),4). seq(31,rainy(0),5). seq(31,rainy(1),6). seq(31,rainy(0),7). class(31,0).
+seq(31,snowy(0),0). seq(31,snowy(0),1). seq(31,snowy(0),2). seq(31,snowy(0),3). seq(31,snowy(1),4). seq(31,snowy(1),5). seq(31,snowy(0),6). seq(31,snowy(1),7). class(31,0).
+seq(31,sunny(1),0). seq(31,sunny(0),1). seq(31,sunny(0),2). seq(31,sunny(0),3). seq(31,sunny(0),4). seq(31,sunny(0),5). seq(31,sunny(0),6). seq(31,sunny(0),7). class(31,0).
+seq(32,cloudy(0),0). seq(32,cloudy(0),1). seq(32,cloudy(0),2). seq(32,cloudy(0),3). seq(32,cloudy(0),4). seq(32,cloudy(0),5). seq(32,cloudy(0),6). seq(32,cloudy(1),7). seq(32,cloudy(0),8). class(32,1).
+seq(32,foggy(1),0). seq(32,foggy(1),1). seq(32,foggy(1),2). seq(32,foggy(1),3). seq(32,foggy(1),4). seq(32,foggy(1),5). seq(32,foggy(1),6). seq(32,foggy(0),7). seq(32,foggy(1),8). class(32,1).
+seq(32,rainy(0),0). seq(32,rainy(1),1). seq(32,rainy(0),2). seq(32,rainy(0),3). seq(32,rainy(0),4). seq(32,rainy(1),5). seq(32,rainy(0),6). seq(32,rainy(1),7). seq(32,rainy(0),8). class(32,1).
+seq(32,snowy(0),0). seq(32,snowy(0),1). seq(32,snowy(0),2). seq(32,snowy(0),3). seq(32,snowy(1),4). seq(32,snowy(1),5). seq(32,snowy(0),6). seq(32,snowy(0),7). seq(32,snowy(0),8). class(32,1).
+seq(32,sunny(1),0). seq(32,sunny(0),1). seq(32,sunny(0),2). seq(32,sunny(1),3). seq(32,sunny(0),4). seq(32,sunny(0),5). seq(32,sunny(1),6). seq(32,sunny(0),7). seq(32,sunny(1),8). class(32,1).
+seq(33,cloudy(1),0). seq(33,cloudy(0),1). seq(33,cloudy(1),2). seq(33,cloudy(0),3). seq(33,cloudy(0),4). seq(33,cloudy(0),5). seq(33,cloudy(1),6). seq(33,cloudy(0),7). class(33,0).
+seq(33,foggy(1),0). seq(33,foggy(1),1). seq(33,foggy(0),2). seq(33,foggy(1),3). seq(33,foggy(1),4). seq(33,foggy(1),5). seq(33,foggy(0),6). seq(33,foggy(1),7). class(33,0).
+seq(33,rainy(0),0). seq(33,rainy(0),1). seq(33,rainy(0),2). seq(33,rainy(0),3). seq(33,rainy(0),4). seq(33,rainy(0),5). seq(33,rainy(1),6). seq(33,rainy(0),7). class(33,0).
+seq(33,snowy(0),0). seq(33,snowy(0),1). seq(33,snowy(0),2). seq(33,snowy(1),3). seq(33,snowy(1),4). seq(33,snowy(0),5). seq(33,snowy(0),6). seq(33,snowy(1),7). class(33,0).
+seq(33,sunny(0),0). seq(33,sunny(1),1). seq(33,sunny(0),2). seq(33,sunny(0),3). seq(33,sunny(0),4). seq(33,sunny(1),5). seq(33,sunny(0),6). seq(33,sunny(0),7). class(33,0).
+seq(34,cloudy(0),0). seq(34,cloudy(0),1). seq(34,cloudy(1),2). seq(34,cloudy(1),3). seq(34,cloudy(0),4). seq(34,cloudy(0),5). seq(34,cloudy(1),6). class(34,1).
+seq(34,foggy(1),0). seq(34,foggy(0),1). seq(34,foggy(0),2). seq(34,foggy(0),3). seq(34,foggy(1),4). seq(34,foggy(1),5). seq(34,foggy(0),6). class(34,1).
+seq(34,rainy(1),0). seq(34,rainy(0),1). seq(34,rainy(0),2). seq(34,rainy(0),3). seq(34,rainy(0),4). seq(34,rainy(0),5). seq(34,rainy(0),6). class(34,1).
+seq(34,snowy(1),0). seq(34,snowy(1),1). seq(34,snowy(0),2). seq(34,snowy(0),3). seq(34,snowy(1),4). seq(34,snowy(0),5). seq(34,snowy(0),6). class(34,1).
+seq(34,sunny(0),0). seq(34,sunny(0),1). seq(34,sunny(0),2). seq(34,sunny(0),3). seq(34,sunny(0),4). seq(34,sunny(1),5). seq(34,sunny(0),6). class(34,1).
+seq(35,cloudy(0),0). seq(35,cloudy(0),1). seq(35,cloudy(0),2). seq(35,cloudy(0),3). seq(35,cloudy(0),4). seq(35,cloudy(0),5). seq(35,cloudy(0),6). class(35,1).
+seq(35,foggy(1),0). seq(35,foggy(1),1). seq(35,foggy(1),2). seq(35,foggy(1),3). seq(35,foggy(1),4). seq(35,foggy(1),5). seq(35,foggy(1),6). class(35,1).
+seq(35,rainy(0),0). seq(35,rainy(0),1). seq(35,rainy(1),2). seq(35,rainy(0),3). seq(35,rainy(1),4). seq(35,rainy(1),5). seq(35,rainy(0),6). class(35,1).
+seq(35,snowy(0),0). seq(35,snowy(0),1). seq(35,snowy(0),2). seq(35,snowy(0),3). seq(35,snowy(0),4). seq(35,snowy(0),5). seq(35,snowy(0),6). class(35,1).
+seq(35,sunny(0),0). seq(35,sunny(0),1). seq(35,sunny(0),2). seq(35,sunny(0),3). seq(35,sunny(1),4). seq(35,sunny(0),5). seq(35,sunny(0),6). class(35,1).
+seq(36,cloudy(0),0). seq(36,cloudy(0),1). seq(36,cloudy(0),2). class(36,1).
+seq(36,foggy(1),0). seq(36,foggy(1),1). seq(36,foggy(1),2). class(36,1).
+seq(36,rainy(0),0). seq(36,rainy(1),1). seq(36,rainy(0),2). class(36,1).
+seq(36,snowy(1),0). seq(36,snowy(0),1). seq(36,snowy(1),2). class(36,1).
+seq(36,sunny(0),0). seq(36,sunny(0),1). seq(36,sunny(0),2). class(36,1).
+seq(37,cloudy(0),0). seq(37,cloudy(0),1). seq(37,cloudy(0),2). seq(37,cloudy(0),3). class(37,1).
+seq(37,foggy(1),0). seq(37,foggy(1),1). seq(37,foggy(1),2). seq(37,foggy(1),3). class(37,1).
+seq(37,rainy(1),0). seq(37,rainy(1),1). seq(37,rainy(0),2). seq(37,rainy(0),3). class(37,1).
+seq(37,snowy(1),0). seq(37,snowy(0),1). seq(37,snowy(0),2). seq(37,snowy(0),3). class(37,1).
+seq(37,sunny(0),0). seq(37,sunny(0),1). seq(37,sunny(1),2). seq(37,sunny(0),3). class(37,1).
+seq(38,cloudy(1),0). seq(38,cloudy(0),1). seq(38,cloudy(0),2). seq(38,cloudy(0),3). seq(38,cloudy(0),4). class(38,1).
+seq(38,foggy(0),0). seq(38,foggy(1),1). seq(38,foggy(1),2). seq(38,foggy(1),3). seq(38,foggy(1),4). class(38,1).
+seq(38,rainy(1),0). seq(38,rainy(0),1). seq(38,rainy(1),2). seq(38,rainy(0),3). seq(38,rainy(1),4). class(38,1).
+seq(38,snowy(0),0). seq(38,snowy(0),1). seq(38,snowy(0),2). seq(38,snowy(1),3). seq(38,snowy(0),4). class(38,1).
+seq(38,sunny(0),0). seq(38,sunny(0),1). seq(38,sunny(0),2). seq(38,sunny(0),3). seq(38,sunny(0),4). class(38,1).
+seq(39,cloudy(0),0). seq(39,cloudy(0),1). seq(39,cloudy(0),2). seq(39,cloudy(0),3). seq(39,cloudy(0),4). seq(39,cloudy(0),5). class(39,0).
+seq(39,foggy(1),0). seq(39,foggy(1),1). seq(39,foggy(1),2). seq(39,foggy(1),3). seq(39,foggy(1),4). seq(39,foggy(1),5). class(39,0).
+seq(39,rainy(0),0). seq(39,rainy(1),1). seq(39,rainy(0),2). seq(39,rainy(0),3). seq(39,rainy(0),4). seq(39,rainy(0),5). class(39,0).
+seq(39,snowy(0),0). seq(39,snowy(0),1). seq(39,snowy(0),2). seq(39,snowy(0),3). seq(39,snowy(0),4). seq(39,snowy(1),5). class(39,0).
+seq(39,sunny(0),0). seq(39,sunny(1),1). seq(39,sunny(1),2). seq(39,sunny(1),3). seq(39,sunny(1),4). seq(39,sunny(0),5). class(39,0).
+seq(40,cloudy(0),0). seq(40,cloudy(0),1). seq(40,cloudy(0),2). seq(40,cloudy(0),3). seq(40,cloudy(1),4). seq(40,cloudy(0),5). seq(40,cloudy(0),6). class(40,0).
+seq(40,foggy(0),0). seq(40,foggy(1),1). seq(40,foggy(1),2). seq(40,foggy(1),3). seq(40,foggy(0),4). seq(40,foggy(1),5). seq(40,foggy(1),6). class(40,0).
+seq(40,rainy(0),0). seq(40,rainy(0),1). seq(40,rainy(1),2). seq(40,rainy(0),3). seq(40,rainy(0),4). seq(40,rainy(0),5). seq(40,rainy(1),6). class(40,0).
+seq(40,snowy(1),0). seq(40,snowy(0),1). seq(40,snowy(1),2). seq(40,snowy(0),3). seq(40,snowy(0),4). seq(40,snowy(0),5). seq(40,snowy(0),6). class(40,0).
+seq(40,sunny(0),0). seq(40,sunny(0),1). seq(40,sunny(0),2). seq(40,sunny(0),3). seq(40,sunny(0),4). seq(40,sunny(0),5). seq(40,sunny(1),6). class(40,0).
+seq(41,cloudy(0),0). seq(41,cloudy(0),1). seq(41,cloudy(1),2). seq(41,cloudy(0),3). seq(41,cloudy(0),4). seq(41,cloudy(0),5). seq(41,cloudy(0),6). class(41,0).
+seq(41,foggy(1),0). seq(41,foggy(1),1). seq(41,foggy(0),2). seq(41,foggy(1),3). seq(41,foggy(1),4). seq(41,foggy(1),5). seq(41,foggy(1),6). class(41,0).
+seq(41,rainy(0),0). seq(41,rainy(1),1). seq(41,rainy(0),2). seq(41,rainy(0),3). seq(41,rainy(1),4). seq(41,rainy(0),5). seq(41,rainy(1),6). class(41,0).
+seq(41,snowy(0),0). seq(41,snowy(0),1). seq(41,snowy(0),2). seq(41,snowy(0),3). seq(41,snowy(0),4). seq(41,snowy(1),5). seq(41,snowy(0),6). class(41,0).
+seq(41,sunny(0),0). seq(41,sunny(0),1). seq(41,sunny(0),2). seq(41,sunny(0),3). seq(41,sunny(0),4). seq(41,sunny(0),5). seq(41,sunny(0),6). class(41,0).
+seq(42,cloudy(0),0). seq(42,cloudy(1),1). seq(42,cloudy(0),2). seq(42,cloudy(0),3). class(42,1).
+seq(42,foggy(0),0). seq(42,foggy(0),1). seq(42,foggy(1),2). seq(42,foggy(1),3). class(42,1).
+seq(42,rainy(0),0). seq(42,rainy(0),1). seq(42,rainy(1),2). seq(42,rainy(1),3). class(42,1).
+seq(42,snowy(0),0). seq(42,snowy(0),1). seq(42,snowy(0),2). seq(42,snowy(1),3). class(42,1).
+seq(42,sunny(1),0). seq(42,sunny(0),1). seq(42,sunny(1),2). seq(42,sunny(0),3). class(42,1).
+seq(43,cloudy(0),0). seq(43,cloudy(0),1). seq(43,cloudy(0),2). seq(43,cloudy(0),3). seq(43,cloudy(0),4). seq(43,cloudy(1),5). class(43,1).
+seq(43,foggy(1),0). seq(43,foggy(1),1). seq(43,foggy(0),2). seq(43,foggy(1),3). seq(43,foggy(1),4). seq(43,foggy(0),5). class(43,1).
+seq(43,rainy(0),0). seq(43,rainy(0),1). seq(43,rainy(1),2). seq(43,rainy(0),3). seq(43,rainy(0),4). seq(43,rainy(0),5). class(43,1).
+seq(43,snowy(1),0). seq(43,snowy(0),1). seq(43,snowy(0),2). seq(43,snowy(0),3). seq(43,snowy(1),4). seq(43,snowy(0),5). class(43,1).
+seq(43,sunny(0),0). seq(43,sunny(0),1). seq(43,sunny(0),2). seq(43,sunny(1),3). seq(43,sunny(0),4). seq(43,sunny(0),5). class(43,1).
+seq(44,cloudy(0),0). seq(44,cloudy(0),1). seq(44,cloudy(1),2). seq(44,cloudy(0),3). seq(44,cloudy(0),4). seq(44,cloudy(0),5). seq(44,cloudy(1),6). seq(44,cloudy(0),7). seq(44,cloudy(1),8). class(44,0).
+seq(44,foggy(1),0). seq(44,foggy(1),1). seq(44,foggy(0),2). seq(44,foggy(1),3). seq(44,foggy(1),4). seq(44,foggy(1),5). seq(44,foggy(0),6). seq(44,foggy(1),7). seq(44,foggy(0),8). class(44,0).
+seq(44,rainy(0),0). seq(44,rainy(0),1). seq(44,rainy(0),2). seq(44,rainy(0),3). seq(44,rainy(0),4). seq(44,rainy(0),5). seq(44,rainy(0),6). seq(44,rainy(1),7). seq(44,rainy(0),8). class(44,0).
+seq(44,snowy(0),0). seq(44,snowy(1),1). seq(44,snowy(0),2). seq(44,snowy(0),3). seq(44,snowy(0),4). seq(44,snowy(0),5). seq(44,snowy(0),6). seq(44,snowy(0),7). seq(44,snowy(0),8). class(44,0).
+seq(44,sunny(0),0). seq(44,sunny(0),1). seq(44,sunny(0),2). seq(44,sunny(0),3). seq(44,sunny(1),4). seq(44,sunny(0),5). seq(44,sunny(0),6). seq(44,sunny(0),7). seq(44,sunny(0),8). class(44,0).
+seq(45,cloudy(0),0). seq(45,cloudy(0),1). seq(45,cloudy(1),2). seq(45,cloudy(0),3). seq(45,cloudy(1),4). seq(45,cloudy(0),5). seq(45,cloudy(0),6). seq(45,cloudy(0),7). class(45,1).
+seq(45,foggy(1),0). seq(45,foggy(1),1). seq(45,foggy(0),2). seq(45,foggy(0),3). seq(45,foggy(0),4). seq(45,foggy(1),5). seq(45,foggy(1),6). seq(45,foggy(0),7). class(45,1).
+seq(45,rainy(0),0). seq(45,rainy(0),1). seq(45,rainy(0),2). seq(45,rainy(1),3). seq(45,rainy(0),4). seq(45,rainy(0),5). seq(45,rainy(0),6). seq(45,rainy(0),7). class(45,1).
+seq(45,snowy(0),0). seq(45,snowy(0),1). seq(45,snowy(0),2). seq(45,snowy(0),3). seq(45,snowy(0),4). seq(45,snowy(0),5). seq(45,snowy(0),6). seq(45,snowy(1),7). class(45,1).
+seq(45,sunny(1),0). seq(45,sunny(0),1). seq(45,sunny(0),2). seq(45,sunny(0),3). seq(45,sunny(0),4). seq(45,sunny(1),5). seq(45,sunny(0),6). seq(45,sunny(0),7). class(45,1).
+seq(46,cloudy(0),0). seq(46,cloudy(0),1). seq(46,cloudy(1),2). seq(46,cloudy(0),3). seq(46,cloudy(0),4). seq(46,cloudy(0),5). class(46,1).
+seq(46,foggy(1),0). seq(46,foggy(1),1). seq(46,foggy(0),2). seq(46,foggy(1),3). seq(46,foggy(1),4). seq(46,foggy(1),5). class(46,1).
+seq(46,rainy(1),0). seq(46,rainy(1),1). seq(46,rainy(0),2). seq(46,rainy(0),3). seq(46,rainy(0),4). seq(46,rainy(0),5). class(46,1).
+seq(46,snowy(1),0). seq(46,snowy(0),1). seq(46,snowy(0),2). seq(46,snowy(0),3). seq(46,snowy(1),4). seq(46,snowy(0),5). class(46,1).
+seq(46,sunny(0),0). seq(46,sunny(0),1). seq(46,sunny(0),2). seq(46,sunny(0),3). seq(46,sunny(0),4). seq(46,sunny(1),5). class(46,1).
+seq(47,cloudy(1),0). seq(47,cloudy(0),1). seq(47,cloudy(0),2). seq(47,cloudy(1),3). seq(47,cloudy(0),4). seq(47,cloudy(0),5). seq(47,cloudy(0),6). seq(47,cloudy(0),7). class(47,1).
+seq(47,foggy(0),0). seq(47,foggy(1),1). seq(47,foggy(1),2). seq(47,foggy(0),3). seq(47,foggy(1),4). seq(47,foggy(1),5). seq(47,foggy(1),6). seq(47,foggy(1),7). class(47,1).
+seq(47,rainy(0),0). seq(47,rainy(1),1). seq(47,rainy(0),2). seq(47,rainy(0),3). seq(47,rainy(0),4). seq(47,rainy(1),5). seq(47,rainy(0),6). seq(47,rainy(0),7). class(47,1).
+seq(47,snowy(0),0). seq(47,snowy(0),1). seq(47,snowy(1),2). seq(47,snowy(0),3). seq(47,snowy(1),4). seq(47,snowy(1),5). seq(47,snowy(1),6). seq(47,snowy(1),7). class(47,1).
+seq(47,sunny(0),0). seq(47,sunny(0),1). seq(47,sunny(0),2). seq(47,sunny(0),3). seq(47,sunny(0),4). seq(47,sunny(0),5). seq(47,sunny(0),6). seq(47,sunny(0),7). class(47,1).
+seq(48,cloudy(0),0). seq(48,cloudy(1),1). seq(48,cloudy(0),2). seq(48,cloudy(0),3). seq(48,cloudy(0),4). seq(48,cloudy(0),5). seq(48,cloudy(0),6). seq(48,cloudy(0),7). class(48,0).
+seq(48,foggy(1),0). seq(48,foggy(0),1). seq(48,foggy(1),2). seq(48,foggy(1),3). seq(48,foggy(1),4). seq(48,foggy(0),5). seq(48,foggy(1),6). seq(48,foggy(1),7). class(48,0).
+seq(48,rainy(1),0). seq(48,rainy(0),1). seq(48,rainy(1),2). seq(48,rainy(0),3). seq(48,rainy(0),4). seq(48,rainy(0),5). seq(48,rainy(1),6). seq(48,rainy(1),7). class(48,0).
+seq(48,snowy(0),0). seq(48,snowy(0),1). seq(48,snowy(1),2). seq(48,snowy(1),3). seq(48,snowy(0),4). seq(48,snowy(1),5). seq(48,snowy(0),6). seq(48,snowy(0),7). class(48,0).
+seq(48,sunny(0),0). seq(48,sunny(0),1). seq(48,sunny(0),2). seq(48,sunny(0),3). seq(48,sunny(1),4). seq(48,sunny(0),5). seq(48,sunny(1),6). seq(48,sunny(1),7). class(48,0).
+seq(49,cloudy(0),0). seq(49,cloudy(1),1). seq(49,cloudy(0),2). seq(49,cloudy(0),3). seq(49,cloudy(1),4). seq(49,cloudy(1),5). seq(49,cloudy(1),6). seq(49,cloudy(0),7). seq(49,cloudy(1),8). class(49,0).
+seq(49,foggy(1),0). seq(49,foggy(0),1). seq(49,foggy(1),2). seq(49,foggy(1),3). seq(49,foggy(0),4). seq(49,foggy(0),5). seq(49,foggy(0),6). seq(49,foggy(0),7). seq(49,foggy(0),8). class(49,0).
+seq(49,rainy(1),0). seq(49,rainy(0),1). seq(49,rainy(0),2). seq(49,rainy(1),3). seq(49,rainy(0),4). seq(49,rainy(0),5). seq(49,rainy(0),6). seq(49,rainy(0),7). seq(49,rainy(0),8). class(49,0).
+seq(49,snowy(0),0). seq(49,snowy(0),1). seq(49,snowy(0),2). seq(49,snowy(0),3). seq(49,snowy(0),4). seq(49,snowy(0),5). seq(49,snowy(0),6). seq(49,snowy(1),7). seq(49,snowy(0),8). class(49,0).
+seq(49,sunny(0),0). seq(49,sunny(0),1). seq(49,sunny(0),2). seq(49,sunny(0),3). seq(49,sunny(0),4). seq(49,sunny(0),5). seq(49,sunny(0),6). seq(49,sunny(0),7). seq(49,sunny(0),8). class(49,0).
+seq(50,cloudy(0),0). seq(50,cloudy(0),1). seq(50,cloudy(0),2). seq(50,cloudy(0),3). seq(50,cloudy(0),4). seq(50,cloudy(0),5). seq(50,cloudy(0),6). class(50,1).
+seq(50,foggy(1),0). seq(50,foggy(1),1). seq(50,foggy(1),2). seq(50,foggy(1),3). seq(50,foggy(1),4). seq(50,foggy(1),5). seq(50,foggy(1),6). class(50,1).
+seq(50,rainy(0),0). seq(50,rainy(0),1). seq(50,rainy(1),2). seq(50,rainy(0),3). seq(50,rainy(1),4). seq(50,rainy(0),5). seq(50,rainy(0),6). class(50,1).
+seq(50,snowy(0),0). seq(50,snowy(0),1). seq(50,snowy(0),2). seq(50,snowy(0),3). seq(50,snowy(0),4). seq(50,snowy(0),5). seq(50,snowy(0),6). class(50,1).
+seq(50,sunny(0),0). seq(50,sunny(0),1). seq(50,sunny(0),2). seq(50,sunny(0),3). seq(50,sunny(0),4). seq(50,sunny(0),5). seq(50,sunny(0),6). class(50,1).
+seq(51,cloudy(0),0). seq(51,cloudy(0),1). seq(51,cloudy(0),2). seq(51,cloudy(0),3). seq(51,cloudy(1),4). seq(51,cloudy(1),5). seq(51,cloudy(1),6). seq(51,cloudy(0),7). class(51,1).
+seq(51,foggy(1),0). seq(51,foggy(1),1). seq(51,foggy(1),2). seq(51,foggy(1),3). seq(51,foggy(0),4). seq(51,foggy(0),5). seq(51,foggy(0),6). seq(51,foggy(1),7). class(51,1).
+seq(51,rainy(0),0). seq(51,rainy(0),1). seq(51,rainy(0),2). seq(51,rainy(0),3). seq(51,rainy(0),4). seq(51,rainy(0),5). seq(51,rainy(0),6). seq(51,rainy(0),7). class(51,1).
+seq(51,snowy(0),0). seq(51,snowy(0),1). seq(51,snowy(0),2). seq(51,snowy(0),3). seq(51,snowy(0),4). seq(51,snowy(0),5). seq(51,snowy(0),6). seq(51,snowy(0),7). class(51,1).
+seq(51,sunny(1),0). seq(51,sunny(0),1). seq(51,sunny(1),2). seq(51,sunny(0),3). seq(51,sunny(0),4). seq(51,sunny(0),5). seq(51,sunny(0),6). seq(51,sunny(0),7). class(51,1).
+seq(52,cloudy(0),0). seq(52,cloudy(0),1). seq(52,cloudy(0),2). seq(52,cloudy(1),3). seq(52,cloudy(0),4). seq(52,cloudy(0),5). seq(52,cloudy(1),6). seq(52,cloudy(0),7). class(52,0).
+seq(52,foggy(1),0). seq(52,foggy(1),1). seq(52,foggy(1),2). seq(52,foggy(0),3). seq(52,foggy(1),4). seq(52,foggy(1),5). seq(52,foggy(0),6). seq(52,foggy(1),7). class(52,0).
+seq(52,rainy(0),0). seq(52,rainy(0),1). seq(52,rainy(1),2). seq(52,rainy(0),3). seq(52,rainy(1),4). seq(52,rainy(1),5). seq(52,rainy(0),6). seq(52,rainy(0),7). class(52,0).
+seq(52,snowy(1),0). seq(52,snowy(1),1). seq(52,snowy(0),2). seq(52,snowy(0),3). seq(52,snowy(0),4). seq(52,snowy(0),5). seq(52,snowy(0),6). seq(52,snowy(1),7). class(52,0).
+seq(52,sunny(0),0). seq(52,sunny(0),1). seq(52,sunny(1),2). seq(52,sunny(0),3). seq(52,sunny(0),4). seq(52,sunny(0),5). seq(52,sunny(0),6). seq(52,sunny(0),7). class(52,0).
+seq(53,cloudy(0),0). seq(53,cloudy(0),1). seq(53,cloudy(0),2). seq(53,cloudy(0),3). seq(53,cloudy(0),4). seq(53,cloudy(0),5). class(53,1).
+seq(53,foggy(1),0). seq(53,foggy(1),1). seq(53,foggy(1),2). seq(53,foggy(0),3). seq(53,foggy(1),4). seq(53,foggy(1),5). class(53,1).
+seq(53,rainy(1),0). seq(53,rainy(0),1). seq(53,rainy(1),2). seq(53,rainy(0),3). seq(53,rainy(0),4). seq(53,rainy(0),5). class(53,1).
+seq(53,snowy(0),0). seq(53,snowy(0),1). seq(53,snowy(0),2). seq(53,snowy(1),3). seq(53,snowy(0),4). seq(53,snowy(1),5). class(53,1).
+seq(53,sunny(0),0). seq(53,sunny(0),1). seq(53,sunny(0),2). seq(53,sunny(0),3). seq(53,sunny(1),4). seq(53,sunny(0),5). class(53,1).
+seq(54,cloudy(0),0). seq(54,cloudy(1),1). seq(54,cloudy(1),2). seq(54,cloudy(0),3). seq(54,cloudy(0),4). class(54,1).
+seq(54,foggy(1),0). seq(54,foggy(0),1). seq(54,foggy(0),2). seq(54,foggy(1),3). seq(54,foggy(1),4). class(54,1).
+seq(54,rainy(1),0). seq(54,rainy(0),1). seq(54,rainy(0),2). seq(54,rainy(0),3). seq(54,rainy(1),4). class(54,1).
+seq(54,snowy(0),0). seq(54,snowy(0),1). seq(54,snowy(0),2). seq(54,snowy(1),3). seq(54,snowy(0),4). class(54,1).
+seq(54,sunny(0),0). seq(54,sunny(0),1). seq(54,sunny(0),2). seq(54,sunny(0),3). seq(54,sunny(0),4). class(54,1).
+seq(55,cloudy(1),0). seq(55,cloudy(0),1). seq(55,cloudy(0),2). seq(55,cloudy(0),3). class(55,0).
+seq(55,foggy(0),0). seq(55,foggy(1),1). seq(55,foggy(1),2). seq(55,foggy(1),3). class(55,0).
+seq(55,rainy(0),0). seq(55,rainy(0),1). seq(55,rainy(0),2). seq(55,rainy(1),3). class(55,0).
+seq(55,snowy(0),0). seq(55,snowy(0),1). seq(55,snowy(0),2). seq(55,snowy(0),3). class(55,0).
+seq(55,sunny(0),0). seq(55,sunny(0),1). seq(55,sunny(0),2). seq(55,sunny(0),3). class(55,0).
+seq(56,cloudy(0),0). seq(56,cloudy(1),1). seq(56,cloudy(1),2). seq(56,cloudy(0),3). seq(56,cloudy(0),4). seq(56,cloudy(1),5). seq(56,cloudy(1),6). class(56,1).
+seq(56,foggy(1),0). seq(56,foggy(0),1). seq(56,foggy(0),2). seq(56,foggy(1),3). seq(56,foggy(1),4). seq(56,foggy(0),5). seq(56,foggy(0),6). class(56,1).
+seq(56,rainy(1),0). seq(56,rainy(0),1). seq(56,rainy(0),2). seq(56,rainy(0),3). seq(56,rainy(1),4). seq(56,rainy(0),5). seq(56,rainy(0),6). class(56,1).
+seq(56,snowy(0),0). seq(56,snowy(0),1). seq(56,snowy(0),2). seq(56,snowy(1),3). seq(56,snowy(0),4). seq(56,snowy(1),5). seq(56,snowy(0),6). class(56,1).
+seq(56,sunny(0),0). seq(56,sunny(0),1). seq(56,sunny(0),2). seq(56,sunny(0),3). seq(56,sunny(0),4). seq(56,sunny(0),5). seq(56,sunny(0),6). class(56,1).
+seq(57,cloudy(1),0). seq(57,cloudy(0),1). seq(57,cloudy(0),2). seq(57,cloudy(0),3). seq(57,cloudy(0),4). seq(57,cloudy(0),5). seq(57,cloudy(0),6). class(57,0).
+seq(57,foggy(0),0). seq(57,foggy(1),1). seq(57,foggy(1),2). seq(57,foggy(1),3). seq(57,foggy(1),4). seq(57,foggy(1),5). seq(57,foggy(1),6). class(57,0).
+seq(57,rainy(0),0). seq(57,rainy(0),1). seq(57,rainy(1),2). seq(57,rainy(0),3). seq(57,rainy(1),4). seq(57,rainy(0),5). seq(57,rainy(1),6). class(57,0).
+seq(57,snowy(0),0). seq(57,snowy(1),1). seq(57,snowy(1),2). seq(57,snowy(0),3). seq(57,snowy(0),4). seq(57,snowy(0),5). seq(57,snowy(0),6). class(57,0).
+seq(57,sunny(0),0). seq(57,sunny(0),1). seq(57,sunny(0),2). seq(57,sunny(1),3). seq(57,sunny(0),4). seq(57,sunny(1),5). seq(57,sunny(1),6). class(57,0).
+seq(58,cloudy(0),0). seq(58,cloudy(0),1). seq(58,cloudy(0),2). seq(58,cloudy(0),3). seq(58,cloudy(1),4). seq(58,cloudy(1),5). class(58,1).
+seq(58,foggy(1),0). seq(58,foggy(1),1). seq(58,foggy(1),2). seq(58,foggy(1),3). seq(58,foggy(1),4). seq(58,foggy(0),5). class(58,1).
+seq(58,rainy(0),0). seq(58,rainy(1),1). seq(58,rainy(1),2). seq(58,rainy(0),3). seq(58,rainy(0),4). seq(58,rainy(0),5). class(58,1).
+seq(58,snowy(0),0). seq(58,snowy(1),1). seq(58,snowy(0),2). seq(58,snowy(0),3). seq(58,snowy(0),4). seq(58,snowy(0),5). class(58,1).
+seq(58,sunny(1),0). seq(58,sunny(0),1). seq(58,sunny(1),2). seq(58,sunny(0),3). seq(58,sunny(1),4). seq(58,sunny(0),5). class(58,1).
+seq(59,cloudy(0),0). seq(59,cloudy(0),1). seq(59,cloudy(0),2). seq(59,cloudy(0),3). class(59,1).
+seq(59,foggy(1),0). seq(59,foggy(0),1). seq(59,foggy(1),2). seq(59,foggy(1),3). class(59,1).
+seq(59,rainy(1),0). seq(59,rainy(0),1). seq(59,rainy(1),2). seq(59,rainy(0),3). class(59,1).
+seq(59,snowy(0),0). seq(59,snowy(1),1). seq(59,snowy(0),2). seq(59,snowy(0),3). class(59,1).
+seq(59,sunny(0),0). seq(59,sunny(0),1). seq(59,sunny(0),2). seq(59,sunny(0),3). class(59,1).
+seq(60,cloudy(0),0). seq(60,cloudy(0),1). seq(60,cloudy(0),2). seq(60,cloudy(0),3). seq(60,cloudy(1),4). seq(60,cloudy(1),5). class(60,0).
+seq(60,foggy(1),0). seq(60,foggy(1),1). seq(60,foggy(1),2). seq(60,foggy(1),3). seq(60,foggy(0),4). seq(60,foggy(0),5). class(60,0).
+seq(60,rainy(0),0). seq(60,rainy(0),1). seq(60,rainy(0),2). seq(60,rainy(0),3). seq(60,rainy(0),4). seq(60,rainy(0),5). class(60,0).
+seq(60,snowy(0),0). seq(60,snowy(0),1). seq(60,snowy(0),2). seq(60,snowy(0),3). seq(60,snowy(0),4). seq(60,snowy(0),5). class(60,0).
+seq(60,sunny(1),0). seq(60,sunny(0),1). seq(60,sunny(1),2). seq(60,sunny(0),3). seq(60,sunny(0),4). seq(60,sunny(0),5). class(60,0).
+seq(61,cloudy(1),0). seq(61,cloudy(1),1). seq(61,cloudy(0),2). seq(61,cloudy(0),3). seq(61,cloudy(1),4). seq(61,cloudy(0),5). seq(61,cloudy(0),6). class(61,0).
+seq(61,foggy(1),0). seq(61,foggy(0),1). seq(61,foggy(1),2). seq(61,foggy(1),3). seq(61,foggy(0),4). seq(61,foggy(1),5). seq(61,foggy(1),6). class(61,0).
+seq(61,rainy(0),0). seq(61,rainy(0),1). seq(61,rainy(0),2). seq(61,rainy(0),3). seq(61,rainy(0),4). seq(61,rainy(0),5). seq(61,rainy(0),6). class(61,0).
+seq(61,snowy(0),0). seq(61,snowy(0),1). seq(61,snowy(0),2). seq(61,snowy(1),3). seq(61,snowy(0),4). seq(61,snowy(1),5). seq(61,snowy(0),6). class(61,0).
+seq(61,sunny(0),0). seq(61,sunny(0),1). seq(61,sunny(1),2). seq(61,sunny(0),3). seq(61,sunny(0),4). seq(61,sunny(0),5). seq(61,sunny(1),6). class(61,0).
+seq(62,cloudy(0),0). seq(62,cloudy(0),1). seq(62,cloudy(0),2). seq(62,cloudy(1),3). seq(62,cloudy(0),4). seq(62,cloudy(0),5). seq(62,cloudy(1),6). seq(62,cloudy(0),7). class(62,0).
+seq(62,foggy(1),0). seq(62,foggy(1),1). seq(62,foggy(1),2). seq(62,foggy(0),3). seq(62,foggy(1),4). seq(62,foggy(1),5). seq(62,foggy(0),6). seq(62,foggy(1),7). class(62,0).
+seq(62,rainy(1),0). seq(62,rainy(0),1). seq(62,rainy(0),2). seq(62,rainy(0),3). seq(62,rainy(0),4). seq(62,rainy(0),5). seq(62,rainy(0),6). seq(62,rainy(1),7). class(62,0).
+seq(62,snowy(1),0). seq(62,snowy(0),1). seq(62,snowy(0),2). seq(62,snowy(0),3). seq(62,snowy(0),4). seq(62,snowy(0),5). seq(62,snowy(0),6). seq(62,snowy(0),7). class(62,0).
+seq(62,sunny(0),0). seq(62,sunny(0),1). seq(62,sunny(0),2). seq(62,sunny(0),3). seq(62,sunny(1),4). seq(62,sunny(0),5). seq(62,sunny(0),6). seq(62,sunny(0),7). class(62,0).
+seq(63,cloudy(0),0). seq(63,cloudy(0),1). seq(63,cloudy(1),2). seq(63,cloudy(0),3). seq(63,cloudy(0),4). seq(63,cloudy(0),5). seq(63,cloudy(0),6). seq(63,cloudy(0),7). class(63,1).
+seq(63,foggy(1),0). seq(63,foggy(1),1). seq(63,foggy(1),2). seq(63,foggy(1),3). seq(63,foggy(1),4). seq(63,foggy(1),5). seq(63,foggy(1),6). seq(63,foggy(1),7). class(63,1).
+seq(63,rainy(0),0). seq(63,rainy(0),1). seq(63,rainy(0),2). seq(63,rainy(0),3). seq(63,rainy(1),4). seq(63,rainy(0),5). seq(63,rainy(0),6). seq(63,rainy(1),7). class(63,1).
+seq(63,snowy(0),0). seq(63,snowy(1),1). seq(63,snowy(0),2). seq(63,snowy(0),3). seq(63,snowy(1),4). seq(63,snowy(1),5). seq(63,snowy(0),6). seq(63,snowy(0),7). class(63,1).
+seq(63,sunny(1),0). seq(63,sunny(0),1). seq(63,sunny(0),2). seq(63,sunny(1),3). seq(63,sunny(0),4). seq(63,sunny(0),5). seq(63,sunny(0),6). seq(63,sunny(0),7). class(63,1).
+seq(64,cloudy(0),0). seq(64,cloudy(0),1). seq(64,cloudy(0),2). seq(64,cloudy(1),3). seq(64,cloudy(0),4). seq(64,cloudy(1),5). seq(64,cloudy(0),6). seq(64,cloudy(0),7). seq(64,cloudy(0),8). class(64,1).
+seq(64,foggy(1),0). seq(64,foggy(1),1). seq(64,foggy(1),2). seq(64,foggy(0),3). seq(64,foggy(1),4). seq(64,foggy(0),5). seq(64,foggy(1),6). seq(64,foggy(1),7). seq(64,foggy(1),8). class(64,1).
+seq(64,rainy(0),0). seq(64,rainy(1),1). seq(64,rainy(1),2). seq(64,rainy(1),3). seq(64,rainy(0),4). seq(64,rainy(0),5). seq(64,rainy(0),6). seq(64,rainy(1),7). seq(64,rainy(0),8). class(64,1).
+seq(64,snowy(0),0). seq(64,snowy(0),1). seq(64,snowy(0),2). seq(64,snowy(0),3). seq(64,snowy(0),4). seq(64,snowy(0),5). seq(64,snowy(0),6). seq(64,snowy(0),7). seq(64,snowy(1),8). class(64,1).
+seq(64,sunny(1),0). seq(64,sunny(0),1). seq(64,sunny(1),2). seq(64,sunny(0),3). seq(64,sunny(0),4). seq(64,sunny(0),5). seq(64,sunny(0),6). seq(64,sunny(1),7). seq(64,sunny(0),8). class(64,1).
+seq(65,cloudy(0),0). seq(65,cloudy(1),1). seq(65,cloudy(1),2). class(65,0).
+seq(65,foggy(1),0). seq(65,foggy(0),1). seq(65,foggy(1),2). class(65,0).
+seq(65,rainy(0),0). seq(65,rainy(0),1). seq(65,rainy(0),2). class(65,0).
+seq(65,snowy(0),0). seq(65,snowy(0),1). seq(65,snowy(0),2). class(65,0).
+seq(65,sunny(0),0). seq(65,sunny(0),1). seq(65,sunny(0),2). class(65,0).
+seq(66,cloudy(0),0). seq(66,cloudy(0),1). seq(66,cloudy(0),2). seq(66,cloudy(0),3). seq(66,cloudy(1),4). seq(66,cloudy(0),5). seq(66,cloudy(0),6). seq(66,cloudy(0),7). class(66,1).
+seq(66,foggy(1),0). seq(66,foggy(0),1). seq(66,foggy(1),2). seq(66,foggy(1),3). seq(66,foggy(0),4). seq(66,foggy(0),5). seq(66,foggy(1),6). seq(66,foggy(1),7). class(66,1).
+seq(66,rainy(1),0). seq(66,rainy(1),1). seq(66,rainy(0),2). seq(66,rainy(0),3). seq(66,rainy(0),4). seq(66,rainy(0),5). seq(66,rainy(0),6). seq(66,rainy(0),7). class(66,1).
+seq(66,snowy(0),0). seq(66,snowy(0),1). seq(66,snowy(0),2). seq(66,snowy(0),3). seq(66,snowy(0),4). seq(66,snowy(1),5). seq(66,snowy(1),6). seq(66,snowy(0),7). class(66,1).
+seq(66,sunny(1),0). seq(66,sunny(0),1). seq(66,sunny(1),2). seq(66,sunny(0),3). seq(66,sunny(0),4). seq(66,sunny(0),5). seq(66,sunny(0),6). seq(66,sunny(0),7). class(66,1).
+seq(67,cloudy(1),0). seq(67,cloudy(0),1). seq(67,cloudy(1),2). class(67,1).
+seq(67,foggy(0),0). seq(67,foggy(1),1). seq(67,foggy(0),2). class(67,1).
+seq(67,rainy(0),0). seq(67,rainy(0),1). seq(67,rainy(0),2). class(67,1).
+seq(67,snowy(0),0). seq(67,snowy(0),1). seq(67,snowy(1),2). class(67,1).
+seq(67,sunny(0),0). seq(67,sunny(1),1). seq(67,sunny(0),2). class(67,1).
+seq(68,cloudy(1),0). seq(68,cloudy(0),1). seq(68,cloudy(0),2). seq(68,cloudy(1),3). class(68,0).
+seq(68,foggy(1),0). seq(68,foggy(1),1). seq(68,foggy(1),2). seq(68,foggy(0),3). class(68,0).
+seq(68,rainy(0),0). seq(68,rainy(0),1). seq(68,rainy(0),2). seq(68,rainy(0),3). class(68,0).
+seq(68,snowy(0),0). seq(68,snowy(0),1). seq(68,snowy(0),2). seq(68,snowy(0),3). class(68,0).
+seq(68,sunny(0),0). seq(68,sunny(1),1). seq(68,sunny(1),2). seq(68,sunny(0),3). class(68,0).
+seq(69,cloudy(0),0). seq(69,cloudy(0),1). seq(69,cloudy(1),2). seq(69,cloudy(1),3). seq(69,cloudy(1),4). seq(69,cloudy(0),5). seq(69,cloudy(1),6). seq(69,cloudy(0),7). class(69,0).
+seq(69,foggy(1),0). seq(69,foggy(1),1). seq(69,foggy(0),2). seq(69,foggy(0),3). seq(69,foggy(0),4). seq(69,foggy(1),5). seq(69,foggy(0),6). seq(69,foggy(1),7). class(69,0).
+seq(69,rainy(1),0). seq(69,rainy(0),1). seq(69,rainy(0),2). seq(69,rainy(0),3). seq(69,rainy(0),4). seq(69,rainy(0),5). seq(69,rainy(0),6). seq(69,rainy(0),7). class(69,0).
+seq(69,snowy(0),0). seq(69,snowy(1),1). seq(69,snowy(0),2). seq(69,snowy(0),3). seq(69,snowy(0),4). seq(69,snowy(1),5). seq(69,snowy(0),6). seq(69,snowy(0),7). class(69,0).
+seq(69,sunny(0),0). seq(69,sunny(0),1). seq(69,sunny(0),2). seq(69,sunny(0),3). seq(69,sunny(0),4). seq(69,sunny(0),5). seq(69,sunny(0),6). seq(69,sunny(1),7). class(69,0).
+seq(70,cloudy(1),0). seq(70,cloudy(1),1). seq(70,cloudy(0),2). seq(70,cloudy(0),3). seq(70,cloudy(0),4). class(70,0).
+seq(70,foggy(0),0). seq(70,foggy(0),1). seq(70,foggy(1),2). seq(70,foggy(1),3). seq(70,foggy(1),4). class(70,0).
+seq(70,rainy(0),0). seq(70,rainy(0),1). seq(70,rainy(1),2). seq(70,rainy(1),3). seq(70,rainy(0),4). class(70,0).
+seq(70,snowy(0),0). seq(70,snowy(0),1). seq(70,snowy(0),2). seq(70,snowy(0),3). seq(70,snowy(0),4). class(70,0).
+seq(70,sunny(0),0). seq(70,sunny(0),1). seq(70,sunny(0),2). seq(70,sunny(0),3). seq(70,sunny(0),4). class(70,0).
+seq(71,cloudy(0),0). seq(71,cloudy(0),1). seq(71,cloudy(0),2). class(71,1).
+seq(71,foggy(1),0). seq(71,foggy(1),1). seq(71,foggy(1),2). class(71,1).
+seq(71,rainy(0),0). seq(71,rainy(1),1). seq(71,rainy(0),2). class(71,1).
+seq(71,snowy(0),0). seq(71,snowy(0),1). seq(71,snowy(0),2). class(71,1).
+seq(71,sunny(1),0). seq(71,sunny(1),1). seq(71,sunny(1),2). class(71,1).
+seq(72,cloudy(0),0). seq(72,cloudy(0),1). seq(72,cloudy(0),2). seq(72,cloudy(0),3). seq(72,cloudy(0),4). class(72,0).
+seq(72,foggy(0),0). seq(72,foggy(1),1). seq(72,foggy(0),2). seq(72,foggy(1),3). seq(72,foggy(1),4). class(72,0).
+seq(72,rainy(0),0). seq(72,rainy(1),1). seq(72,rainy(1),2). seq(72,rainy(1),3). seq(72,rainy(1),4). class(72,0).
+seq(72,snowy(1),0). seq(72,snowy(0),1). seq(72,snowy(0),2). seq(72,snowy(0),3). seq(72,snowy(0),4). class(72,0).
+seq(72,sunny(0),0). seq(72,sunny(0),1). seq(72,sunny(0),2). seq(72,sunny(1),3). seq(72,sunny(0),4). class(72,0).
+seq(73,cloudy(0),0). seq(73,cloudy(0),1). seq(73,cloudy(0),2). seq(73,cloudy(0),3). seq(73,cloudy(0),4). class(73,1).
+seq(73,foggy(1),0). seq(73,foggy(1),1). seq(73,foggy(1),2). seq(73,foggy(1),3). seq(73,foggy(1),4). class(73,1).
+seq(73,rainy(1),0). seq(73,rainy(0),1). seq(73,rainy(1),2). seq(73,rainy(0),3). seq(73,rainy(0),4). class(73,1).
+seq(73,snowy(0),0). seq(73,snowy(1),1). seq(73,snowy(0),2). seq(73,snowy(0),3). seq(73,snowy(1),4). class(73,1).
+seq(73,sunny(0),0). seq(73,sunny(0),1). seq(73,sunny(0),2). seq(73,sunny(0),3). seq(73,sunny(0),4). class(73,1).
+seq(74,cloudy(0),0). seq(74,cloudy(1),1). seq(74,cloudy(1),2). seq(74,cloudy(0),3). seq(74,cloudy(0),4). class(74,0).
+seq(74,foggy(1),0). seq(74,foggy(0),1). seq(74,foggy(0),2). seq(74,foggy(1),3). seq(74,foggy(1),4). class(74,0).
+seq(74,rainy(0),0). seq(74,rainy(0),1). seq(74,rainy(1),2). seq(74,rainy(0),3). seq(74,rainy(0),4). class(74,0).
+seq(74,snowy(0),0). seq(74,snowy(0),1). seq(74,snowy(0),2). seq(74,snowy(0),3). seq(74,snowy(0),4). class(74,0).
+seq(74,sunny(0),0). seq(74,sunny(0),1). seq(74,sunny(0),2). seq(74,sunny(0),3). seq(74,sunny(0),4). class(74,0).
+seq(75,cloudy(1),0). seq(75,cloudy(1),1). seq(75,cloudy(0),2). seq(75,cloudy(0),3). class(75,1).
+seq(75,foggy(0),0). seq(75,foggy(0),1). seq(75,foggy(1),2). seq(75,foggy(1),3). class(75,1).
+seq(75,rainy(1),0). seq(75,rainy(0),1). seq(75,rainy(1),2). seq(75,rainy(0),3). class(75,1).
+seq(75,snowy(0),0). seq(75,snowy(0),1). seq(75,snowy(0),2). seq(75,snowy(0),3). class(75,1).
+seq(75,sunny(0),0). seq(75,sunny(0),1). seq(75,sunny(0),2). seq(75,sunny(0),3). class(75,1).
+seq(76,cloudy(0),0). seq(76,cloudy(0),1). seq(76,cloudy(0),2). seq(76,cloudy(0),3). seq(76,cloudy(0),4). seq(76,cloudy(0),5). seq(76,cloudy(0),6). seq(76,cloudy(1),7). class(76,1).
+seq(76,foggy(1),0). seq(76,foggy(1),1). seq(76,foggy(1),2). seq(76,foggy(1),3). seq(76,foggy(1),4). seq(76,foggy(1),5). seq(76,foggy(1),6). seq(76,foggy(0),7). class(76,1).
+seq(76,rainy(0),0). seq(76,rainy(0),1). seq(76,rainy(0),2). seq(76,rainy(0),3). seq(76,rainy(0),4). seq(76,rainy(1),5). seq(76,rainy(1),6). seq(76,rainy(0),7). class(76,1).
+seq(76,snowy(0),0). seq(76,snowy(1),1). seq(76,snowy(0),2). seq(76,snowy(0),3). seq(76,snowy(1),4). seq(76,snowy(0),5). seq(76,snowy(0),6). seq(76,snowy(0),7). class(76,1).
+seq(76,sunny(0),0). seq(76,sunny(0),1). seq(76,sunny(0),2). seq(76,sunny(0),3). seq(76,sunny(0),4). seq(76,sunny(0),5). seq(76,sunny(0),6). seq(76,sunny(0),7). class(76,1).
+seq(77,cloudy(0),0). seq(77,cloudy(0),1). seq(77,cloudy(0),2). seq(77,cloudy(0),3). seq(77,cloudy(0),4). seq(77,cloudy(1),5). seq(77,cloudy(1),6). seq(77,cloudy(0),7). class(77,1).
+seq(77,foggy(1),0). seq(77,foggy(1),1). seq(77,foggy(0),2). seq(77,foggy(1),3). seq(77,foggy(1),4). seq(77,foggy(0),5). seq(77,foggy(0),6). seq(77,foggy(1),7). class(77,1).
+seq(77,rainy(0),0). seq(77,rainy(0),1). seq(77,rainy(0),2). seq(77,rainy(0),3). seq(77,rainy(0),4). seq(77,rainy(0),5). seq(77,rainy(0),6). seq(77,rainy(1),7). class(77,1).
+seq(77,snowy(0),0). seq(77,snowy(1),1). seq(77,snowy(1),2). seq(77,snowy(1),3). seq(77,snowy(0),4). seq(77,snowy(0),5). seq(77,snowy(0),6). seq(77,snowy(1),7). class(77,1).
+seq(77,sunny(0),0). seq(77,sunny(0),1). seq(77,sunny(0),2). seq(77,sunny(0),3). seq(77,sunny(0),4). seq(77,sunny(0),5). seq(77,sunny(0),6). seq(77,sunny(0),7). class(77,1).
+seq(78,cloudy(0),0). seq(78,cloudy(0),1). seq(78,cloudy(0),2). seq(78,cloudy(0),3). seq(78,cloudy(0),4). class(78,0).
+seq(78,foggy(1),0). seq(78,foggy(1),1). seq(78,foggy(1),2). seq(78,foggy(1),3). seq(78,foggy(0),4). class(78,0).
+seq(78,rainy(1),0). seq(78,rainy(0),1). seq(78,rainy(0),2). seq(78,rainy(0),3). seq(78,rainy(0),4). class(78,0).
+seq(78,snowy(0),0). seq(78,snowy(0),1). seq(78,snowy(0),2). seq(78,snowy(0),3). seq(78,snowy(1),4). class(78,0).
+seq(78,sunny(0),0). seq(78,sunny(0),1). seq(78,sunny(0),2). seq(78,sunny(0),3). seq(78,sunny(0),4). class(78,0).
+seq(79,cloudy(1),0). seq(79,cloudy(0),1). seq(79,cloudy(0),2). seq(79,cloudy(1),3). seq(79,cloudy(0),4). seq(79,cloudy(0),5). seq(79,cloudy(0),6). class(79,0).
+seq(79,foggy(0),0). seq(79,foggy(1),1). seq(79,foggy(1),2). seq(79,foggy(0),3). seq(79,foggy(1),4). seq(79,foggy(1),5). seq(79,foggy(1),6). class(79,0).
+seq(79,rainy(0),0). seq(79,rainy(0),1). seq(79,rainy(0),2). seq(79,rainy(0),3). seq(79,rainy(0),4). seq(79,rainy(0),5). seq(79,rainy(1),6). class(79,0).
+seq(79,snowy(0),0). seq(79,snowy(0),1). seq(79,snowy(0),2). seq(79,snowy(0),3). seq(79,snowy(0),4). seq(79,snowy(0),5). seq(79,snowy(0),6). class(79,0).
+seq(79,sunny(0),0). seq(79,sunny(1),1). seq(79,sunny(0),2). seq(79,sunny(0),3). seq(79,sunny(1),4). seq(79,sunny(0),5). seq(79,sunny(1),6). class(79,0).
+seq(80,cloudy(0),0). seq(80,cloudy(0),1). seq(80,cloudy(1),2). seq(80,cloudy(0),3). seq(80,cloudy(0),4). seq(80,cloudy(0),5). class(80,1).
+seq(80,foggy(1),0). seq(80,foggy(1),1). seq(80,foggy(0),2). seq(80,foggy(1),3). seq(80,foggy(1),4). seq(80,foggy(1),5). class(80,1).
+seq(80,rainy(0),0). seq(80,rainy(1),1). seq(80,rainy(0),2). seq(80,rainy(1),3). seq(80,rainy(0),4). seq(80,rainy(0),5). class(80,1).
+seq(80,snowy(0),0). seq(80,snowy(0),1). seq(80,snowy(0),2). seq(80,snowy(1),3). seq(80,snowy(0),4). seq(80,snowy(0),5). class(80,1).
+seq(80,sunny(1),0). seq(80,sunny(1),1). seq(80,sunny(0),2). seq(80,sunny(0),3). seq(80,sunny(1),4). seq(80,sunny(0),5). class(80,1).
+seq(81,cloudy(0),0). seq(81,cloudy(0),1). seq(81,cloudy(0),2). seq(81,cloudy(1),3). seq(81,cloudy(0),4). seq(81,cloudy(1),5). class(81,1).
+seq(81,foggy(1),0). seq(81,foggy(0),1). seq(81,foggy(1),2). seq(81,foggy(0),3). seq(81,foggy(1),4). seq(81,foggy(0),5). class(81,1).
+seq(81,rainy(0),0). seq(81,rainy(1),1). seq(81,rainy(0),2). seq(81,rainy(0),3). seq(81,rainy(0),4). seq(81,rainy(0),5). class(81,1).
+seq(81,snowy(1),0). seq(81,snowy(0),1). seq(81,snowy(0),2). seq(81,snowy(0),3). seq(81,snowy(0),4). seq(81,snowy(0),5). class(81,1).
+seq(81,sunny(0),0). seq(81,sunny(0),1). seq(81,sunny(0),2). seq(81,sunny(0),3). seq(81,sunny(0),4). seq(81,sunny(0),5). class(81,1).
+seq(82,cloudy(1),0). seq(82,cloudy(0),1). seq(82,cloudy(0),2). class(82,0).
+seq(82,foggy(0),0). seq(82,foggy(1),1). seq(82,foggy(1),2). class(82,0).
+seq(82,rainy(0),0). seq(82,rainy(1),1). seq(82,rainy(0),2). class(82,0).
+seq(82,snowy(0),0). seq(82,snowy(0),1). seq(82,snowy(0),2). class(82,0).
+seq(82,sunny(0),0). seq(82,sunny(0),1). seq(82,sunny(0),2). class(82,0).
+seq(83,cloudy(0),0). seq(83,cloudy(1),1). seq(83,cloudy(0),2). seq(83,cloudy(0),3). seq(83,cloudy(0),4). seq(83,cloudy(0),5). class(83,1).
+seq(83,foggy(1),0). seq(83,foggy(0),1). seq(83,foggy(1),2). seq(83,foggy(1),3). seq(83,foggy(1),4). seq(83,foggy(0),5). class(83,1).
+seq(83,rainy(1),0). seq(83,rainy(0),1). seq(83,rainy(1),2). seq(83,rainy(0),3). seq(83,rainy(0),4). seq(83,rainy(0),5). class(83,1).
+seq(83,snowy(0),0). seq(83,snowy(0),1). seq(83,snowy(0),2). seq(83,snowy(0),3). seq(83,snowy(1),4). seq(83,snowy(0),5). class(83,1).
+seq(83,sunny(0),0). seq(83,sunny(0),1). seq(83,sunny(1),2). seq(83,sunny(0),3). seq(83,sunny(0),4). seq(83,sunny(1),5). class(83,1).
+seq(84,cloudy(0),0). seq(84,cloudy(0),1). seq(84,cloudy(0),2). seq(84,cloudy(0),3). seq(84,cloudy(1),4). seq(84,cloudy(0),5). class(84,1).
+seq(84,foggy(1),0). seq(84,foggy(1),1). seq(84,foggy(1),2). seq(84,foggy(1),3). seq(84,foggy(0),4). seq(84,foggy(1),5). class(84,1).
+seq(84,rainy(0),0). seq(84,rainy(1),1). seq(84,rainy(0),2). seq(84,rainy(0),3). seq(84,rainy(0),4). seq(84,rainy(0),5). class(84,1).
+seq(84,snowy(0),0). seq(84,snowy(0),1). seq(84,snowy(1),2). seq(84,snowy(0),3). seq(84,snowy(0),4). seq(84,snowy(1),5). class(84,1).
+seq(84,sunny(0),0). seq(84,sunny(0),1). seq(84,sunny(0),2). seq(84,sunny(0),3). seq(84,sunny(0),4). seq(84,sunny(0),5). class(84,1).
+seq(85,cloudy(1),0). seq(85,cloudy(1),1). seq(85,cloudy(0),2). seq(85,cloudy(1),3). seq(85,cloudy(1),4). seq(85,cloudy(0),5). class(85,1).
+seq(85,foggy(1),0). seq(85,foggy(0),1). seq(85,foggy(1),2). seq(85,foggy(0),3). seq(85,foggy(0),4). seq(85,foggy(1),5). class(85,1).
+seq(85,rainy(0),0). seq(85,rainy(0),1). seq(85,rainy(1),2). seq(85,rainy(0),3). seq(85,rainy(0),4). seq(85,rainy(1),5). class(85,1).
+seq(85,snowy(0),0). seq(85,snowy(0),1). seq(85,snowy(0),2). seq(85,snowy(0),3). seq(85,snowy(0),4). seq(85,snowy(0),5). class(85,1).
+seq(85,sunny(0),0). seq(85,sunny(0),1). seq(85,sunny(0),2). seq(85,sunny(0),3). seq(85,sunny(0),4). seq(85,sunny(1),5). class(85,1).
+seq(86,cloudy(0),0). seq(86,cloudy(1),1). seq(86,cloudy(1),2). seq(86,cloudy(0),3). seq(86,cloudy(0),4). seq(86,cloudy(0),5). seq(86,cloudy(0),6). seq(86,cloudy(0),7). seq(86,cloudy(0),8). class(86,0).
+seq(86,foggy(1),0). seq(86,foggy(1),1). seq(86,foggy(0),2). seq(86,foggy(1),3). seq(86,foggy(1),4). seq(86,foggy(1),5). seq(86,foggy(1),6). seq(86,foggy(1),7). seq(86,foggy(1),8). class(86,0).
+seq(86,rainy(1),0). seq(86,rainy(0),1). seq(86,rainy(0),2). seq(86,rainy(0),3). seq(86,rainy(0),4). seq(86,rainy(1),5). seq(86,rainy(0),6). seq(86,rainy(0),7). seq(86,rainy(0),8). class(86,0).
+seq(86,snowy(0),0). seq(86,snowy(0),1). seq(86,snowy(0),2). seq(86,snowy(0),3). seq(86,snowy(1),4). seq(86,snowy(0),5). seq(86,snowy(0),6). seq(86,snowy(1),7). seq(86,snowy(0),8). class(86,0).
+seq(86,sunny(0),0). seq(86,sunny(0),1). seq(86,sunny(0),2). seq(86,sunny(1),3). seq(86,sunny(0),4). seq(86,sunny(1),5). seq(86,sunny(0),6). seq(86,sunny(0),7). seq(86,sunny(1),8). class(86,0).
+seq(87,cloudy(0),0). seq(87,cloudy(0),1). seq(87,cloudy(0),2). seq(87,cloudy(0),3). seq(87,cloudy(0),4). seq(87,cloudy(0),5). class(87,1).
+seq(87,foggy(1),0). seq(87,foggy(1),1). seq(87,foggy(1),2). seq(87,foggy(1),3). seq(87,foggy(1),4). seq(87,foggy(1),5). class(87,1).
+seq(87,rainy(1),0). seq(87,rainy(1),1). seq(87,rainy(0),2). seq(87,rainy(0),3). seq(87,rainy(0),4). seq(87,rainy(1),5). class(87,1).
+seq(87,snowy(0),0). seq(87,snowy(0),1). seq(87,snowy(0),2). seq(87,snowy(1),3). seq(87,snowy(0),4). seq(87,snowy(0),5). class(87,1).
+seq(87,sunny(1),0). seq(87,sunny(0),1). seq(87,sunny(0),2). seq(87,sunny(0),3). seq(87,sunny(0),4). seq(87,sunny(0),5). class(87,1).
+seq(88,cloudy(0),0). seq(88,cloudy(0),1). seq(88,cloudy(0),2). seq(88,cloudy(0),3). class(88,1).
+seq(88,foggy(1),0). seq(88,foggy(1),1). seq(88,foggy(1),2). seq(88,foggy(1),3). class(88,1).
+seq(88,rainy(0),0). seq(88,rainy(0),1). seq(88,rainy(1),2). seq(88,rainy(0),3). class(88,1).
+seq(88,snowy(0),0). seq(88,snowy(1),1). seq(88,snowy(1),2). seq(88,snowy(0),3). class(88,1).
+seq(88,sunny(0),0). seq(88,sunny(0),1). seq(88,sunny(0),2). seq(88,sunny(0),3). class(88,1).
+seq(89,cloudy(0),0). seq(89,cloudy(1),1). seq(89,cloudy(0),2). class(89,1).
+seq(89,foggy(1),0). seq(89,foggy(0),1). seq(89,foggy(1),2). class(89,1).
+seq(89,rainy(0),0). seq(89,rainy(0),1). seq(89,rainy(1),2). class(89,1).
+seq(89,snowy(0),0). seq(89,snowy(0),1). seq(89,snowy(0),2). class(89,1).
+seq(89,sunny(0),0). seq(89,sunny(0),1). seq(89,sunny(0),2). class(89,1).
+seq(90,cloudy(0),0). seq(90,cloudy(1),1). seq(90,cloudy(0),2). seq(90,cloudy(1),3). seq(90,cloudy(0),4). class(90,1).
+seq(90,foggy(1),0). seq(90,foggy(0),1). seq(90,foggy(1),2). seq(90,foggy(0),3). seq(90,foggy(1),4). class(90,1).
+seq(90,rainy(1),0). seq(90,rainy(1),1). seq(90,rainy(0),2). seq(90,rainy(0),3). seq(90,rainy(0),4). class(90,1).
+seq(90,snowy(0),0). seq(90,snowy(0),1). seq(90,snowy(0),2). seq(90,snowy(0),3). seq(90,snowy(0),4). class(90,1).
+seq(90,sunny(0),0). seq(90,sunny(0),1). seq(90,sunny(0),2). seq(90,sunny(0),3). seq(90,sunny(0),4). class(90,1).
+seq(91,cloudy(0),0). seq(91,cloudy(1),1). seq(91,cloudy(0),2). seq(91,cloudy(1),3). seq(91,cloudy(1),4). class(91,1).
+seq(91,foggy(1),0). seq(91,foggy(0),1). seq(91,foggy(1),2). seq(91,foggy(0),3). seq(91,foggy(0),4). class(91,1).
+seq(91,rainy(0),0). seq(91,rainy(0),1). seq(91,rainy(1),2). seq(91,rainy(0),3). seq(91,rainy(0),4). class(91,1).
+seq(91,snowy(1),0). seq(91,snowy(0),1). seq(91,snowy(0),2). seq(91,snowy(0),3). seq(91,snowy(0),4). class(91,1).
+seq(91,sunny(0),0). seq(91,sunny(0),1). seq(91,sunny(0),2). seq(91,sunny(0),3). seq(91,sunny(0),4). class(91,1).
+seq(92,cloudy(1),0). seq(92,cloudy(0),1). seq(92,cloudy(0),2). seq(92,cloudy(0),3). seq(92,cloudy(0),4). seq(92,cloudy(1),5). seq(92,cloudy(0),6). seq(92,cloudy(1),7). seq(92,cloudy(1),8). class(92,0).
+seq(92,foggy(0),0). seq(92,foggy(1),1). seq(92,foggy(1),2). seq(92,foggy(1),3). seq(92,foggy(1),4). seq(92,foggy(0),5). seq(92,foggy(0),6). seq(92,foggy(0),7). seq(92,foggy(0),8). class(92,0).
+seq(92,rainy(0),0). seq(92,rainy(0),1). seq(92,rainy(0),2). seq(92,rainy(0),3). seq(92,rainy(1),4). seq(92,rainy(0),5). seq(92,rainy(0),6). seq(92,rainy(0),7). seq(92,rainy(0),8). class(92,0).
+seq(92,snowy(0),0). seq(92,snowy(1),1). seq(92,snowy(0),2). seq(92,snowy(0),3). seq(92,snowy(0),4). seq(92,snowy(0),5). seq(92,snowy(1),6). seq(92,snowy(0),7). seq(92,snowy(0),8). class(92,0).
+seq(92,sunny(0),0). seq(92,sunny(0),1). seq(92,sunny(1),2). seq(92,sunny(0),3). seq(92,sunny(1),4). seq(92,sunny(0),5). seq(92,sunny(0),6). seq(92,sunny(0),7). seq(92,sunny(0),8). class(92,0).
+seq(93,cloudy(1),0). seq(93,cloudy(0),1). seq(93,cloudy(0),2). seq(93,cloudy(0),3). seq(93,cloudy(0),4). seq(93,cloudy(0),5). class(93,0).
+seq(93,foggy(0),0). seq(93,foggy(1),1). seq(93,foggy(0),2). seq(93,foggy(1),3). seq(93,foggy(1),4). seq(93,foggy(1),5). class(93,0).
+seq(93,rainy(0),0). seq(93,rainy(0),1). seq(93,rainy(1),2). seq(93,rainy(0),3). seq(93,rainy(0),4). seq(93,rainy(0),5). class(93,0).
+seq(93,snowy(0),0). seq(93,snowy(1),1). seq(93,snowy(0),2). seq(93,snowy(0),3). seq(93,snowy(0),4). seq(93,snowy(1),5). class(93,0).
+seq(93,sunny(0),0). seq(93,sunny(0),1). seq(93,sunny(1),2). seq(93,sunny(1),3). seq(93,sunny(0),4). seq(93,sunny(0),5). class(93,0).
+seq(94,cloudy(0),0). seq(94,cloudy(0),1). seq(94,cloudy(0),2). seq(94,cloudy(1),3). seq(94,cloudy(0),4). seq(94,cloudy(0),5). seq(94,cloudy(0),6). class(94,1).
+seq(94,foggy(1),0). seq(94,foggy(1),1). seq(94,foggy(0),2). seq(94,foggy(0),3). seq(94,foggy(1),4). seq(94,foggy(1),5). seq(94,foggy(1),6). class(94,1).
+seq(94,rainy(0),0). seq(94,rainy(0),1). seq(94,rainy(0),2). seq(94,rainy(0),3). seq(94,rainy(0),4). seq(94,rainy(0),5). seq(94,rainy(1),6). class(94,1).
+seq(94,snowy(0),0). seq(94,snowy(1),1). seq(94,snowy(1),2). seq(94,snowy(0),3). seq(94,snowy(0),4). seq(94,snowy(1),5). seq(94,snowy(0),6). class(94,1).
+seq(94,sunny(0),0). seq(94,sunny(0),1). seq(94,sunny(0),2). seq(94,sunny(0),3). seq(94,sunny(0),4). seq(94,sunny(0),5). seq(94,sunny(0),6). class(94,1).
+seq(95,cloudy(0),0). seq(95,cloudy(0),1). seq(95,cloudy(1),2). seq(95,cloudy(0),3). class(95,1).
+seq(95,foggy(1),0). seq(95,foggy(1),1). seq(95,foggy(0),2). seq(95,foggy(1),3). class(95,1).
+seq(95,rainy(0),0). seq(95,rainy(0),1). seq(95,rainy(0),2). seq(95,rainy(0),3). class(95,1).
+seq(95,snowy(0),0). seq(95,snowy(0),1). seq(95,snowy(1),2). seq(95,snowy(0),3). class(95,1).
+seq(95,sunny(0),0). seq(95,sunny(0),1). seq(95,sunny(0),2). seq(95,sunny(1),3). class(95,1).
+seq(96,cloudy(1),0). seq(96,cloudy(0),1). seq(96,cloudy(0),2). seq(96,cloudy(0),3). class(96,0).
+seq(96,foggy(0),0). seq(96,foggy(1),1). seq(96,foggy(1),2). seq(96,foggy(1),3). class(96,0).
+seq(96,rainy(0),0). seq(96,rainy(1),1). seq(96,rainy(0),2). seq(96,rainy(0),3). class(96,0).
+seq(96,snowy(0),0). seq(96,snowy(0),1). seq(96,snowy(1),2). seq(96,snowy(0),3). class(96,0).
+seq(96,sunny(0),0). seq(96,sunny(1),1). seq(96,sunny(0),2). seq(96,sunny(0),3). class(96,0).
+seq(97,cloudy(0),0). seq(97,cloudy(0),1). seq(97,cloudy(1),2). seq(97,cloudy(0),3). seq(97,cloudy(0),4). seq(97,cloudy(0),5). seq(97,cloudy(0),6). class(97,0).
+seq(97,foggy(1),0). seq(97,foggy(1),1). seq(97,foggy(0),2). seq(97,foggy(1),3). seq(97,foggy(1),4). seq(97,foggy(1),5). seq(97,foggy(1),6). class(97,0).
+seq(97,rainy(0),0). seq(97,rainy(1),1). seq(97,rainy(0),2). seq(97,rainy(0),3). seq(97,rainy(0),4). seq(97,rainy(0),5). seq(97,rainy(1),6). class(97,0).
+seq(97,snowy(1),0). seq(97,snowy(1),1). seq(97,snowy(0),2). seq(97,snowy(1),3). seq(97,snowy(0),4). seq(97,snowy(1),5). seq(97,snowy(1),6). class(97,0).
+seq(97,sunny(0),0). seq(97,sunny(0),1). seq(97,sunny(0),2). seq(97,sunny(0),3). seq(97,sunny(0),4). seq(97,sunny(0),5). seq(97,sunny(0),6). class(97,0).
+seq(98,cloudy(0),0). seq(98,cloudy(0),1). seq(98,cloudy(1),2). seq(98,cloudy(0),3). seq(98,cloudy(1),4). seq(98,cloudy(1),5). seq(98,cloudy(1),6). seq(98,cloudy(0),7). seq(98,cloudy(0),8). class(98,0).
+seq(98,foggy(1),0). seq(98,foggy(1),1). seq(98,foggy(0),2). seq(98,foggy(1),3). seq(98,foggy(0),4). seq(98,foggy(0),5). seq(98,foggy(0),6). seq(98,foggy(1),7). seq(98,foggy(1),8). class(98,0).
+seq(98,rainy(0),0). seq(98,rainy(1),1). seq(98,rainy(0),2). seq(98,rainy(0),3). seq(98,rainy(1),4). seq(98,rainy(0),5). seq(98,rainy(0),6). seq(98,rainy(1),7). seq(98,rainy(0),8). class(98,0).
+seq(98,snowy(1),0). seq(98,snowy(1),1). seq(98,snowy(0),2). seq(98,snowy(0),3). seq(98,snowy(0),4). seq(98,snowy(0),5). seq(98,snowy(0),6). seq(98,snowy(0),7). seq(98,snowy(0),8). class(98,0).
+seq(98,sunny(0),0). seq(98,sunny(0),1). seq(98,sunny(0),2). seq(98,sunny(1),3). seq(98,sunny(0),4). seq(98,sunny(0),5). seq(98,sunny(0),6). seq(98,sunny(0),7). seq(98,sunny(1),8). class(98,0).
+seq(99,cloudy(0),0). seq(99,cloudy(1),1). seq(99,cloudy(1),2). seq(99,cloudy(0),3). class(99,1).
+seq(99,foggy(1),0). seq(99,foggy(0),1). seq(99,foggy(0),2). seq(99,foggy(1),3). class(99,1).
+seq(99,rainy(1),0). seq(99,rainy(0),1). seq(99,rainy(0),2). seq(99,rainy(1),3). class(99,1).
+seq(99,snowy(0),0). seq(99,snowy(0),1). seq(99,snowy(0),2). seq(99,snowy(0),3). class(99,1).
+seq(99,sunny(0),0). seq(99,sunny(0),1). seq(99,sunny(0),2). seq(99,sunny(0),3). class(99,1).

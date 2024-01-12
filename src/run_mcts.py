@@ -13,10 +13,10 @@ from src.asal.logger import *
 
 
 # As in run_batch.py
-t_lim = 120
+t_lim = 180
 
 # As in run_batch.py
-max_states = 6
+max_states = 5
 
 # As in run_batch.py
 target_class = 1
@@ -25,9 +25,14 @@ target_class = 1
 mini_batch_size = 100
 
 # dataset = "maritime"
-# dataset = "avg_robot"  # To use this you need to set a higher priority to minimizing FPs, FNs, due to the small num. of positive exmpls per batch.
+
+# To use this set a higher priority to minimizing FPs, FNs, due to the small num. of positive exmpls per batch.
+# dataset = "avg_robot"
+
 # dataset = "bsc_lobular"
-dataset = "weather"
+# dataset = "weather"
+
+dataset = "ROAD-R"
 fold = "fold_0"
 
 # Path to the training set file.
@@ -47,7 +52,7 @@ shuffle = False
 selected_mini_batch = 0  # Randomize this.
 
 # Max number of MCTS iterations.
-mcts_iterations = 1
+mcts_iterations = 10
 
 # Exploration rate for MCTS.
 expl_rate = 0.005

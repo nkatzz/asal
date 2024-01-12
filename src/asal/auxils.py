@@ -4,6 +4,7 @@ import random
 import pickle
 from src.asal.logger import *
 import time
+import re
 
 
 def sliding_window(elements, window_size):
@@ -113,11 +114,16 @@ def split_data_rev(train_path: str, target_class: str, mini_batch_size: int, shu
 
     def exmple_info(string):
         """Helper function to find if an example is positive or negative and to extract its id."""
-        class_atom = string.split(" ").pop()
-        split = class_atom.split(",")
-        class_value = split[1].split(")")[0]
-        exmpl_id = split[0].split("(")[1]
-        return exmpl_id, class_value
+        # class_atom = string.split(" ").pop()
+        class_predicate_match = re.search(r'class\(\d+,\s*\d+\)', string)
+        if class_predicate_match:
+            class_atom = class_predicate_match.group()
+            split = class_atom.split(",")
+            class_value = split[1].split(")")[0].strip()
+            exmpl_id = split[0].split("(")[1].strip()
+            return exmpl_id, class_value
+        else:
+            raise RuntimeError('Class atom not found.')
 
     def chunk_list(data, chunk_size):
         it = iter(data)

@@ -14,6 +14,32 @@ def get_index(symbol):
 
 #end.
 
+
+%------- %
+% ROAD-R %
+%------- %
+% alphabetNum(1..10).
+time_point(SeqId,T) :- seq(SeqId,_,T).
+seq(SeqId,obs(type_1,X),T) :- agent_type(SeqId,agent1(X)), time_point(SeqId,T).
+seq(SeqId,obs(type_2,X),T) :- agent_type(SeqId,agent2(X)), time_point(SeqId,T).
+seq(SeqId,obs(action_1,X),T) :- seq(SeqId,a1(action(X)),T), X != av_ovtak, X != ovtak.
+seq(SeqId,obs(action_2,X),T) :- seq(SeqId,a2(action(X)),T), X != av_ovtak, X != ovtak.
+seq(SeqId,obs(location_1,X),T) :- seq(SeqId,a1(location(X)),T).
+seq(SeqId,obs(location_2,X),T) :- seq(SeqId,a2(location(X)),T).
+
+attribute(type_1 ; type_2 ; action_1 ; action_2 ; location_1 ; location_2).
+numerical(none).
+categorical(type_1 ; type_2 ; action_1 ; action_2 ; location_1 ; location_2).
+
+value(type_1,V) :- agent_type(_,agent1(V)).
+value(type_2,V) :- agent_type(_,agent2(V)).
+value(action_1,V) :- seq(_,a1(action(V)),_), V != av_ovtak, V != ovtak.
+value(action_2,V) :- seq(_,a2(action(V)),_), V != av_ovtak, V != ovtak.
+value(location_1,V) :- seq(_,a1(location(V)),_).
+value(location_2,V) :- seq(_,a2(location(V)),_).
+
+
+%*
 %----------%
 % Weather  %
 %----------%
@@ -28,7 +54,7 @@ numerical(none).
 categorical(cloudy; foggy; rainy; snowy; sunny).
 value(A,V) :- attribute(A), symbol(V).
 symbol(Y) :- alphabetNum(Y).
-
+*%
 
 %*
 %----------%
