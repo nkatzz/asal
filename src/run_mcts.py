@@ -13,16 +13,16 @@ from src.asal.logger import *
 
 
 # As in run_batch.py
-t_lim = 180
+t_lim = 1000
 
 # As in run_batch.py
-max_states = 5
+max_states = 4
 
 # As in run_batch.py
 target_class = 1
 
 # As in run_batch.py
-mini_batch_size = 100
+mini_batch_size = 10000
 
 # dataset = "maritime"
 
@@ -52,7 +52,7 @@ shuffle = False
 selected_mini_batch = 0  # Randomize this.
 
 # Max number of MCTS iterations.
-mcts_iterations = 10
+mcts_iterations = 1
 
 # Exploration rate for MCTS.
 expl_rate = 0.005
@@ -60,7 +60,7 @@ expl_rate = 0.005
 # Max number of children to add to a node. Each child is a revision of the automaton
 # that corresponds to the parent node. This parameter controls the "horizontal" expansion
 # of the search tree at each iteration.
-max_children = 10  # 100
+max_children = 200  # 100
 
 if __name__ == "__main__":
     tmpl = Template(max_states)
