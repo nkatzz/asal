@@ -38,7 +38,6 @@ value(action_2,V) :- seq(_,a2(action(V)),_), V != av_ovtak, V != ovtak.
 value(location_1,V) :- seq(_,a1(location(V)),_).
 value(location_2,V) :- seq(_,a2(location(V)),_).
 
-
 %*
 %----------%
 % Weather  %
