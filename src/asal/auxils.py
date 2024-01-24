@@ -167,7 +167,7 @@ def split_data_rev(train_path: str, target_class: str, mini_batch_size: int, shu
     # approximately the proper number of examples (positive or negative) that
     # a mini-batch should contain.
     if _pos == {}:
-        print('THERE MIGHT BE A PROBLEM WITH THE CLASS LABEL. NO POS EXAMPLES FOUND!')
+        print('There might be a problem with th class label. No positive examples found!')
     pos_chunked = chunk_list(_pos, pos_per_batch)
     neg_chunked = chunk_list(_neg, neg_per_batch) if _neg else []
 
