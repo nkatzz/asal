@@ -7,5 +7,5 @@ action(X) :- seq(_,a2(action(X)),_).
 location(X) :- seq(_,a1(location(X)),_).
 location(X) :- seq(_,a2(location(X)),_).
 
-#show action/1.
-% #show location/1.
+% #show action/1.
+#show location/1.
