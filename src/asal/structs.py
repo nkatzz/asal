@@ -2,6 +2,7 @@ from src.asal.auxils import precision, recall, f1, flatten
 from src.asal.template import Template
 from clingo.symbol import parse_term
 from src.asal.logger import *
+import random
 
 
 class Automaton:
@@ -236,6 +237,7 @@ class Automaton:
 class And:
     """Represents a conjunction of atoms. If negated = False, then to satisfy the conjunction
        all atoms need to be satisfied. If negated = True"""
+
     def __init__(self, atoms: list, negated: bool):
         if isinstance(atoms, And):
             pass
@@ -392,7 +394,7 @@ class ScoredModel:
     def global_recall(self):
         return recall(self.global_tps, self.global_fns)
 
-    def get_most_urgent_mini_batch(self, min_what):
+    def get_most_urgent_mini_batch(self, min_what, random_selection=True):
         """Get a mini batch where the current model performs poorly."""
         if min_what == 'precision':
             mini_batch = min(self.scores_per_batch.items(),
@@ -403,8 +405,26 @@ class ScoredModel:
                              key=lambda item: recall(item[1][0], item[1][2]))
 
         else:  # F1-score
-            mini_batch = min(self.scores_per_batch.items(),
-                             key=lambda item: f1(item[1][0], item[1][1], item[1][2]))
+            get_f1 = lambda item: f1(item[1][0], item[1][1], item[1][2])
+
+            # Remove any batch where the model makes no predictions
+            useful = list(filter(lambda item: (item[1][0], item[1][1], item[1][2]) != (0, 0, 0),
+                                 self.scores_per_batch.items()))
+
+            if not random_selection:
+                mini_batch = min(useful, key=lambda item: get_f1(item))
+            else:
+                non_perfect = list(filter(lambda item: get_f1(item) != 1.0, useful))
+                if non_perfect:
+                    # randomly select a mini-batch
+                    mini_batch = random.choice(non_perfect)
+                else:
+                    # the model is perfect in the entire training set. Just return the first element.
+                    # The caller method should terminate the MCTS run.
+                    mini_batch = useful[0]
+
+        if mini_batch[1][1] == 0 and mini_batch[1][2] == 0:
+            stop = 'stop'
 
         mini_batch_id = mini_batch[0]
         return mini_batch_id
