@@ -247,6 +247,13 @@ def f1(tps, fps, fns):
     return 2 * p * r / (p + r) if p + r > 0.0 else 0.0
 
 
+def f1_aux(counts):
+    tps, fps, fns = counts[0], counts[1], counts[2]
+    p = precision(tps, fps)
+    r = recall(tps, fns)
+    return 2 * p * r / (p + r) if p + r > 0.0 else 0.0
+
+
 def DISC_to_ASP_DFAs(dfa):
     transitions = dfa.split("\n")
     states, symbols, asp_atoms = set(()), set(()), set(())

@@ -1,7 +1,7 @@
 from src.asal.template import Template
 from src.asal.structs import Automaton, ScoredModel, SolveResult
 from src.asal.learner import Learner
-from src.asal.auxils import get_train_data, split_by_n, get_seqs_by_id
+from src.asal.auxils import get_train_data, f1_aux, split_by_n, get_seqs_by_id
 from src.asal.test_model_multproc import test_model_mproc
 from src.asal.logger import *
 import math
@@ -148,7 +148,8 @@ class MCTSRun:
                  explore_rate,
                  target_class,
                  max_children,
-                 models_num='0'):
+                 models_num='0',
+                 path_scoring=False):
 
         self.training_data_whole = training_data
         self.train_path = training_data_path
@@ -163,6 +164,7 @@ class MCTSRun:
         self.template = template
         self.t_lim = solve_time_lim
         self.models_num = models_num
+        self.path_scoring = path_scoring
         self.mcts_iterations = iters
         self.explore_rate = explore_rate
         self.target_class = target_class
@@ -207,6 +209,17 @@ class MCTSRun:
 
             batch_id = self.get_revision_batch(automaton)
 
+            if f1_aux(automaton.counts_per_batch[batch_id]) == 1.0:
+                # The selected mini-batch is either the worst w.r.t to F1-score, or a random one
+                # selected from those where the automaton is non-perfect. If such a mini-batch
+                # does not exist, the first one is returned, which will be perfect. So, if the
+                # automaton achieves an F1-score of 1.0 on the selected mini-batch, this means that
+                # its perfect throughout the training set, so we should terminate the search.
+                logger.info(blue('Found perfect model!'))
+                break
+
+            # automaton.counts_per_batch.pop(batch_id)  # Remove it, so that we don't revise on this again.
+
             logger.info(f'Parent rewards: {best_child.parent_node.rewards}')
             # data = get_train_data(train_path, str(target_class), mini_batch_size)
             data = self.training_data_whole
@@ -243,18 +256,25 @@ class MCTSRun:
         # Going for optimal models causes problems in case the optimum has not been found within the time limit.
         # We'll then have zero models returned. So, we compare solving time (ST) with time limit (TM).
         # If ST < TM this means that the optimum has been found and we can ask for models where
-        # optimality_proven = True. Otherwise, it's best to simply test the generated within the time
+        # optimality_proven = True. Otherwise, it's best to simply test the generated models within the time
         # limit and work with them.
         if learner.solving_time < self.t_lim:
             optimal_models = list(filter(lambda x: x.optimality_proven, models))
+            logger.info(f'Optimal models: {len(optimal_models)}')
             if len(optimal_models) > self.max_children:
                 models = random.sample(optimal_models, self.max_children)
+            # else:
+            #    models = optimal_models
+
+        # for m in models:
+        #    print(f'{m.show()}, {m.cost}\n{[a.str for a in m.body_atoms_asp]}\n')
 
         logger.info(f'Testing...')
         start = time.time()
         for m in models:
             test_model_mproc(m, self.train_path, str(self.target_class),
-                             self.batch_size, data_whole=self.training_data_whole, test_with_clingo=True)
+                             self.batch_size, path_scoring=self.path_scoring,
+                             data_whole=self.training_data_whole, test_with_clingo=True)
         end = time.time()
         self.testing_times.append(end - start)
         logger.info(blue(f'Testing time: {end - start} sec'))
@@ -309,7 +329,6 @@ class MCTSRun:
                 mini_batch_found = True
 
         logger.info(yellow(f'Selected mini-batch: {batch_id}, counts: {model.counts_per_batch[batch_id]}'))
-        model.counts_per_batch.pop(batch_id)  # Remove it, so that we don't revise on this again.
         return batch_id
 
     @staticmethod
@@ -372,10 +391,13 @@ if __name__ == "__main__":
     mcts_iterations = 10
     expl_rate = 0.005
     max_children = 5  # 100
+    path_scoring = False  # This works if needed, but makes testing a bit  slower.
 
     seed_data = train_data[selected_mini_batch]
     root = RootNode()
 
-    mcts = MCTSRun(train_data, train_path, seed_data, mini_batch_size, tmpl,
-                   t_lim, mcts_iterations, expl_rate, target_class, max_children, models_num='0')
+    mcts = MCTSRun(train_data, train_path,
+                   seed_data, mini_batch_size, tmpl,
+                   t_lim, mcts_iterations, expl_rate,
+                   target_class, max_children, models_num='0', path_scoring=path_scoring)
     mcts.run_mcts()

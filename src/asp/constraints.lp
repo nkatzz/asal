@@ -15,6 +15,13 @@
 %---------------------------------------------------------------------------------------------
 :- body(f(S,S1),_,A), body(f(S,S2),_,A), S1 != S2.
 
+%---------------------------------------------------------------------------------------------
+% Avoid generating unsatisfiable rules like:
+% holds(f(2,4),S,T) :- holds(equals(even,1),S,T), holds(equals(odd,1),S,T).
+% Such rules may be generated during the generate phase, unless explicitly pruned.
+%---------------------------------------------------------------------------------------------
+:- body(I,J,F1), body(I,J,F2), F1 != F2, #count{S,T: holds(F1,S,T), holds(F2,S,T)} = 0.
+
 %----------------------------------------------------------------------------------------------
 % Always include self-loops for all states that appear in the automaton (skip-till-next-match).
 %----------------------------------------------------------------------------------------------
@@ -26,6 +33,10 @@
 % This is to avoid symmetric solutions. Note that 1 is always the start state.
 %---------------------------------------------------------------------------------------------
 :- state(S), S != 1, S != 2, not accepting(S), #count{S1: state(S1), S1 = S - 1, S1 != 1} = 0.
+:- transition(I,f(I,K),K), state(J), I < J, J < K, not transition(I,f(I,J),J).
+
+% Just for debugging, to see if backward transitions (e.g. f(2,1)) are enabled.
+% :- #count{I,J: transition(J,f(J,I),I), I < J} = 0.
 
 %---------------------------------------------------------------------------------------------
 % Symmetry breaking. Impose an ordering on the conjunction ids to avoid symmetric solutions.

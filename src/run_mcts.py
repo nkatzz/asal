@@ -22,7 +22,7 @@ max_states = 4
 target_class = 1
 
 # As in run_batch.py
-mini_batch_size = 10000
+mini_batch_size = 30
 
 # dataset = "maritime"
 
@@ -31,8 +31,9 @@ mini_batch_size = 10000
 
 # dataset = "bsc_lobular"
 # dataset = "weather"
+# dataset = "ROAD-R"
 
-dataset = "ROAD-R"
+dataset = "mnist"
 fold = "fold_0"
 
 # Path to the training set file.
@@ -52,7 +53,7 @@ shuffle = False
 selected_mini_batch = 0  # Randomize this.
 
 # Max number of MCTS iterations.
-mcts_iterations = 1
+mcts_iterations = 100
 
 # Exploration rate for MCTS.
 expl_rate = 0.005
@@ -61,6 +62,8 @@ expl_rate = 0.005
 # that corresponds to the parent node. This parameter controls the "horizontal" expansion
 # of the search tree at each iteration.
 max_children = 200  # 100
+
+path_scoring = False
 
 if __name__ == "__main__":
     tmpl = Template(max_states)
@@ -85,7 +88,7 @@ if __name__ == "__main__":
                       f'Total training time: {mcts.total_training_time}'))
 
     logger.info(yellow('Evaluating on testing set...'))
-    test_model_mproc(mcts.best_model, test_path, str(target_class), mini_batch_size)
+    test_model_mproc(mcts.best_model, test_path, str(target_class), mini_batch_size, path_scoring=path_scoring)
 
     logger.info(yellow(f'On testing set: TPs, FPs, FNs: {mcts.best_model.global_performance_counts}, '
                        f'F1-score: {mcts.best_model.global_performance}'))

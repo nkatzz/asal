@@ -14,7 +14,38 @@ def get_index(symbol):
 
 #end.
 
+%------- %
+% MNIST  %
+%------- %
+%*
+holds(equals(even,1),SeqId,T) :- seq(SeqId,d(X),T), X \ 2 = 0.
+holds(equals(odd,1),SeqId,T) :- seq(SeqId,d(X),T), X \ 2 != 0.
+holds(equals(gt_6,1),SeqId,T) :- seq(SeqId,d(X),T), X > 6.
+holds(equals(leq_6,1),SeqId,T) :- seq(SeqId,d(X),T), X <= 6.
+holds(equals(gt_3,1),SeqId,T) :- seq(SeqId,d(X),T), X > 3.
+holds(equals(leq_3,1),SeqId,T) :- seq(SeqId,d(X),T), X <= 3.
 
+categorical(even; odd; gt_6; leq_6; gt_3; leq_3).
+numerical(none).
+value(even,1). value(odd,1). value(gt_6,1).
+value(leq_6,1). value(gt_3,1). value(leq_3,1).
+*%
+
+holds(equals(even_gt_6,1),SeqId,T) :- seq(SeqId,d(X),T), X \ 2 = 0, X > 6.
+holds(equals(even_leq_6_gt_3,1),SeqId,T) :- seq(SeqId,d(X),T), X \ 2 = 0, X > 3, X <= 6.
+holds(equals(even_leq_3,1),SeqId,T) :- seq(SeqId,d(X),T), X \ 2 = 0, X <= 3.
+
+holds(equals(odd_gt_6,1),SeqId,T) :- seq(SeqId,d(X),T), X \ 2 != 0, X > 6.
+holds(equals(odd_leq_6_gt_3,1),SeqId,T) :- seq(SeqId,d(X),T), X \ 2 != 0, X > 3, X <= 6.
+holds(equals(odd_leq_3,1),SeqId,T) :- seq(SeqId,d(X),T), X \ 2 != 0, X <= 3.
+
+categorical(even_gt_6; even_leq_6_gt_3; even_leq_3; odd_gt_6; odd_leq_6_gt_3; odd_leq_3).
+numerical(none).
+value(even_gt_6,1). value(even_leq_6_gt_3,1). value(even_leq_3,1).
+value(odd_gt_6,1). value(odd_leq_6_gt_3,1). value(odd_leq_3,1).
+
+
+%*
 %------- %
 % ROAD-R %
 %------- %
@@ -37,6 +68,7 @@ value(action_1,V) :- seq(_,a1(action(V)),_), V != av_ovtak, V != ovtak.
 value(action_2,V) :- seq(_,a2(action(V)),_), V != av_ovtak, V != ovtak.
 value(location_1,V) :- seq(_,a1(location(V)),_).
 value(location_2,V) :- seq(_,a2(location(V)),_).
+*%
 
 %*
 %----------%
@@ -232,7 +264,7 @@ attribute(A) :- categorical(A).
 % holds(lt(A1,A2),SeqId,T) :- seq(SeqId,obs(A1,X),T), seq(SeqId,obs(A2,Y),T), X < Y, numerical(A1), numerical(A2), A1 != A2.
 % holds(at_most(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y <= X, symbol(X).   % , value(A,X)
 % holds(at_least(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y >= X, symbol(X).  % , value(A,X)
-holds(equals(A,X),SeqId,T) :- seq(SeqId,obs(A,X),T), categorical(A), A != none.
+% holds(equals(A,X),SeqId,T) :- seq(SeqId,obs(A,X),T), categorical(A), A != none.
 % holds(neg(E,X),SeqId,T) :- seq(SeqId,obs(E,Y),T), value(E,X), Y != X.
 
 % Costs for adding an atom to a transition rule.

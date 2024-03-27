@@ -103,6 +103,7 @@ if __name__ == "__main__":
 
     data_path = '../../data'
     df = pd.read_csv(data_path + '/avg_robot/DemoDataset_1Robot.csv')
+    # df = pd.read_csv('/media/nkatz/storage/EVENFLOW-DATA/DFKI/out0.csv')
 
     sub_series = split_time_series(df, k, m)
 
