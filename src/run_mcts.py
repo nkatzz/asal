@@ -13,7 +13,7 @@ from src.asal.logger import *
 
 
 # As in run_batch.py
-t_lim = 1000
+t_lim = 120
 
 # As in run_batch.py
 max_states = 4
@@ -22,7 +22,7 @@ max_states = 4
 target_class = 1
 
 # As in run_batch.py
-mini_batch_size = 30
+mini_batch_size = 100
 
 # dataset = "maritime"
 
@@ -31,9 +31,8 @@ mini_batch_size = 30
 
 # dataset = "bsc_lobular"
 # dataset = "weather"
-# dataset = "ROAD-R"
-
-dataset = "mnist"
+# dataset = "mnist"
+dataset = "ROAD-R"
 fold = "fold_0"
 
 # Path to the training set file.
@@ -53,7 +52,7 @@ shuffle = False
 selected_mini_batch = 0  # Randomize this.
 
 # Max number of MCTS iterations.
-mcts_iterations = 100
+mcts_iterations = 10
 
 # Exploration rate for MCTS.
 expl_rate = 0.005

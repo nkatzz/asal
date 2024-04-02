@@ -17,6 +17,9 @@ def get_index(symbol):
 %------- %
 % MNIST  %
 %------- %
+% Use either one of the blocks below. The second one is essentially a propositionalization approach.
+% Comment-out the "equals" definition that is normally used (below in this file),
+% since an equals/1 pred is provided here.
 %*
 holds(equals(even,1),SeqId,T) :- seq(SeqId,d(X),T), X \ 2 = 0.
 holds(equals(odd,1),SeqId,T) :- seq(SeqId,d(X),T), X \ 2 != 0.
@@ -31,6 +34,7 @@ value(even,1). value(odd,1). value(gt_6,1).
 value(leq_6,1). value(gt_3,1). value(leq_3,1).
 *%
 
+%*
 holds(equals(even_gt_6,1),SeqId,T) :- seq(SeqId,d(X),T), X \ 2 = 0, X > 6.
 holds(equals(even_leq_6_gt_3,1),SeqId,T) :- seq(SeqId,d(X),T), X \ 2 = 0, X > 3, X <= 6.
 holds(equals(even_leq_3,1),SeqId,T) :- seq(SeqId,d(X),T), X \ 2 = 0, X <= 3.
@@ -43,9 +47,9 @@ categorical(even_gt_6; even_leq_6_gt_3; even_leq_3; odd_gt_6; odd_leq_6_gt_3; od
 numerical(none).
 value(even_gt_6,1). value(even_leq_6_gt_3,1). value(even_leq_3,1).
 value(odd_gt_6,1). value(odd_leq_6_gt_3,1). value(odd_leq_3,1).
+*%
 
 
-%*
 %------- %
 % ROAD-R %
 %------- %
@@ -58,17 +62,19 @@ seq(SeqId,obs(action_2,X),T) :- seq(SeqId,a2(action(X)),T), X != av_ovtak, X != 
 seq(SeqId,obs(location_1,X),T) :- seq(SeqId,a1(location(X)),T).
 seq(SeqId,obs(location_2,X),T) :- seq(SeqId,a2(location(X)),T).
 
-attribute(type_1 ; type_2 ; action_1 ; action_2 ; location_1 ; location_2).
+% attribute(type_1 ; type_2 ; action_1 ; action_2 ; location_1 ; location_2).
+% categorical(type_1 ; type_2 ; action_1 ; action_2 ; location_1 ; location_2).
+attribute(action_1 ; action_2 ; location_1 ; location_2).
+categorical(action_1 ; action_2 ; location_1 ; location_2).
 numerical(none).
-categorical(type_1 ; type_2 ; action_1 ; action_2 ; location_1 ; location_2).
 
-value(type_1,V) :- agent_type(_,agent1(V)).
-value(type_2,V) :- agent_type(_,agent2(V)).
+% value(type_1,V) :- agent_type(_,agent1(V)).
+% value(type_2,V) :- agent_type(_,agent2(V)).
 value(action_1,V) :- seq(_,a1(action(V)),_), V != av_ovtak, V != ovtak.
 value(action_2,V) :- seq(_,a2(action(V)),_), V != av_ovtak, V != ovtak.
 value(location_1,V) :- seq(_,a1(location(V)),_).
 value(location_2,V) :- seq(_,a2(location(V)),_).
-*%
+
 
 %*
 %----------%
@@ -264,7 +270,7 @@ attribute(A) :- categorical(A).
 % holds(lt(A1,A2),SeqId,T) :- seq(SeqId,obs(A1,X),T), seq(SeqId,obs(A2,Y),T), X < Y, numerical(A1), numerical(A2), A1 != A2.
 % holds(at_most(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y <= X, symbol(X).   % , value(A,X)
 % holds(at_least(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y >= X, symbol(X).  % , value(A,X)
-% holds(equals(A,X),SeqId,T) :- seq(SeqId,obs(A,X),T), categorical(A), A != none.
+holds(equals(A,X),SeqId,T) :- seq(SeqId,obs(A,X),T), categorical(A), A != none.
 % holds(neg(E,X),SeqId,T) :- seq(SeqId,obs(E,Y),T), value(E,X), Y != X.
 
 % Costs for adding an atom to a transition rule.
