@@ -71,7 +71,8 @@ used_attribute(A) :- body(_,_,equals(A,_)).
 % disjunctive_guard(I) :- rule(I), #count{F,J: body(I,J,F), J > 1} > 1.
 % :- #count{I: disjunctive_guard(I)} = 0.
 
-:- #count{S: state(S)} < 4.
+% This is useful for experimenting with MNIST.
+% :- #count{S: state(S)} < 4.
 
 targetClass(1).
 
