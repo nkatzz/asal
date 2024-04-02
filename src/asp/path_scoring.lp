@@ -1,11 +1,12 @@
 #include "domain.lp".
 
-inState(SeqId,f(1,1),1,1,0) :- sequence(SeqId).
+inState(SeqId,f(1,1),1,1,T) :- sequence(SeqId), seqStart(SeqId,T).
 inState(SeqId,F,S1,S2,T+1) :- inState(SeqId,_,_,S1,T), transition(S1,F,S2), holds(F,SeqId,T).
 accepted(SeqId) :- inState(SeqId,_,_,S,T), accepting(S), seqEnd(SeqId,T).
 
 seq(SeqId,T) :- seq(SeqId,_,T).
 seqEnd(SeqId,T+1) :- seq(SeqId,T), not seq(SeqId,T+1).
+seqStart(SeqId,T) :- seq(SeqId,T), not seq(SeqId,T-1).
 
 positive(SeqId) :- class(SeqId,X), targetClass(X).
 negative(SeqId) :- class(SeqId,X), not targetClass(X).
