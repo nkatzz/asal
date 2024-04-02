@@ -263,8 +263,8 @@ class MCTSRun:
             logger.info(f'Optimal models: {len(optimal_models)}')
             if len(optimal_models) > self.max_children:
                 models = random.sample(optimal_models, self.max_children)
-            # else:
-            #    models = optimal_models
+            else:
+                models = optimal_models
 
         # for m in models:
         #    print(f'{m.show()}, {m.cost}\n{[a.str for a in m.body_atoms_asp]}\n')

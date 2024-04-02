@@ -24,11 +24,10 @@ target_class = 1
 # As in run_batch.py
 mini_batch_size = 100
 
-# dataset = "maritime"
-
 # To use this set a higher priority to minimizing FPs, FNs, due to the small num. of positive exmpls per batch.
 # dataset = "avg_robot"
 
+# dataset = "maritime"
 # dataset = "bsc_lobular"
 # dataset = "weather"
 # dataset = "mnist"
