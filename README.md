@@ -21,14 +21,16 @@ Running the software:
 ```
 conda activate asal
 cd asal/src
-python run_batch.py
-python run_mcts.py
+python asal_batch.py
+python asal_mcts.py
 ```
 
 
-With the two scripts above the batch and the incremental, Monte Carlo Tree Search-based versions of ASAL can be run. The hyper-parameters/runtime arguments that control a run are explained in comments in the scripts. The arguments can be tweaked by editing a script, since there is no CLI at this point. 
+With the two scripts above (```asal_batch.py```, ```asal_mcts.py```) the batch and the incremental, Monte Carlo Tree Search-based versions of ASAL can be run. The hyper-parameters/runtime arguments that control a run are explained in comments in the scripts. The arguments can be tweaked by editing a script, since there is no CLI at this point. 
 
-To select a particular dataset/fold to run modify, the ```dataset``` and ```fold``` variables in the run scripts. See the paper above for info on the datasets in the ```data``` folder.
+A batch run can be simulated by the ```asal_mcts.py``` script, by setting ```mini_batch_size = n```, where ```n``` is a number larger than the number of sequences in the training set and ```mcts_iterations = 1```. Therefore, the ```asal_batch.py``` script is somewhat redundant. Its main purpose, however, is to showcase the barebones process by which a model can be learned and evaluated. 
+
+To select a particular dataset/fold to run modify, the ```dataset``` and ```fold``` variables in the run scripts. See the paper above for info on (some of) the datasets in the ```data``` folder.
 
 <!---
 To use RPNI/EDSM the LearnLib library is required: https://learnlib.de/. Follow the instructions to install the software. Then use the ```to_rpni``` method in ```src/asal/auxils.py``` to convert the input seqs to RPNI format, by providing the path to a train/test file and follow the LearnLib instructions to run the respective methods (rpni/edsm).
