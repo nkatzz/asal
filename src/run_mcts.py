@@ -12,21 +12,21 @@ from src.asal.test_model_multproc import test_model_mproc
 from src.asal.logger import *
 
 
-# As in run_batch.py
+# Time limit (in seconds) for the solver to find a solution. Set this to 'inf' to disable time limit.
 t_lim = 120
 
-# As in run_batch.py
+# Max number of states in the learnt automaton
 max_states = 4
 
-# As in run_batch.py
+# The target class that we are trying to predict.
 target_class = 2
 
-# As in run_batch.py
+# The size (number of sequences) in a training sample. The ratio of positive/negative
+# sequences in the sample is proportional to that ratio in the entire training set.
 mini_batch_size = 100
 
-# To use this set a higher priority to minimizing FPs, FNs, due to the small num. of positive exmpls per batch.
+# To use avg_robot set a higher priority to minimizing FPs, FNs, due to the small num. of positive exmpls per batch.
 # dataset = "avg_robot"
-
 # dataset = "maritime"
 # dataset = "bsc_lobular"
 # dataset = "weather"
@@ -34,12 +34,12 @@ mini_batch_size = 100
 dataset = "ROAD-R"
 fold = "fold_0"
 
-# Path to the training set file.
+# Paths to the training and testing set files. These may be modified to point to any such pair
+# of files by replacing the following with the absolute paths of the files.
 train_path = os.path.normpath(
     os.getcwd() + os.sep + os.pardir + os.sep + 'data' + os.sep +
     dataset + os.sep + 'folds' + os.sep + fold + os.sep + 'train.csv')
 
-# Path to the testing set file.
 test_path = os.path.normpath(
     os.getcwd() + os.sep + os.pardir + os.sep + 'data' + os.sep +
     dataset + os.sep + 'folds' + os.sep + fold + os.sep + 'test.csv')
@@ -48,7 +48,7 @@ test_path = os.path.normpath(
 shuffle = False
 
 # A "seed" minibatch to kick-start the MCTS run
-selected_mini_batch = 0  # Randomize this.
+selected_mini_batch = 0  # Could be randomized.
 
 # Max number of MCTS iterations.
 mcts_iterations = 5
