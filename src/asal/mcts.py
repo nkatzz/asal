@@ -258,7 +258,7 @@ class MCTSRun:
         # If ST < TM this means that the optimum has been found and we can ask for models where
         # optimality_proven = True. Otherwise, it's best to simply test the generated models within the time
         # limit and work with them.
-        if learner.solving_time < self.t_lim:
+        if solve_result.solving_time < self.t_lim:
             optimal_models = list(filter(lambda x: x.optimality_proven, models))
             logger.info(f'Optimal models: {len(optimal_models)}')
             if len(optimal_models) > self.max_children:
