@@ -19,7 +19,7 @@ t_lim = 120
 max_states = 4
 
 # As in run_batch.py
-target_class = 1
+target_class = 2
 
 # As in run_batch.py
 mini_batch_size = 100
@@ -51,7 +51,7 @@ shuffle = False
 selected_mini_batch = 0  # Randomize this.
 
 # Max number of MCTS iterations.
-mcts_iterations = 10
+mcts_iterations = 5
 
 # Exploration rate for MCTS.
 expl_rate = 0.005
