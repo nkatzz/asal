@@ -3,6 +3,9 @@
 #include "template.lp".
 #include "interpreter.lp".
 
+#program class(n).
+targetClass(n).
+
 #program base.
 
 %------------------------------------------------------------------------------------------
@@ -73,8 +76,6 @@ used_attribute(A) :- body(_,_,equals(A,_)).
 
 % This is useful for experimenting with MNIST.
 % :- #count{S: state(S)} < 4.
-
-targetClass(2).
 
 positive(SeqId) :- class(SeqId,X), targetClass(X).
 negative(SeqId) :- class(SeqId,X), not targetClass(X).

@@ -25,6 +25,7 @@ class Learner:
 
         self.constraints = constraints
         self.template = template
+        self.target_class = template.target_class
         self.max_states = template.max_states
         self.mini_batch = mini_batch
         self.time_limit = time_lim
@@ -156,7 +157,8 @@ class Learner:
             # body_3_facts = ' '.join(list(map(lambda x: f'{x.str}.', self.existing_model.body_atoms_asp)))
             # self.ctl.add("base", [], body_3_facts)
 
-        induction_program = [("base", []), ("states", [Number(int(self.max_states))])]
+        # induction_program = [("base", []), ("states", [Number(int(self.max_states))])]
+        induction_program = [("base", []), ("class", [Number(int(self.target_class))])]
 
         models = None
 

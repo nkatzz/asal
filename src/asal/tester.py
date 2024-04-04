@@ -149,6 +149,8 @@ class Tester:
         else:
             ctl.add("base", [], self.data)
 
+        ctl.add("base", [], f'targetClass({self.target_class}).')
+
         if isinstance(self.model, Automaton):
             ctl.add("base", [], self.model.show(mode='reasoning'))
             ctl.add("base", [], self.model.accepting_states[0])

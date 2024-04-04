@@ -1,8 +1,6 @@
 #include "domain.lp".
 #include "interpreter.lp".
 
-targetClass(2).
-
 positive(SeqId) :- class(SeqId,X), targetClass(X).
 negative(SeqId) :- class(SeqId,X), not targetClass(X).
 
