@@ -381,7 +381,7 @@ if __name__ == "__main__":
     max_states = 4
     target_class = 1
     mini_batch_size = 20
-    tmpl = Template(max_states)
+    tmpl = Template(max_states, target_class)
     train_path = '../../data/Maritime_TRAIN_SAX_8_ASP.csv'
     # train_path = '/media/nkatz/storage/seqs/caviar/caviar_data/fold1/train_fold_1_discretized.txt'
     test_path = '../../debug/Maritime_TEST_SAX_8_ASP.csv'

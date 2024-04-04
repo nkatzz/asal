@@ -39,7 +39,7 @@ test_path = os.path.normpath(
 
 if __name__ == '__main__':
     time_limit = float('inf') if t_lim == 'inf' else t_lim
-    template = Template(max_states)
+    template = Template(max_states, target_class)
     train_data = get_train_data(train_path, str(target_class), mini_batch_size, shuffle=False)
     mini_batch = train_data[1]  # Get mini-batch 1
 

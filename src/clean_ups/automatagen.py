@@ -34,7 +34,7 @@ if __name__ == "__main__":
         # Partition the data by shuffling positive and negative instances to get a new dict each time
         train_data = get_train_data(train_path, str(target_class), mini_batch_size, shuffle=True)
         # batch_id, batch_data = batch[0], batch[1]
-        template = Template(max_states)
+        template = Template(max_states, target_class)
         for key in train_data.keys():
             learner = Learner(template, train_data[key], time_limit, mode='reasoning')
             learner.induce_models()

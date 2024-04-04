@@ -22,7 +22,7 @@ if __name__ == "__main__":
     min_precision = 0.95
     select_next_batch_by = "f1"
     time_limit = float('inf') if t_lim == 'inf' else t_lim
-    template = Template(max_states)
+    template = Template(max_states, target_class)
 
     # train_path = '/home/nkatz/dev/TS-maritime_20200317/folds/fold_1/Maritime_TRAIN_SAX_8_ASP.csv'
     # test_path = '/home/nkatz/dev/TS-maritime_20200317/folds/fold_1/Maritime_TEST_SAX_8_ASP.csv'

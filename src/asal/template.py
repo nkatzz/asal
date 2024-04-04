@@ -3,11 +3,12 @@ import os
 
 
 class Template:
-    def __init__(self, max_states):
+    def __init__(self, max_states, target_class):
         self.mutex_map = {}
         self.template = ''
         self.__guard_definitions = []
         self.max_states = max_states
+        self.target_class = target_class
         self.__transition_choices = []
         self.__rules_choices = []
         self.__start_state = 'start(1).'
@@ -78,6 +79,6 @@ class Template:
 
 
 if __name__ == "__main__":
-    t = Template(5)
+    t = Template(5, 1)
     print(t.mutex_map)
     print(t.template)

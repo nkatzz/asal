@@ -13,7 +13,7 @@ from src.asal.logger import *
 
 
 # Time limit (in seconds) for the solver to find a solution. Set this to 'inf' to disable time limit.
-t_lim = 600
+t_lim = 120
 
 # Max number of states in the learnt automaton
 max_states = 4
@@ -23,7 +23,7 @@ target_class = 2
 
 # The size (number of sequences) in a training sample. The ratio of positive/negative
 # sequences in the sample is proportional to that ratio in the entire training set.
-mini_batch_size = 1000
+mini_batch_size = 100
 
 # To use avg_robot set a higher priority to minimizing FPs, FNs, due to the small num. of positive exmpls per batch.
 # dataset = "avg_robot"
@@ -64,7 +64,7 @@ max_children = 200  # 100
 path_scoring = False
 
 if __name__ == "__main__":
-    tmpl = Template(max_states)
+    tmpl = Template(max_states, target_class)
     train_data = get_train_data(train_path, str(target_class), mini_batch_size, shuffle=shuffle)
     seed_data = train_data[selected_mini_batch]
     root = RootNode()
