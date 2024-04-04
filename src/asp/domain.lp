@@ -62,10 +62,10 @@ seq(SeqId,obs(action_2,X),T) :- seq(SeqId,a2(action(X)),T), X != av_ovtak, X != 
 seq(SeqId,obs(location_1,X),T) :- seq(SeqId,a1(location(X)),T).
 seq(SeqId,obs(location_2,X),T) :- seq(SeqId,a2(location(X)),T).
 
-attribute(type_1 ; type_2 ; action_1 ; action_2 ; location_1 ; location_2).
-categorical(type_1 ; type_2 ; action_1 ; action_2 ; location_1 ; location_2).
-% attribute(action_1 ; action_2 ; location_1 ; location_2).
-% categorical(action_1 ; action_2 ; location_1 ; location_2).
+% attribute(type_1 ; type_2 ; action_1 ; action_2 ; location_1 ; location_2).
+% categorical(type_1 ; type_2 ; action_1 ; action_2 ; location_1 ; location_2).
+attribute(action_1 ; action_2 ; location_1 ; location_2).
+categorical(action_1 ; action_2 ; location_1 ; location_2).
 numerical(none).
 
 value(type_1,V) :- agent_type(_,agent1(V)).
