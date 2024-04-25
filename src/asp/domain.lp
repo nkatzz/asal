@@ -53,14 +53,23 @@ value(odd_gt_6,1). value(odd_leq_6_gt_3,1). value(odd_leq_3,1).
 %------- %
 % ROAD-R %
 %------- %
-% alphabetNum(1..10).
+
+allowed_actions(stop ; movtow ; movaway ; turrht ; turlft).
+allowed_locations(incomlane ; jun ; busstop ; incomcyclane ; vehlane).
+
 time_point(SeqId,T) :- seq(SeqId,_,T).
 seq(SeqId,obs(type_1,X),T) :- agent_type(SeqId,agent1(X)), time_point(SeqId,T).
 seq(SeqId,obs(type_2,X),T) :- agent_type(SeqId,agent2(X)), time_point(SeqId,T).
-seq(SeqId,obs(action_1,X),T) :- seq(SeqId,a1(action(X)),T), X != av_ovtak, X != ovtak.
-seq(SeqId,obs(action_2,X),T) :- seq(SeqId,a2(action(X)),T), X != av_ovtak, X != ovtak.
-seq(SeqId,obs(location_1,X),T) :- seq(SeqId,a1(location(X)),T).
-seq(SeqId,obs(location_2,X),T) :- seq(SeqId,a2(location(X)),T).
+
+% seq(SeqId,obs(action_1,X),T) :- seq(SeqId,a1(action(X)),T), X != av_ovtak, X != ovtak.
+% seq(SeqId,obs(action_2,X),T) :- seq(SeqId,a2(action(X)),T), X != av_ovtak, X != ovtak.
+% seq(SeqId,obs(location_1,X),T) :- seq(SeqId,a1(location(X)),T).
+% seq(SeqId,obs(location_2,X),T) :- seq(SeqId,a2(location(X)),T).
+
+seq(SeqId,obs(action_1,X),T) :- seq(SeqId,a1(action(X)),T), allowed_actions(X).
+seq(SeqId,obs(action_2,X),T) :- seq(SeqId,a2(action(X)),T), allowed_actions(X).
+seq(SeqId,obs(location_1,X),T) :- seq(SeqId,a1(location(X)),T), allowed_locations(X).
+seq(SeqId,obs(location_2,X),T) :- seq(SeqId,a2(location(X)),T), allowed_locations(X).
 
 % attribute(type_1 ; type_2 ; action_1 ; action_2 ; location_1 ; location_2).
 % categorical(type_1 ; type_2 ; action_1 ; action_2 ; location_1 ; location_2).
@@ -70,11 +79,15 @@ numerical(none).
 
 value(type_1,V) :- agent_type(_,agent1(V)).
 value(type_2,V) :- agent_type(_,agent2(V)).
-value(action_1,V) :- seq(_,a1(action(V)),_), V != av_ovtak, V != ovtak.
-value(action_2,V) :- seq(_,a2(action(V)),_), V != av_ovtak, V != ovtak.
-value(location_1,V) :- seq(_,a1(location(V)),_).
-value(location_2,V) :- seq(_,a2(location(V)),_).
+% value(action_1,V) :- seq(_,a1(action(V)),_), V != av_ovtak, V != ovtak.
+% value(action_2,V) :- seq(_,a2(action(V)),_), V != av_ovtak, V != ovtak.
+% value(location_1,V) :- seq(_,a1(location(V)),_).
+% value(location_2,V) :- seq(_,a2(location(V)),_).
 
+value(action_1,V) :- seq(_,a1(action(V)),_), allowed_actions(V).
+value(action_2,V) :- seq(_,a2(action(V)),_), allowed_actions(V).
+value(location_1,V) :- seq(_,a1(location(V)),_), allowed_locations(V).
+value(location_2,V) :- seq(_,a2(location(V)),_), allowed_locations(V).
 
 %*
 %----------%
