@@ -244,6 +244,9 @@ class MCTSRun:
         solve_result: SolveResult = self.call(learner, self.models_num)
         models = solve_result.models
 
+        if not models:
+            logger.error("No models returned from the solver.")
+
         if isinstance(models, Automaton):  # A single automaton is returned.
             models = [models]
 

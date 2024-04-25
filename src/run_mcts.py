@@ -13,7 +13,7 @@ from src.asal.logger import *
 
 
 # Time limit (in seconds) for the solver to find a solution. Set this to 'inf' to disable time limit.
-t_lim = 120
+t_lim = 600
 
 # Max number of states in the learnt automaton
 max_states = 4
@@ -23,7 +23,7 @@ target_class = 2
 
 # The size (number of sequences) in a training sample. The ratio of positive/negative
 # sequences in the sample is proportional to that ratio in the entire training set.
-mini_batch_size = 100
+mini_batch_size = 1000
 
 # To use avg_robot set a higher priority to minimizing FPs, FNs, due to the small num. of positive exmpls per batch.
 # dataset = "avg_robot"
@@ -51,7 +51,7 @@ shuffle = False
 selected_mini_batch = 0  # Could be randomized.
 
 # Max number of MCTS iterations.
-mcts_iterations = 10
+mcts_iterations = 5
 
 # Exploration rate for MCTS.
 expl_rate = 0.005
