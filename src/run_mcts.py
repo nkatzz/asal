@@ -32,7 +32,7 @@ mini_batch_size = 1000
 # dataset = "weather"
 # dataset = "mnist"
 dataset = "ROAD-R"
-fold = "fold_2"
+fold = "fold_3"
 
 # Paths to the training and testing set files. These may be modified to point to any such pair
 # of files by replacing the following with the absolute paths of the files.
