@@ -95,14 +95,14 @@ value(type_2,V) :- agent_type(_,agent2(V)).
 value(action_1,V) :- seq(_,a1(action(V)),_), allowed_actions(V).
 value(action_2,V) :- seq(_,a2(action(V)),_), allowed_actions(V).
 
-value(action_1,other) :- seq(_,a1(action(other)),_).
-value(action_2,other) :- seq(_,a2(action(other)),_).
+value(action_1,other) :- seq(_,obs(action_1,other),_).
+value(action_2,other) :- seq(_,obs(action_2,other),_).
 
 value(location_1,V) :- seq(_,a1(location(V)),_), allowed_locations(V).
 value(location_2,V) :- seq(_,a2(location(V)),_), allowed_locations(V).
 
-value(location_1,other) :- seq(_,a1(location(other)),_).
-value(location_2,other) :- seq(_,a2(location(other)),_).
+value(location_1,other) :- seq(_,obs(location_1,other),_).
+value(location_2,other) :- seq(_,obs(location_2,other),_).
 
 %*
 %----------%
