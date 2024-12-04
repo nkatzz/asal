@@ -13,22 +13,25 @@ mini_batch_size = 1000
 dataset = "ROAD-R"
 fold = "fold_3"
 
-test_path = '/home/nkatz/Downloads/asal/data/ROAD-R/folds/fold_4/test.csv'
+test_path = '/home/nkatz/Desktop/agent_train.txt'
 
 model = """
         accepting(4).
-        transition(1,f(1,1),1). transition(1,f(1,2),2). transition(1,f(1,3),3). transition(2,f(2,2),2). 
-        transition(2,f(2,3),3). transition(2,f(2,4),4). transition(3,f(3,3),3). transition(3,f(3,4),4). 
-        transition(4,f(4,4),4).
-        holds(f(1,2),S,T) :- holds(equals(action_1,stop),S,T), not holds(f(1,3),S,T).
-        holds(f(1,3),S,T) :- holds(equals(location_1,vehlane),S,T).
-        holds(f(2,3),S,T) :- holds(equals(location_2,jun),S,T), not holds(f(2,4),S,T).
-        holds(f(2,4),S,T) :- holds(equals(location_2,incomlane),S,T).
-        holds(f(3,4),S,T) :- holds(equals(action_1,movaway),S,T).
-        holds(f(1,1),S,T) :- sequence(S), time(T), not holds(f(1,2),S,T), not holds(f(1,3),S,T).
-        holds(f(2,2),S,T) :- sequence(S), time(T), not holds(f(2,3),S,T), not holds(f(2,4),S,T).
-        holds(f(3,3),S,T) :- sequence(S), time(T), not holds(f(3,4),S,T).
-        holds(f(4,4),S,T) :- sequence(S), time(T)."""
+transition(1,f(1,1),1). transition(1,f(1,2),2). transition(1,f(1,3),3). transition(2,f(2,2),2). transition(2,f(2,3),3). transition(2,f(2,4),4). transition(3,f(3,2),2). transition(3,f(3,3),3). transition(4,f(4,4),4).
+holds(f(1,3),S,T) :- holds(equals(action_1,movaway),S,T).
+holds(f(2,4),S,T) :- holds(equals(action_2,other),S,T), holds(equals(location_1,vehlane),S,T), holds(equals(location_2,vehlane),S,T).
+holds(f(1,2),S,T) :- holds(equals(location_1,incomlane),S,T), not holds(f(1,3),S,T).
+holds(f(2,3),S,T) :- holds(equals(location_1,other),S,T), not holds(f(2,4),S,T).
+holds(f(3,2),S,T) :- holds(equals(location_2,other),S,T).
+holds(f(2,4),S,T) :- holds(equals(action_1,stop),S,T), holds(equals(location_2,incomlane),S,T).
+holds(f(3,2),S,T) :- holds(equals(action_1,movaway),S,T).
+holds(f(1,3),S,T) :- holds(equals(action_2,stop),S,T).
+holds(f(2,3),S,T) :- holds(equals(location_1,incomlane),S,T), not holds(f(2,4),S,T).
+holds(f(1,2),S,T) :- holds(equals(location_1,other),S,T), not holds(f(1,3),S,T).
+holds(f(1,1),S,T) :- sequence(S), time(T), not holds(f(1,2),S,T), not holds(f(1,3),S,T).
+holds(f(2,2),S,T) :- sequence(S), time(T), not holds(f(2,3),S,T), not holds(f(2,4),S,T).
+holds(f(3,3),S,T) :- sequence(S), time(T), not holds(f(3,2),S,T).
+holds(f(4,4),S,T) :- sequence(S), time(T)."""
 
 if __name__ == "__main__":
     result = test_model_mproc(model, test_path, str(target_class), mini_batch_size, path_scoring=path_scoring)
