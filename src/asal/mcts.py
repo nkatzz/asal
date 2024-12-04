@@ -246,6 +246,7 @@ class MCTSRun:
 
         if not models:
             logger.error("No models returned from the solver.")
+            sys.exit()
 
         if isinstance(models, Automaton):  # A single automaton is returned.
             models = [models]
