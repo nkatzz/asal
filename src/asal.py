@@ -13,10 +13,10 @@ from src.asal.logger import *
 
 
 # Time limit (in seconds) for the solver to find a solution. Set this to 'inf' to disable time limit.
-t_lim = 6000
+t_lim = 1000
 
 # Max number of states in the learnt automaton
-max_states = 4
+max_states = 7
 
 # The target class that we are trying to predict.
 target_class = 1
@@ -25,7 +25,7 @@ target_class = 1
 # sequences in the sample is proportional to that ratio in the entire training set.
 mini_batch_size = 1000
 
-# To use avg_robot set a higher priority to minimizing FPs, FNs, due to the small num. of positive exmpls per batch.
+# To use avg_robot set a higher priority to minimizing FPs, FNs, due to the small num. of positive examples per batch.
 # dataset = "avg_robot"
 # dataset = "maritime"
 # dataset = "bsc_lobular"
@@ -33,6 +33,7 @@ mini_batch_size = 1000
 # dataset = "mnist"
 # dataset = "ROAD-R"
 dataset = "bsc_genes_kidney"
+# fold = "few_shot_mnist"
 fold = "fold_0"
 
 # Paths to the training and testing set files. These may be modified to point to any such pair
@@ -52,7 +53,7 @@ shuffle = False
 selected_mini_batch = 0  # Could be randomized.
 
 # Max number of MCTS iterations.
-mcts_iterations = 5
+mcts_iterations = 1
 
 # Exploration rate for MCTS.
 expl_rate = 0.005
@@ -60,7 +61,7 @@ expl_rate = 0.005
 # Max number of children to add to a node. Each child is a revision of the automaton
 # that corresponds to the parent node. This parameter controls the "horizontal" expansion
 # of the search tree at each iteration.
-max_children = 200  # 100
+max_children = 100 # 200  # 100
 
 path_scoring = False
 
