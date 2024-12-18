@@ -49,16 +49,19 @@ value(even_gt_6,1). value(even_leq_6_gt_3,1). value(even_leq_3,1).
 value(odd_gt_6,1). value(odd_leq_6_gt_3,1). value(odd_leq_3,1).
 *%
 
-%*
+
 %------- %
 % ROAD-R %
 %------- %
 
 % allowed_actions(stop ; movtow ; movaway ; turrht ; turlft).
-allowed_actions(stop ; movtow ; movaway).
+% allowed_actions(stop ; movtow ; movaway).
+allowed_actions(movtow ; movaway).
 
 % allowed_locations(incomlane ; jun ; busstop ; incomcyclane ; vehlane).
-allowed_locations(incomlane ; jun ; vehlane).
+% allowed_locations(incomlane ; jun ; vehlane).
+
+allowed_locations(incomlane ; vehlane).
 
 time_point(SeqId,T) :- seq(SeqId,_,T).
 seq(SeqId,obs(type_1,X),T) :- agent_type(SeqId,agent1(X)), time_point(SeqId,T).
@@ -71,13 +74,13 @@ seq(SeqId,obs(type_2,X),T) :- agent_type(SeqId,agent2(X)), time_point(SeqId,T).
 
 seq(SeqId,obs(action_1,X),T) :- seq(SeqId,a1(action(X)),T), allowed_actions(X).
 seq(SeqId,obs(action_2,X),T) :- seq(SeqId,a2(action(X)),T), allowed_actions(X).
-% seq(SeqId,obs(action_1,other),T) :- seq(SeqId,a1(action(X)),T), not allowed_actions(X).
-% seq(SeqId,obs(action_2,other),T) :- seq(SeqId,a2(action(X)),T), not allowed_actions(X).
+seq(SeqId,obs(action_1,other),T) :- seq(SeqId,a1(action(X)),T), not allowed_actions(X).
+seq(SeqId,obs(action_2,other),T) :- seq(SeqId,a2(action(X)),T), not allowed_actions(X).
 
 seq(SeqId,obs(location_1,X),T) :- seq(SeqId,a1(location(X)),T), allowed_locations(X).
 seq(SeqId,obs(location_2,X),T) :- seq(SeqId,a2(location(X)),T), allowed_locations(X).
-% seq(SeqId,obs(location_1,other),T) :- seq(SeqId,a1(location(X)),T), not allowed_locations(X).
-% seq(SeqId,obs(location_2,other),T) :- seq(SeqId,a2(location(X)),T), not allowed_locations(X).
+seq(SeqId,obs(location_1,other),T) :- seq(SeqId,a1(location(X)),T), not allowed_locations(X).
+seq(SeqId,obs(location_2,other),T) :- seq(SeqId,a2(location(X)),T), not allowed_locations(X).
 
 % attribute(type_1 ; type_2 ; action_1 ; action_2 ; location_1 ; location_2).
 % categorical(type_1 ; type_2 ; action_1 ; action_2 ; location_1 ; location_2).
@@ -85,20 +88,22 @@ seq(SeqId,obs(location_2,X),T) :- seq(SeqId,a2(location(X)),T), allowed_location
 attribute(action_1 ; action_2 ; location_1 ; location_2).
 categorical(action_1 ; action_2 ; location_1 ; location_2).
 
+
+
 % value(type_1,V) :- agent_type(_,agent1(V)).
 % value(type_2,V) :- agent_type(_,agent2(V)).
 
-value(action_1,V) :- seq(_,a1(action(V)),_), allowed_actions(V).
-value(action_2,V) :- seq(_,a2(action(V)),_), allowed_actions(V).
+% value(action_1,V) :- seq(_,a1(action(V)),_), allowed_actions(V).
+% value(action_2,V) :- seq(_,a2(action(V)),_), allowed_actions(V).
 
-value(action_1,other) :- seq(_,obs(action_1,other),_).
-value(action_2,other) :- seq(_,obs(action_2,other),_).
+% value(action_1,other) :- seq(_,obs(action_1,other),_).
+% value(action_2,other) :- seq(_,obs(action_2,other),_).
 
-value(location_1,V) :- seq(_,a1(location(V)),_), allowed_locations(V).
-value(location_2,V) :- seq(_,a2(location(V)),_), allowed_locations(V).
+% value(location_1,V) :- seq(_,a1(location(V)),_), allowed_locations(V).
+% value(location_2,V) :- seq(_,a2(location(V)),_), allowed_locations(V).
 
-value(location_1,other) :- seq(_,obs(location_1,other),_).
-value(location_2,other) :- seq(_,obs(location_2,other),_).
+% value(location_1,other) :- seq(_,obs(location_1,other),_).
+% value(location_2,other) :- seq(_,obs(location_2,other),_).
 
 attribute(same_lane ; same_direction ; behind_v1_v2 ; in_front_v1_v2).
 categorical(same_lane ; same_direction ; behind_v1_v2 ; in_front_v1_v2).
@@ -124,7 +129,6 @@ holds(equals(in_front_v1_v2,true),SeqId,T) :-
      seq(SeqId, a1(ycoord(y2, Y1)), T),
      seq(SeqId, a2(ycoord(y2, Y2)), T),
      Y1 > Y2.
-*%
 
 
 %*
@@ -163,11 +167,11 @@ symbol(@get_symbol(Y)) :- alphabetNum(Y).
 index(Y,@get_index(Y)) :- symbol(Y).
 *%
 
-
+%*
 %------------------%
 % BSC Kidney/Genes %
 %------------------%
-alphabetNum(0..4).
+alphabetNum(0..9).
 seq(SeqId,obs(hus1b,X),T) :- seq(SeqId,hus1b(X),T).
 seq(SeqId,obs(slc22a1,X),T) :- seq(SeqId,slc22a1(X),T).
 seq(SeqId,obs(loc100132354,X),T) :- seq(SeqId,loc100132354(X),T).
@@ -192,7 +196,7 @@ categorical(none).
 
 value(A,V) :- attribute(A), symbol(V).
 symbol(Y) :- alphabetNum(Y).
-
+*%
 
 
 %*
@@ -350,18 +354,18 @@ attribute(A) :- categorical(A).
 % the corresponding choice rule and the corresponding used_attribute/1 predicate in induce.lp should also be commented-out.
 %-------------------------------------------------------------------------------------------------------------------------
 % holds(lt(A1,A2),SeqId,T) :- seq(SeqId,obs(A1,X),T), seq(SeqId,obs(A2,Y),T), X < Y, numerical(A1), numerical(A2), A1 != A2.
-holds(at_most(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y <= X, symbol(X).   % , value(A,X)
-holds(at_least(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y >= X, symbol(X).  % , value(A,X)
-% holds(equals(A,X),SeqId,T) :- seq(SeqId,obs(A,X),T), categorical(A), A != none.
+% holds(at_most(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y <= X, symbol(X).   % , value(A,X)
+% holds(at_least(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y >= X, symbol(X).  % , value(A,X)
+holds(equals(A,X),SeqId,T) :- seq(SeqId,obs(A,X),T), categorical(A), A != none.
 % holds(neg(E,X),SeqId,T) :- seq(SeqId,obs(E,Y),T), value(E,X), Y != X.
 
 
 
 % Costs for adding an atom to a transition rule.
 % cost(lt(A1,A2),1) :- attribute(A1), attribute(A2).
-cost(at_most(A,V),1) :- value(A,V).
-cost(at_least(A,V),1) :- value(A,V).
-% cost(equals(A,V),1) :- value(A,V).
+% cost(at_most(A,V),1) :- value(A,V).
+% cost(at_least(A,V),1) :- value(A,V).
+cost(equals(A,V),1) :- value(A,V).
 % cost(neg(A,V),1) :- value(A,V).
 
 positive(SeqId) :- class(SeqId,X), targetClass(X).
