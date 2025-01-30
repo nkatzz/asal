@@ -127,7 +127,7 @@ if __name__ == '__main__':
 
     # Parameters for SAX
     n_segments = 10  # Number of segments for PAA
-    n_bins = 5  # Alphabet size for SAX symbols
+    n_bins = 10  # Alphabet size for SAX symbols
 
     discretize_dataset(n_segments, n_bins, train_set_path, train_set_out_path, train_asp_path)
     discretize_dataset(n_segments, n_bins, test_set_path, test_set_out_path, test_asp_path)
