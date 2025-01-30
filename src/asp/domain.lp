@@ -20,7 +20,7 @@ def get_index(symbol):
 % Use either one of the blocks below. The second one is essentially a propositionalization approach.
 % Comment-out the "equals" definition that is normally used (below in this file),
 % since an equals/1 pred is provided here.
-%*
+
 holds(equals(even,1),SeqId,T) :- seq(SeqId,d(X),T), X \ 2 = 0.
 holds(equals(odd,1),SeqId,T) :- seq(SeqId,d(X),T), X \ 2 != 0.
 holds(equals(gt_6,1),SeqId,T) :- seq(SeqId,d(X),T), X > 6.
@@ -32,7 +32,7 @@ categorical(even; odd; gt_6; leq_6; gt_3; leq_3).
 numerical(none).
 value(even,1). value(odd,1). value(gt_6,1).
 value(leq_6,1). value(gt_3,1). value(leq_3,1).
-*%
+
 
 %*
 holds(equals(even_gt_6,1),SeqId,T) :- seq(SeqId,d(X),T), X \ 2 = 0, X > 6.
@@ -163,11 +163,11 @@ symbol(@get_symbol(Y)) :- alphabetNum(Y).
 index(Y,@get_index(Y)) :- symbol(Y).
 *%
 
-
+%*
 %------------------%
 % BSC Kidney/Genes %
 %------------------%
-alphabetNum(0..4).
+alphabetNum(0..9).
 seq(SeqId,obs(hus1b,X),T) :- seq(SeqId,hus1b(X),T).
 seq(SeqId,obs(slc22a1,X),T) :- seq(SeqId,slc22a1(X),T).
 seq(SeqId,obs(loc100132354,X),T) :- seq(SeqId,loc100132354(X),T).
@@ -184,6 +184,7 @@ seq(SeqId,obs(cabyr,X),T) :- seq(SeqId,cabyr(X),T).
 seq(SeqId,obs(ccdc146,X),T) :- seq(SeqId,ccdc146(X),T).
 seq(SeqId,obs(ces8,X),T) :- seq(SeqId,ces8(X),T).
 
+
 attribute(hus1b; slc22a1; loc100132354; slc22a16; abca12, c10orf41; c4orf6; c9orf129; cd1c; trim36; afap1l1; c6orf176; cabyr; ccdc146; ces8).
 numerical(hus1b; slc22a1; loc100132354; slc22a16; abca12, c10orf41; c4orf6; c9orf129; cd1c; trim36; afap1l1; c6orf176; cabyr; ccdc146; ces8).
 categorical(none).
@@ -192,7 +193,7 @@ categorical(none).
 
 value(A,V) :- attribute(A), symbol(V).
 symbol(Y) :- alphabetNum(Y).
-
+*%
 
 
 %*
@@ -350,18 +351,18 @@ attribute(A) :- categorical(A).
 % the corresponding choice rule and the corresponding used_attribute/1 predicate in induce.lp should also be commented-out.
 %-------------------------------------------------------------------------------------------------------------------------
 % holds(lt(A1,A2),SeqId,T) :- seq(SeqId,obs(A1,X),T), seq(SeqId,obs(A2,Y),T), X < Y, numerical(A1), numerical(A2), A1 != A2.
-holds(at_most(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y <= X, symbol(X).   % , value(A,X)
-holds(at_least(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y >= X, symbol(X).  % , value(A,X)
-% holds(equals(A,X),SeqId,T) :- seq(SeqId,obs(A,X),T), categorical(A), A != none.
+% holds(at_most(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y <= X, symbol(X).   % , value(A,X)
+% holds(at_least(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y >= X, symbol(X).  % , value(A,X)
+holds(equals(A,X),SeqId,T) :- seq(SeqId,obs(A,X),T), categorical(A), A != none.
 % holds(neg(E,X),SeqId,T) :- seq(SeqId,obs(E,Y),T), value(E,X), Y != X.
 
 
 
 % Costs for adding an atom to a transition rule.
 % cost(lt(A1,A2),1) :- attribute(A1), attribute(A2).
-cost(at_most(A,V),1) :- value(A,V).
-cost(at_least(A,V),1) :- value(A,V).
-% cost(equals(A,V),1) :- value(A,V).
+% cost(at_most(A,V),1) :- value(A,V).
+% cost(at_least(A,V),1) :- value(A,V).
+cost(equals(A,V),1) :- value(A,V).
 % cost(neg(A,V),1) :- value(A,V).
 
 positive(SeqId) :- class(SeqId,X), targetClass(X).

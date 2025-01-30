@@ -16,7 +16,7 @@ from src.asal.logger import *
 t_lim = 1000
 
 # Max number of states in the learnt automaton
-max_states = 7
+max_states = 4
 
 # The target class that we are trying to predict.
 target_class = 1
@@ -30,11 +30,11 @@ mini_batch_size = 1000
 # dataset = "maritime"
 # dataset = "bsc_lobular"
 # dataset = "weather"
-# dataset = "mnist"
+dataset = "mnist"
 # dataset = "ROAD-R"
-dataset = "bsc_genes_kidney"
-# fold = "few_shot_mnist"
-fold = "fold_0"
+# dataset = "bsc_genes_kidney"
+fold = "few_shot_mnist"
+# fold = "fold_0"
 
 # Paths to the training and testing set files. These may be modified to point to any such pair
 # of files by replacing the following with the absolute paths of the files.
