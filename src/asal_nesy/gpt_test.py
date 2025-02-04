@@ -11,7 +11,7 @@ train_images = MNIST(root="./mnist_data", train=True, download=True, transform=T
 test_images = MNIST(root="./mnist_data", train=False, download=True, transform=ToTensor())
 
 # Select 100 images for training
-train_subset = torch.utils.data.Subset(train_images, range(200))
+train_subset = torch.utils.data.Subset(train_images, range(100))
 train_loader = DataLoader(train_subset, batch_size=32, shuffle=True)
 
 # Use the remaining images for evaluation
@@ -21,6 +21,7 @@ rest_train_loader = DataLoader(
     shuffle=False,
 )
 test_loader = DataLoader(test_images, batch_size=32, shuffle=False)
+
 
 # Define the CNN model
 class SimpleCNN(nn.Module):
@@ -40,6 +41,7 @@ class SimpleCNN(nn.Module):
         x = self.fc2(x)
         return x
 
+
 # Initialize the model, loss function, and optimizer
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = SimpleCNN().to(device)
@@ -47,7 +49,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Train the model
-epochs = 100
+epochs = 10
 for epoch in range(epochs):
     print(f'epoch: {epoch}')
     model.train()
@@ -58,6 +60,7 @@ for epoch in range(epochs):
         loss = criterion(outputs, y)
         loss.backward()
         optimizer.step()
+
 
 # Evaluate the model
 def evaluate_model(loader):
@@ -72,6 +75,7 @@ def evaluate_model(loader):
             y_true.extend(y.cpu().numpy())
             y_pred.extend(predictions.cpu().numpy())
     return f1_score(y_true, y_pred, average="weighted")
+
 
 # Compute F1-scores
 rest_train_f1 = evaluate_model(rest_train_loader)
