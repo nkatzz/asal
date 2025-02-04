@@ -11,7 +11,7 @@ To get this to work just comment the current return statement there and uncommen
 """
 
 if __name__ == "__main__":
-    # import subprocess subprocess.run(["clingo /home/nkatz/Dropbox/ASP-experimentation/automata/learn-conjunctions
+    # import subprocess subprocess.run(["clingo /home/nkatz/Dropbox/ASP-devs/automata/learn-conjunctions
     # -ndet.lp -t12 --time-limit=120"], shell=True)
 
     t_lim = 120  # 'inf'
