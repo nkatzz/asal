@@ -1,2 +1,11 @@
-clingo==5.6.2
+clingo~=5.7.1
 simple-colors==0.1.5
+
+numpy~=2.2.2
+torch~=2.6.0
+scikit-learn~=1.6.1
+scipy~=1.15.1
+torchvision~=0.21.0
+nnf~=0.4.1
+sympy~=1.13.1
+pysdd~=1.0.0

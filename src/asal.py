@@ -11,9 +11,8 @@ from src.asal.mcts import RootNode, MCTSRun
 from src.asal.test_model_multproc import test_model_mproc
 from src.asal.logger import *
 
-
 # Time limit (in seconds) for the solver to find a solution. Set this to 'inf' to disable time limit.
-t_lim = 1000
+t_lim = 60
 
 # Max number of states in the learnt automaton
 max_states = 4

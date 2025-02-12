@@ -44,7 +44,7 @@ holds(body(I,J),S,T) :- rule(I), conjunction(J), sequence(S), time(T), holds(F,S
 % {body(I,J,enriched(P)) : rule(I), conjunction(J), pathway(P)}.
 % {body(I,J,not_enriched(P)) : rule(I), conjunction(J), pathway(P)}.
 
-{conjunction(1..3)}.
+{conjunction(1..2)}.
 
 %--------------------------------------------
 % Used to minimize used attributes.

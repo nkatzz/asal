@@ -137,10 +137,18 @@ class Tester:
         enable_python()
         # ctl = clingo.Control(['-t{0}'.format(self.cores)])
         ctl = clingo.Control()
-        path_scoring_file = os.path.normpath(
-            os.getcwd() + os.sep + 'asp' + os.sep + 'path_scoring.lp')
-        test_model_file = os.path.normpath(
-            os.getcwd() + os.sep + 'asp' + os.sep + 'test_model.lp')
+
+        if 'src' in os.getcwd():
+            path_scoring_file = os.path.normpath(
+                os.getcwd() + os.sep + 'asp' + os.sep + 'path_scoring.lp')
+            test_model_file = os.path.normpath(
+                os.getcwd() + os.sep + 'asp' + os.sep + 'test_model.lp')
+        else:
+            path_scoring_file = os.path.normpath(
+                os.getcwd() + os.sep + 'src' + os.sep + 'asp' + os.sep + 'path_scoring.lp')
+            test_model_file = os.path.normpath(
+                os.getcwd() + os.sep + 'src' + os.sep + 'asp' + os.sep + 'test_model.lp')
+
         infer_file = path_scoring_file if self.path_scoring else test_model_file
         # infer_file = 'asp/path_scoring.lp' if self.path_scoring else 'asp/test_model.lp'
         ctl.load(infer_file)
