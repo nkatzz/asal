@@ -144,7 +144,11 @@ class Learner:
 
         enable_python()
         # induction_file = 'asp/induce.lp'
-        induction_file = os.path.normpath(os.getcwd() + os.sep + 'asp' + os.sep + 'induce.lp')
+        if 'src' in os.getcwd():
+            induction_file = os.path.normpath(os.getcwd() + os.sep + 'asp' + os.sep + 'induce.lp')
+        else:
+            induction_file = os.path.normpath(os.getcwd() + os.sep + 'src' + os.sep + 'asp' + os.sep + 'induce.lp')
+
         self.ctl.load(induction_file)
         self.ctl.add("base", [], self.mini_batch)
 

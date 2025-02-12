@@ -28,7 +28,24 @@ holds(equals(leq_6,1),SeqId,T) :- seq(SeqId,d(X),T), X <= 6.
 holds(equals(gt_3,1),SeqId,T) :- seq(SeqId,d(X),T), X > 3.
 holds(equals(leq_3,1),SeqId,T) :- seq(SeqId,d(X),T), X <= 3.
 
+holds(equals(gt_2,1),SeqId,T) :- seq(SeqId,d(X),T), X > 2.
+holds(equals(leq_2,1),SeqId,T) :- seq(SeqId,d(X),T), X <= 2.
+holds(equals(gt_4,1),SeqId,T) :- seq(SeqId,d(X),T), X > 4.
+holds(equals(leq_4,1),SeqId,T) :- seq(SeqId,d(X),T), X <= 4.
+
+% holds(equals(gt_5,1),SeqId,T) :- seq(SeqId,d(X),T), X > 5.
+% holds(equals(leq_5,1),SeqId,T) :- seq(SeqId,d(X),T), X <= 5.
+% holds(equals(gt_7,1),SeqId,T) :- seq(SeqId,d(X),T), X > 7.
+% holds(equals(leq_7,1),SeqId,T) :- seq(SeqId,d(X),T), X <= 7.
+
 categorical(even; odd; gt_6; leq_6; gt_3; leq_3).
+
+categorical(gt_2; leq_2; gt_4; leq_4; gt_5; leq_5; gt_7; leq_7).
+
+value(gt_2,1). value(leq_2,1). value(gt_4,1). value(leq_4,1). value(gt_5,1). value(leq_5,1). value(gt_7,1). value(leq_7,1).
+
+
+
 numerical(none).
 value(even,1). value(odd,1). value(gt_6,1).
 value(leq_6,1). value(gt_3,1). value(leq_3,1).

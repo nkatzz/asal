@@ -17,6 +17,9 @@ class Automaton:
         self.transitions_str = []
         self.accepting_states = []
 
+        """Set of states (ints)"""
+        self.states = {1}  # initialize with the start state.
+
         """The list of transition rules."""
         self.rules: list[Rule] = []
 
@@ -82,12 +85,18 @@ class Automaton:
         else:
             self.is_empty = True
 
+    def get_accepting_state_self_loop_guards(self):
+        accepting = [x.split('(')[1].split(')')[0] for x in self.accepting_states]
+        return [f'f({x},{x})' for x in accepting]
+
     def __generate(self):
         """Generate an automaton from a Clingo model."""
         for atom in self.asp_model:
             if isinstance(atom, TransitionAtom):
                 self.transitions.append(atom)
                 self.transitions_str.append(atom.str)
+                self.states.add(int(atom.from_state))
+                self.states.add(int(atom.to_state))
             elif isinstance(atom, AcceptingStateAtom):
                 self.accepting_states.append(atom.str + '.')
             elif isinstance(atom, GuardBodyAtom):

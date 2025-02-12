@@ -1,5 +1,5 @@
-from sdds.asp_programs import road_r_debug
-from sdds.build_sdds import SDDBuilder
+from cirquits.asp_programs import road_r_debug
+from cirquits.build_sdds import SDDBuilder
 import torch
 from functools import reduce
 import operator
