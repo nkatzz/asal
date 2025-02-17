@@ -279,7 +279,6 @@ class SDDBuilder:
             dict([(query, f'({dnf_formula(dnf)}) & {mutex_formulas}')
                   for query, dnf in self.queries_vars_map.items()])
         )
-        # print(self.query_formulas_map)
 
     def __build_sdd(self, expr):
         match expr:
