@@ -33,13 +33,21 @@ def induce_sfa(train_path, max_states, target_class,
                       f'Total training time: {mcts.total_training_time}'))
 
     logger.info('Compiling guards into NNF...')
+
+    # asp_program = mnist_even_odd
+
+    # """
     asp_program = mnist_even_odd_learn
     learnt_sfa = mcts.best_model.show(mode='simple')
     x = [f'query(guard,{rule.head}) :- {rule.head}.' for rule in mcts.best_model.rules]
-    y = [f'query(guard,{head}) :- {head}.' for head in mcts.best_model.self_loop_guards.keys()
-         if head not in mcts.best_model.get_accepting_state_self_loop_guards()]
+
+    # y = [f'query(guard,{head}) :- {head}.' for head in mcts.best_model.self_loop_guards.keys()
+    #      if head not in mcts.best_model.get_accepting_state_self_loop_guards()]
+
+    y = [f'query(guard,{head}) :- {head}.' for head in mcts.best_model.self_loop_guards.keys()]
     query_atoms = x + y
     asp_program = asp_program + learnt_sfa + '\n'.join(query_atoms) + '#show value/2.\n' + '#show query/2.'
+    # """
 
     sdd_builder = SDDBuilder(asp_program,
                              vars_names=['d'],
