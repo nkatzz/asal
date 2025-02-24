@@ -1,5 +1,5 @@
 from src.asal.template import Template
-from src.asal.structs import Automaton, ScoredModel, SolveResult
+from src.asal.structs import Automaton, ScoredModel, SolveResult, SolveResultContainer, ffi
 from src.asal.learner import Learner
 from src.asal.auxils import get_train_data, f1_aux, split_by_n, get_seqs_by_id
 from src.asal.test_model_multproc import test_model_mproc
@@ -10,6 +10,8 @@ import abc
 from multiprocessing import Process, Queue
 import random
 from statistics import mean
+import pickle
+from joblib import Parallel, delayed
 
 """
 -----------------------------------------------------------------------
@@ -149,7 +151,8 @@ class MCTSRun:
                  target_class,
                  max_children,
                  models_num='0',
-                 path_scoring=False):
+                 path_scoring=False,
+                 with_joblib=True):
 
         self.training_data_whole = training_data
         self.train_path = training_data_path
@@ -172,6 +175,7 @@ class MCTSRun:
         self.total_training_time = None
         self.root_node = RootNode()
         self.tried_models = []
+        self.with_joblib = with_joblib
 
         # Generate a seed automaton
         self.expand_root()
@@ -240,8 +244,16 @@ class MCTSRun:
 
     def expand_node(self, parent_node, batch_data: str, initial_model=Automaton()):
 
-        learner = Learner(self.template, batch_data, self.t_lim, existing_model=initial_model)
-        solve_result: SolveResult = self.call(learner, self.models_num)
+        learner = Learner(self.template, batch_data, self.t_lim,
+                          existing_model=initial_model, with_joblib=self.with_joblib)
+
+        solve_result = None
+        if not self.with_joblib:
+            solve_result = self.call(learner, self.models_num)
+        else:
+            sr = self.call_learner_joblib(learner, self.models_num)
+            solve_result = SolveResultContainer(sr.deserialize_models(), sr.grounding_time, sr.solving_time)
+
         models = solve_result.models
 
         if not models:
@@ -356,10 +368,42 @@ class MCTSRun:
         process.join()
         return results
 
-    def update_stats(self, sr: SolveResult):
-        self.grounding_times.append(sr.grounding_time)
-        self.solving_times.append(sr.solving_time)
-        new_models_count = len(sr.models) if isinstance(sr.models, list) else 1
+    @staticmethod
+    def serialize_cffi_obj(cffi_obj):
+        """Convert a single CFFI object to a picklable form."""
+        return bytes(ffi.buffer(cffi_obj))
+
+    @staticmethod
+    def serialize_cffi_list(cffi_list):
+        """Convert a list of CFFI objects to a list of picklable bytes."""
+        return [bytes(ffi.buffer(obj)) for obj in cffi_list]
+
+    def call_learner_joblib(self, _learner: Learner, models_num):
+        """Worker function that processes Learner's results."""
+        if models_num == '0':
+            result = _learner.induce_models(sols_num='0')  # Single CFFI object
+            # serialized_result = self.serialize_cffi_obj(result)  # Serialize it
+        elif models_num == '1':
+            result = _learner.induce_models(sols_num='1')  # Single CFFI object
+            # serialized_result = self.serialize_cffi_obj(result)  # Serialize it
+        else:
+            result = _learner.induce_multiple(models_num)  # List of CFFI objects
+            # serialized_result = self.serialize_cffi_list(result)  # Serialize list
+
+        return result  # serialized_result
+
+    def call_joblib(self, _learner: Learner):
+        """Runs the learner in a separate process using joblib."""
+        results = Parallel(n_jobs=1, backend="loky")(
+            [delayed(self.call_learner_joblib)(_learner, self.models_num)]  # ✅ Enclosed in a list
+        )
+
+        return results[0]  # joblib returns a list, so get the first result
+
+    def update_stats(self, solve_result):
+        self.grounding_times.append(solve_result.grounding_time)
+        self.solving_times.append(solve_result.solving_time)
+        new_models_count = len(solve_result.models) if isinstance(solve_result.models, list) else 1
         self.generated_models_count = self.generated_models_count + new_models_count
 
     @staticmethod
@@ -396,6 +440,7 @@ if __name__ == "__main__":
     expl_rate = 0.005
     max_children = 5  # 100
     path_scoring = False  # This works if needed, but makes testing a bit  slower.
+    with_joblib = True  # If false uses multiprocessing.Process for multi-processing. Causes problems on Windows!
 
     seed_data = train_data[selected_mini_batch]
     root = RootNode()
@@ -403,5 +448,5 @@ if __name__ == "__main__":
     mcts = MCTSRun(train_data, train_path,
                    seed_data, mini_batch_size, tmpl,
                    t_lim, mcts_iterations, expl_rate,
-                   target_class, max_children, models_num='0', path_scoring=path_scoring)
+                   target_class, max_children, models_num='0', path_scoring=path_scoring, with_joblib=with_joblib)
     mcts.run_mcts()

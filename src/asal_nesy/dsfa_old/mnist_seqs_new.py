@@ -157,13 +157,7 @@ def get_data_loaders(batch_size=1):
 
 if __name__ == "__main__":
     sequence_length, num_train, num_test = 10, 1000, 300
-    """
-    train_positives, train_negatives, test_positives, test_negatives = (
-        create_dataset(
-            sequence_length, num_train, num_test, r"\d*(8)\d*(1|3|5)\d*(0|1|2|3)"
-        )
-    )
-    """
+
     train_positives, train_negatives, test_positives, test_negatives = create_dataset(
             sequence_length, num_train, num_test, r"\d*(8)\d*(1|3|5)\d*(0|1|2|3)"
         )

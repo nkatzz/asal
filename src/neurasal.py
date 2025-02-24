@@ -35,12 +35,12 @@ if __name__ == "__main__":
     num_epochs = 100
 
     # batch size vs lr: bs=50 --> lr=0.01, bs=1 --> lr=0.001
-    batch_size = 1
+    batch_size = 50
     cnn_output_size = 10  # digits num. for MNIST
     model = DigitCNN(out_features=cnn_output_size)
     # model = SimpleCNN()
     model = model.to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)  # 0.001
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)  # 0.001
     criterion = nn.BCELoss()
     train_loader, test_loader = get_data_loaders(batch_size=batch_size)
 
