@@ -27,6 +27,8 @@ mini_batch_size = 30
 dataset = "maritime"
 fold = "fold_0"
 
+with_jobLib = False
+
 # Paths to the training and testing set files. These may be modified to point to any such pair
 # of files by replacing the following with the absolute paths of the files.
 train_path = os.path.normpath(
@@ -43,7 +45,7 @@ if __name__ == '__main__':
     train_data = get_train_data(train_path, str(target_class), mini_batch_size, shuffle=False)
     mini_batch = train_data[1]  # Get mini-batch 1
 
-    learner = Learner(template, mini_batch, time_limit)
+    learner = Learner(template, mini_batch, time_limit, with_joblib=with_jobLib)
     result = learner.induce_models()
 
     model: Automaton = result.models

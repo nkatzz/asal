@@ -21,7 +21,8 @@ class Learner:
                  existing_model=Automaton(),
                  constraints=None,
                  debug=False,
-                 mode='reasoning'):
+                 mode='reasoning',
+                 with_joblib=False):
 
         self.constraints = constraints
         self.template = template
@@ -44,6 +45,7 @@ class Learner:
         self.return_multiple_models = False
         self.grounding_time = 0.0
         self.solving_time = 0.0
+        self.with_joblib = with_joblib
 
     @staticmethod
     def parse_solver_results(model: list[clingo.Symbol]):
@@ -182,7 +184,7 @@ class Learner:
             models = self.induced_models
 
         # return models
-        return SolveResult(models, self.grounding_time, self.solving_time)
+        return SolveResult(models, self.grounding_time, self.solving_time, with_joblib=self.with_joblib)
 
     def induce_multiple(self, sols_num):
         """Generate a hypothesis A within the time limit. Then ask for up to sols_num

@@ -3,6 +3,7 @@ from src.asal.template import Template
 from clingo.symbol import parse_term
 from src.asal.logger import *
 import random
+import cffi
 
 
 class Automaton:
@@ -373,11 +374,53 @@ class GuardedTransition:
             pass
 
 
-class SolveResult:
+class SolveResultContainer:
     def __init__(self, models, grounding_time, solving_time):
         self.models = models
         self.grounding_time = grounding_time
         self.solving_time = solving_time
+
+
+ffi = cffi.FFI()
+
+
+class SolveResult:
+    def __init__(self, models, grounding_time, solving_time, with_joblib=False):
+        """
+        - models: Can be a list of CFFI objects or Automaton objects.
+        - grounding_time, solving_time: Regular numerical values.
+        """
+        self.with_joblib = with_joblib
+        # Store models as picklable bytes only when joblib is used for multi-processing
+        self.models = self._serialize_models(models) if self.with_joblib else models
+        self.grounding_time = grounding_time
+        self.solving_time = solving_time
+
+    def _serialize_models(self, models):
+        """Convert models to a picklable format, handling both CFFI and non-CFFI objects."""
+        serialized_models = []
+        for m in models:
+            if isinstance(m, ffi.CData):  # ✅ Only serialize CFFI objects
+                serialized_models.append(bytes(ffi.buffer(m)))
+            else:
+                serialized_models.append(m)  # ✅ Leave non-CFFI objects unchanged
+        return serialized_models
+
+    def deserialize_models(self, ctype="int[10]"):
+        """Reconstructs the CFFI objects from serialized bytes where applicable."""
+        deserialized_models = []
+        for m in self.models:
+            if isinstance(m, bytes):  # ✅ Only deserialize if it's serialized CFFI data
+                deserialized_models.append(self._deserialize_cffi(m, ctype))
+            else:
+                deserialized_models.append(m)  # ✅ Non-CFFI objects remain unchanged
+        return deserialized_models
+
+    def _deserialize_cffi(self, byte_data, ctype):
+        """Helper function to convert bytes back into a CFFI object."""
+        obj = ffi.new(ctype)
+        ffi.buffer(obj)[:] = byte_data  # Restore data
+        return obj
 
 
 class ScoredModel:
