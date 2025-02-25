@@ -6,7 +6,6 @@ from sklearn.metrics import f1_score
 from src.asal.logger import *
 import nnf
 
-device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 
 
 class ImageDataset(Dataset):
@@ -39,7 +38,7 @@ def get_indiv_data_loader(sequences):
     return train_loader_individual
 
 
-def pre_train_model(seq_train_loader, seq_test_loader, num_samples, model, optimizer, num_epochs=10):
+def pre_train_model(seq_train_loader, seq_test_loader, num_samples, model, optimizer, device, num_epochs=10):
     # un-batch the data for sampling.
     train_data_list = [list(x) for batch in seq_train_loader for x in zip(*batch)]
 
@@ -129,22 +128,6 @@ def get_stats(predicted, actual):
     return f1_binary, f1_macro, f1_weighted, tp, fp, fn, tn
 
 
-def process_sequences_debug(data, model, criterion, num_states):
-    sequence, label, symbolic_sequence = data[0], data[1], data[2]
-    sequence, label, symbolic_sequence = sequence.to(device), label.to(device), symbolic_sequence.to(device)
-    cnn_prediction, guard_prediction, final_states_distribution = model(sequence)
-    acceptance_probability = final_states_distribution[:, num_states - 1]
-
-    # print(f'Acceptance probability: {acceptance_probability}')
-    acceptance_probability = torch.clamp(acceptance_probability, 0, 1)
-
-    loss = criterion(acceptance_probability, label.float())
-    # Collect stats for training F1
-    predicted = (acceptance_probability >= 0.5)
-
-    return acceptance_probability, loss, label, predicted
-
-
 def process_sequence(sequence, symb_sequence, seq_label, model, sfa, criterion):
     # Make the sequence of size (batch_size * seq_len, 1, 28, 28)
     sequence = sequence.view(-1, sequence.shape[2], sequence.shape[3], sequence.shape[4])
@@ -164,7 +147,7 @@ def process_sequence(sequence, symb_sequence, seq_label, model, sfa, criterion):
     return loss, prediction
 
 
-def test_model(model, sfa, test_loader, batch_size, cnn_output_size):
+def test_model(model, sfa, test_loader, batch_size, cnn_output_size, device):
     actual, predicted = [], []
     actual_latent, predicted_latent = [], []
     model.eval()

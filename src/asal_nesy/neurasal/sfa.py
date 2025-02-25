@@ -32,7 +32,7 @@ def induce_sfa(train_path, max_states, target_class,
                       f'Model evaluation time: {sum(mcts.testing_times)}\n'
                       f'Total training time: {mcts.total_training_time}'))
 
-    logger.info('Compiling guards into NNF...')
+    logger.info('Compiling guards into d-NNF...')
 
     # asp_program = mnist_even_odd
 

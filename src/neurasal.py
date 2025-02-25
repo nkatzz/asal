@@ -10,7 +10,6 @@ from src.asal_nesy.neurasal.sfa import *
 from src.asal_nesy.dsfa_old.models import DigitCNN, NonTrainableNeuralSFA
 from src.asal_nesy.dsfa_old.mnist_seqs_new import get_data_loaders
 from src.asal.logger import *
-from src.asal_nesy.neurasal.pre_train_model import pre_train
 from src.asal_nesy.neurasal.utils import *
 from src.asal_nesy.pre_train_cnn import SimpleCNN
 
@@ -19,6 +18,9 @@ sys.path.insert(0, project_root)
 # print(sys.path[0])
 
 device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
+# device = torch.device("cpu")
+
+
 print(f'Device: {device}')
 
 if __name__ == "__main__":
@@ -32,22 +34,24 @@ if __name__ == "__main__":
     # sfa = get_sfa()
 
     pre_training_size = 10  # num of fully labeled seed sequences.
-    num_epochs = 100
+    num_epochs = 1000
 
     # batch size vs lr: bs=50 --> lr=0.01, bs=1 --> lr=0.001
     batch_size = 50
     cnn_output_size = 10  # digits num. for MNIST
-    model = DigitCNN(out_features=cnn_output_size)
-    # model = SimpleCNN()
-    model = model.to(device)
+    # model = DigitCNN(out_features=cnn_output_size).to(device)
+
+    model = SimpleCNN().to(device)
+    print(sum(p.numel() for p in model.parameters()), "parameters")
+
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)  # 0.001
-    criterion = nn.BCELoss()
+    criterion = nn.BCELoss().to(device)
     train_loader, test_loader = get_data_loaders(batch_size=batch_size)
 
     logger.info(f'Pre-training on images from {pre_training_size} sequences')
 
     # num_samples is number of randomly selected sequences. We pre-train on every image from these seqs.
-    pre_train_model(train_loader, test_loader, 10, model, optimizer, num_epochs=100)
+    pre_train_model(train_loader, test_loader, 10, model, optimizer, device, num_epochs=100)
 
     logger.info(f'Training with the SFA...')
 
@@ -58,9 +62,8 @@ if __name__ == "__main__":
         start_time = time.time()
 
         for batch in train_loader:
-            img_sequences, labels, symbolic_sequences = batch[0], batch[1], batch[2]
             img_sequences, labels, symbolic_sequences = (
-                img_sequences.to(device), labels.to(device), symbolic_sequences.to(device))
+                batch[0].to(device), batch[1].to(device), batch[2].to(device))
 
             sequence_length = img_sequences.shape[1]
 
@@ -108,11 +111,11 @@ if __name__ == "__main__":
         latent_f1_micro = f1_score(actual_latent, predicted_latent, average="micro")
 
         test_f1, test_latent_f1_macro, t_tps, t_fps, t_fns = test_model(model, sfa, test_loader,
-                                                                        batch_size, cnn_output_size)
+                                                                        batch_size, cnn_output_size, device)
 
         _, train_f1, _, tps, fps, fns, _ = get_stats(predicted, actual)
 
         logger.info(
-            f'Epoch {epoch}\nLoss: {total_loss / len(train_loader):.3f}, Time: {int(time.time() - start_time)} secs\n'
+            f'Epoch {epoch}\nLoss: {total_loss / len(train_loader):.3f}, Time: {time.time() - start_time:.3f} secs\n'
             f'Train F1: {train_f1:.3f} ({tps}, {fps}, {fns}) | latent: {latent_f1_macro:.3f}\n'
             f'Test F1: {test_f1:.3f} ({t_tps}, {t_fps}, {t_fns}) | latent: {test_latent_f1_macro:.3f}')
