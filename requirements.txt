@@ -9,3 +9,5 @@ torchvision~=0.21.0
 nnf~=0.4.1
 sympy~=1.13.1
 pysdd~=1.0.0
+graphviz~=0.20.3
+more-itertools~=10.6.0

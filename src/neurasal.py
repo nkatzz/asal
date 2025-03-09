@@ -85,6 +85,6 @@ if __name__ == "__main__":
         _, train_f1, _, tps, fps, fns, _ = get_stats(predicted, actual)
 
         logger.info(
-            f'Epoch {epoch}\nLoss: {total_loss / len(train_loader):.3f}, Time: {int(time.time() - start_time)} secs\n'
+            f'Epoch {epoch}\nLoss: {total_loss / len(train_loader):.3f}, Time: {time.time() - start_time:.3f} secs\n'
             f'Train F1: {train_f1:.3f} ({tps}, {fps}, {fns}) | latent: {latent_f1_macro:.3f}\n'
             f'Test F1: {test_f1:.3f} ({t_tps}, {t_fps}, {t_fns}) | latent: {test_latent_f1_macro:.3f}')
