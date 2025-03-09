@@ -62,7 +62,7 @@ def pre_train_model(seq_train_loader, seq_test_loader, num_samples, model, optim
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
-        print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {total_loss / len(train_loader_individual):.4f}")
+        # print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {total_loss / len(train_loader_individual):.4f}")
 
     # Test the model on individual images from the seq_test_loader
     # un-batch the data first.
@@ -164,44 +164,57 @@ def process_sequence(sequence, symb_sequence, seq_label, model, sfa, criterion):
     return loss, prediction
 
 
+def process_batch(batch, model, sfa, batch_size, cnn_output_size):
+    img_sequences, labels, symbolic_sequences = batch[0], batch[1], batch[2]
+    img_sequences, labels, symbolic_sequences = (
+        img_sequences.to(device), labels.to(device), symbolic_sequences.to(device))
+
+    sequence_length = img_sequences.shape[1]
+
+    # Make the sequence of size (batch_size * seq_len, 1, 28, 28)
+    img_sequences = img_sequences.view(-1, img_sequences.shape[2], img_sequences.shape[3],
+                                       img_sequences.shape[4])
+
+    nn_outputs = model(img_sequences, apply_softmax=True)
+    nn_outputs = nn_outputs.view(batch_size, sequence_length, cnn_output_size)
+
+    # store for latent concept prediction performance
+    actual_latent = symbolic_sequences.flatten().squeeze(0).cpu()
+    predicted_latent = torch.argmax(nn_outputs, dim=2).flatten().cpu()
+
+    # Transpose the tensor so that the rows are the probabilities per variable
+    output_transposed = nn_outputs.transpose(1, 2)
+
+    # Create dictionary mapping each digit to its respective predictions
+    probabilities = {sfa.symbols[i]: output_transposed[:, i, :] for i in range(len(sfa.symbols))}
+
+    labelling_function = create_labelling_function(probabilities, sfa.symbols)
+    acceptance_probabilities = torch.clamp(sfa.forward(labelling_function), 0, 1)
+
+    decay_factor = 0.989
+    seq_lengths = torch.full((batch_size,), sequence_length, dtype=torch.float32)
+    # Apply decay to acceptance probabilities based on sequence length
+    decay_weights = torch.pow(decay_factor, seq_lengths)
+
+    acceptance_probabilities = acceptance_probabilities * decay_weights
+
+    return acceptance_probabilities, actual_latent, predicted_latent
+
+
 def test_model(model, sfa, test_loader, batch_size, cnn_output_size):
-    actual, predicted = [], []
-    actual_latent, predicted_latent = [], []
+    actual, predicted, actual_latent, predicted_latent = [], [], [], []
     model.eval()
     with torch.no_grad():
         for batch in test_loader:
-            img_sequences, labels, symbolic_sequences = batch[0], batch[1], batch[2]
-            img_sequences, labels, symbolic_sequences = (
-                img_sequences.to(device), labels.to(device), symbolic_sequences.to(device))
-
-            sequence_length = img_sequences.shape[1]
-
-            # Make the sequence of size (batch_size * seq_len, 1, 28, 28)
-            img_sequences = img_sequences.view(-1, img_sequences.shape[2], img_sequences.shape[3],
-                                               img_sequences.shape[4])
-
-            nn_outputs = model(img_sequences, apply_softmax=True)
-            nn_outputs = nn_outputs.view(batch_size, sequence_length, cnn_output_size)
-
-            # store for latent concept prediction performance
-            actual_latent.append(symbolic_sequences.flatten().squeeze(0).cpu())
-            predicted_latent.append(torch.argmax(nn_outputs, dim=2).flatten().cpu())
-
-            # Transpose the tensor so that the rows are the probabilities per variable
-            output_transposed = nn_outputs.transpose(1, 2)
-
-            # Create dictionary mapping each digit to its respective predictions
-            probabilities = {sfa.symbols[i]: output_transposed[:, i, :] for i in range(len(sfa.symbols))}
-
-            labelling_function = create_labelling_function(probabilities, sfa.symbols)
-
-            acceptance_probability = torch.clamp(sfa.forward(labelling_function), 0, 1)
-
-            # Collect stats for training F1
-            pred = (acceptance_probability >= 0.5)
+            labels = batch[1].to(device)
+            acceptance_probabilities, act_latent, pred_latent = process_batch(batch, model, sfa,
+                                                                              batch_size, cnn_output_size)
+            actual_latent.append(act_latent)
+            predicted_latent.append(pred_latent)
+            sequence_predictions = (acceptance_probabilities >= 0.5)
 
             actual.extend(labels)
-            predicted.extend(pred)
+            predicted.extend(sequence_predictions)
 
         actual_latent = torch.cat(actual_latent).numpy()  # Concatenates list of tensors into one
         predicted_latent = torch.cat(predicted_latent).numpy()

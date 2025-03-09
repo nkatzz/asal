@@ -33,6 +33,44 @@ def generate_string(regex: str, sequence_length: int, match: bool = True) -> lis
             return generated_sequence
 
 
+"""
+def generate_string(regex: str, sequence_length: int, match: bool = True) -> list[int]:
+    if match:
+        # Keep generating random sequences until a match is found
+        while True:
+            generated_sequence = [random.randint(0, 9) for _ in range(sequence_length)]
+            if re.match(regex, "".join(map(str, generated_sequence))):
+                return generated_sequence
+    else:
+        # Generate a matching sequence first
+        while True:
+            generated_sequence = [random.randint(0, 9) for _ in range(sequence_length)]
+            sequence_str = "".join(map(str, generated_sequence))
+            if re.match(regex, sequence_str):
+                break
+
+        # Now modify it to ensure it doesn't match
+        for i in range(sequence_length):
+            original_digit = generated_sequence[i]
+
+            # Pick a digit that is different from the original one
+            new_digit = random.choice([d for d in range(10) if d != original_digit])
+            generated_sequence[i] = new_digit
+
+            # Check if the new sequence does not match the regex
+            sequence_str = "".join(map(str, generated_sequence))
+            if not re.match(regex, sequence_str):
+                return generated_sequence
+
+            # Revert if it still matches
+            generated_sequence[i] = original_digit
+
+        # As a fallback, invert all digits to guarantee non-matching
+        generated_sequence = [(d + 1) % 10 for d in generated_sequence]
+        return generated_sequence
+"""
+
+"""
 def run_generation_loop(
         sequences: list[list[int]], label2id: dict[int, list[int]], train: bool = True
 ):
@@ -40,9 +78,45 @@ def run_generation_loop(
     for sequence in sequences:
         images = []
         for number in sequence:
+            # Check if there are any remaining images for the given label
+            if not label2id[number]:
+                raise ValueError(f"No remaining indices for label {number} in the dataset. "
+                                 f"Ensure sufficient data for all digits.")
             selected_index = random.choice(label2id[number])
-            label2id[number].remove(selected_index)
+            
+            label2id[number].remove(selected_index)  # Remove the selected index to avoid reuse
+           
             images.append((train_images if train else test_images)[selected_index])
+
+        final_sequences.append(images)
+
+    return final_sequences, label2id
+"""
+
+
+def run_generation_loop(
+        sequences: list[list[int]], label2id: dict[int, list[int]], train: bool = True
+):
+    final_sequences = []
+
+    # Reference the correct dataset based on `train` flag
+    dataset = train_images if train else test_images
+
+    for sequence in sequences:
+        images = []
+        for number in sequence:
+            # Check if label2id[number] is empty
+            if not label2id[number]:
+                print(f"No remaining indices for label {number} in the dataset. Re-creating indices")
+                # Repopulate only for the exhausted number
+                label2id[number] = [i for i, (_, label) in enumerate(dataset) if label == number]
+
+            # Pick a random index and remove it from the list
+            selected_index = random.choice(label2id[number])
+            # label2id[number].remove(selected_index)
+
+            # Load the image using the selected index
+            images.append(dataset[selected_index])
 
         final_sequences.append(images)
 
@@ -80,19 +154,27 @@ def create_dataset(
         generate_string(pattern, sequence_length) for _ in range(num_datapoints_train)
     ]
 
+    print('Generated train positives')
+
     train_negative_sequences = [
         generate_string(pattern, sequence_length, False)
         for _ in range(num_datapoints_train)
     ]
 
+    print('Generated train negatives')
+
     test_positive_sequences = [
         generate_string(pattern, sequence_length) for _ in range(num_datapoints_test)
     ]
+
+    print('Generated test positives')
 
     test_negative_sequences = [
         generate_string(pattern, sequence_length, False)
         for _ in range(num_datapoints_test)
     ]
+
+    print('Generated test negatives')
 
     print({key: len(value) for key, value in train_label2id.items()})
     print(
@@ -141,13 +223,39 @@ class SequencesDataset(Dataset):
         return tensor_seq, label, symb_seq
 
 
+def get_data_loaders_OOD(batch_size=1):
+    sequence_length, num_train, num_test = 10, 1000, 300
+
+    train_positives, train_negatives, _, _ = (
+        create_dataset(
+            sequence_length, num_train, num_test, r"\d*(8)\d*(1|3|5)\d*(0|1|2|3)"
+        )
+    )
+
+    sequence_length, num_train, num_test = 50, 1000, 300
+
+    _, _, test_positives, test_negatives = (
+        create_dataset(
+            sequence_length, num_train, num_test, r"\d*(8)\d*(1|3|5)\d*(0|1|2|3)"
+        )
+    )
+
+    train_dataset = SequencesDataset(train_positives, train_negatives)
+    test_dataset = SequencesDataset(test_positives, test_negatives)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+    return train_loader, test_loader
+
+
 def get_data_loaders(batch_size=1):
     sequence_length, num_train, num_test = 10, 1000, 300
+
     train_positives, train_negatives, test_positives, test_negatives = (
         create_dataset(
             sequence_length, num_train, num_test, r"\d*(8)\d*(1|3|5)\d*(0|1|2|3)"
         )
     )
+
     train_dataset = SequencesDataset(train_positives, train_negatives)
     test_dataset = SequencesDataset(test_positives, test_negatives)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
@@ -156,9 +264,8 @@ def get_data_loaders(batch_size=1):
 
 
 if __name__ == "__main__":
-    sequence_length, num_train, num_test = 10, 1000, 300
+    seq_length, train_num, test_num = 10, 1000, 300
 
-    train_positives, train_negatives, test_positives, test_negatives = create_dataset(
-            sequence_length, num_train, num_test, r"\d*(8)\d*(1|3|5)\d*(0|1|2|3)"
-        )
-
+    train_pos, train_neg, test_pos, test_neg = create_dataset(
+        seq_length, train_num, test_num, r"\d*(8)\d*(1|3|5)\d*(0|1|2|3)"
+    )
