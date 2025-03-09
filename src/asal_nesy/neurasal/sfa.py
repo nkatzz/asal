@@ -12,8 +12,6 @@ def induce_sfa(train_path, max_states, target_class,
                time_lim=1000, mini_batch_size=1000,
                shuffle=False, seed_mini_batch=0,
                mcts_iterations=1, expl_rate=0.005, max_children=100):
-
-    path_scoring = False
     template = Template(max_states, target_class)
     train_data = get_train_data(train_path, str(target_class), mini_batch_size, shuffle=shuffle)
     seed_data = train_data[seed_mini_batch]
@@ -23,7 +21,7 @@ def induce_sfa(train_path, max_states, target_class,
     mcts = MCTSRun(train_data, train_path, seed_data, mini_batch_size, template,
                    time_lim, mcts_iterations, expl_rate, target_class, max_children, models_num='0')
 
-    logger.info(green(f'\nBest model found:\n{mcts.best_model.show(mode="""reasoning""")}\n\n'
+    logger.info(green(f'\nBest model found:\n{mcts.best_model.show(mode="""simple""")}\n\n'
                       f'F1-score on training set: {mcts.best_model.global_performance} '
                       f'(TPs, FPs, FNs: {mcts.best_model.global_performance_counts})\n'
                       f'Generated models: {mcts.generated_models_count}\n'
@@ -32,11 +30,8 @@ def induce_sfa(train_path, max_states, target_class,
                       f'Model evaluation time: {sum(mcts.testing_times)}\n'
                       f'Total training time: {mcts.total_training_time}'))
 
-    logger.info('Compiling guards into NNF...')
+    # logger.info('Compiling guards into NNF...')
 
-    # asp_program = mnist_even_odd
-
-    # """
     asp_program = mnist_even_odd_learn
     learnt_sfa = mcts.best_model.show(mode='simple')
     x = [f'query(guard,{rule.head}) :- {rule.head}.' for rule in mcts.best_model.rules]
@@ -47,7 +42,6 @@ def induce_sfa(train_path, max_states, target_class,
     y = [f'query(guard,{head}) :- {head}.' for head in mcts.best_model.self_loop_guards.keys()]
     query_atoms = x + y
     asp_program = asp_program + learnt_sfa + '\n'.join(query_atoms) + '#show value/2.\n' + '#show query/2.'
-    # """
 
     sdd_builder = SDDBuilder(asp_program,
                              vars_names=['d'],

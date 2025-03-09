@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.normpath(os.getcwd() + os.sep + os.pardir))
 
 from src.asal_nesy.neurasal.sfa import *
 from src.asal_nesy.dsfa_old.models import DigitCNN, NonTrainableNeuralSFA
-from src.asal_nesy.dsfa_old.mnist_seqs_new import get_data_loaders
+from src.asal_nesy.dsfa_old.mnist_seqs_new import get_data_loaders, get_data_loaders_OOD
 from src.asal.logger import *
 from src.asal_nesy.neurasal.pre_train_model import pre_train
 from src.asal_nesy.neurasal.utils import *
@@ -16,23 +16,21 @@ from src.asal_nesy.pre_train_cnn import SimpleCNN
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 sys.path.insert(0, project_root)
-# print(sys.path[0])
 
 device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 print(f'Device: {device}')
 
 if __name__ == "__main__":
-    # Learn an SFA from some initial fully labeled sequences
 
+    # Learn an SFA from a few initial, fully labeled sequences
     asal_train_path = f'{project_root}/data/mnist_nesy/train.csv'
     max_states = 4
     target_class = 1
     sfa = induce_sfa(asal_train_path, max_states, target_class, time_lim=30)
-    # from src.asal_nesy.neurasal.debug_mnist_even_odd import get_sfa
-    # sfa = get_sfa()
 
+    pre_train_nn = True  # Pre-train the CNN on a few labeled images.
     pre_training_size = 10  # num of fully labeled seed sequences.
-    num_epochs = 100
+    num_epochs = 200
 
     # batch size vs lr: bs=50 --> lr=0.01, bs=1 --> lr=0.001
     batch_size = 50
@@ -42,63 +40,37 @@ if __name__ == "__main__":
     model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)  # 0.001
     criterion = nn.BCELoss()
-    train_loader, test_loader = get_data_loaders(batch_size=batch_size)
+    # criterion = nn.CrossEntropyLoss()
 
-    logger.info(f'Pre-training on images from {pre_training_size} sequences')
+    logger.info('Generating training/testing data')
+    OOD = False  # Out-of-distribution test data, if true the training/testing seqs are of different size.
+    train_loader, test_loader = get_data_loaders_OOD(batch_size=50) if OOD else get_data_loaders(batch_size=50)
 
-    # num_samples is number of randomly selected sequences. We pre-train on every image from these seqs.
-    pre_train_model(train_loader, test_loader, 10, model, optimizer, num_epochs=100)
+    if pre_train_nn:
+        logger.info(f'Pre-training on images from {pre_training_size} sequences')
+        # num_samples is number of randomly selected sequences. We pre-train on every image from these seqs.
+        pre_train_model(train_loader, test_loader, 10, model, optimizer, num_epochs=100)
 
-    logger.info(f'Training with the SFA...')
+    logger.info(f'Training the network alongside the SFA...')
 
     for epoch in range(num_epochs):
-        actual, predicted = [], []
-        actual_latent, predicted_latent = [], []
+        actual, predicted, actual_latent, predicted_latent = [], [], [], []
         total_loss = 0.0
         start_time = time.time()
 
         for batch in train_loader:
-            img_sequences, labels, symbolic_sequences = batch[0], batch[1], batch[2]
-            img_sequences, labels, symbolic_sequences = (
-                img_sequences.to(device), labels.to(device), symbolic_sequences.to(device))
+            labels = batch[1].to(device)
+            acceptance_probabilities, act_latent, pred_latent = process_batch(batch, model, sfa,
+                                                                              batch_size, cnn_output_size)
 
-            sequence_length = img_sequences.shape[1]
-
-            # Make the sequence of size (batch_size * seq_len, 1, 28, 28)
-            img_sequences = img_sequences.view(-1, img_sequences.shape[2], img_sequences.shape[3],
-                                               img_sequences.shape[4])
-
-            nn_outputs = model(img_sequences, apply_softmax=True)
-            nn_outputs = nn_outputs.view(batch_size, sequence_length, cnn_output_size)
-
-            # store for latent concept prediction performance
-            actual_latent.append(symbolic_sequences.flatten().squeeze(0).cpu())
-            predicted_latent.append(torch.argmax(nn_outputs, dim=2).flatten().cpu())
-
-            # Transpose the tensor so that the rows are the probabilities per variable
-            output_transposed = nn_outputs.transpose(1, 2)
-
-            # Create dictionary mapping each digit to its respective predictions
-            probabilities = {sfa.symbols[i]: output_transposed[:, i, :] for i in range(len(sfa.symbols))}
-
-            labelling_function = create_labelling_function(probabilities, sfa.symbols)
-
-            acceptance_probabilities = torch.clamp(sfa.forward(labelling_function), 0, 1)
+            actual_latent.append(act_latent)
+            predicted_latent.append(pred_latent)
+            sequence_predictions = (acceptance_probabilities >= 0.5)
+            predicted.extend(sequence_predictions)
+            actual.extend(labels)
 
             loss = criterion(acceptance_probabilities, labels.float())
-            # Collect stats for training F1
-            predictions = (acceptance_probabilities >= 0.5)
-
-            """==========================================DEBUG=============================================="""
-            # prob_bebug, loss_debug, _, _ = process_sequences_debug(batch, model_debug, criterion, max_states)
-            # print(loss, pred, labels, acceptance_probability)
-            # print(f'loss: {loss}|{loss_debug}, prob: {acceptance_probability}|{prob_bebug}')
-            """==========================================DEBUG=============================================="""
-
             backprop(loss, optimizer)
-
-            actual.extend(labels)
-            predicted.extend(predictions)
             total_loss += loss.item()
 
         actual_latent = torch.cat(actual_latent).numpy()  # Concatenates list of tensors into one

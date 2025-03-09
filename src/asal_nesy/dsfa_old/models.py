@@ -22,6 +22,7 @@ spec.loader.exec_module(road_r)
 class DigitCNN(nn.Module):
     def __init__(self, dropout_rate=0.4, out_features=10, log_softmax: bool = False):
         super().__init__()
+        self.out_features = out_features
         self.conv1 = nn.Conv2d(1, 8, (3, 3))
         self.conv2 = nn.Conv2d(8, 16, (3, 3))
         self.conv3 = nn.Conv2d(16, 32, (3, 3))
