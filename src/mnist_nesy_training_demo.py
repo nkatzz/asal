@@ -19,11 +19,14 @@ sys.path.insert(0, project_root)
 device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 print(f'Device: {device}')
 
-# The automaton that will be used for neuro-symbolic training, in a logic programming representation.
-# It represents a regex that is used to generate the positive sequences in our data. The regex dictates
-# that a positive sequence is one where an even number larger than 6 is observed, followed at some point
-# by an odd number <= than 6, followed by a number <= 3.
-# regex: r"\d*(8)\d*(1|3|5)\d*(0|1|2|3)"
+"""
+This is the automaton that will be used for neuro-symbolic training, in a logic programming representation.
+It represents a regex that is used to generate the positive sequences in our data. The regex dictates
+that a positive sequence is one where an even number larger than 6 is observed, followed at some point
+by an odd number <= than 6, followed by a number <= 3.
+regex: r"\d*(8)\d*(1|3|5)\d*(0|1|2|3)"
+"""
+
 automaton = \
     """
     accepting(4).
@@ -82,12 +85,14 @@ if __name__ == "__main__":
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     criterion = nn.BCELoss()
 
-    # Training/testing sequences are generated on the fly.
-    # NOTE: the sequence generation code is not optimized for long sequences. It currently generates
-    # sequences of length 10 (i.e. consisting of 10 images) and if you ask for out-of-distribution data,
-    # it generates training sequences of length 10 and testing sequences of length 50. These values are
-    # currently hard-coded in the get_data_loaders methods below. The generation won't work for larger
-    # sequences (e.g. 100), it needs some work.
+    """
+    Training/testing sequences are generated on the fly.
+    NOTE: the sequence generation code is not optimized for long sequences. It currently generates
+    sequences of length 10 (i.e. consisting of 10 images) and if you ask for out-of-distribution data,
+    it generates training sequences of length 10 and testing sequences of length 50. These values are
+    currently hard-coded in the get_data_loaders methods below. The generation won't work for larger
+    sequences (e.g. 100), it needs some work.
+    """
     logger.info('Generating training/testing data')
     OOD = False  # Out-of-distribution test data, if true the training/testing seqs are of different size.
     train_loader, test_loader = get_data_loaders_OOD(batch_size=50) if OOD else get_data_loaders(batch_size=50)
@@ -108,7 +113,7 @@ if __name__ == "__main__":
         for batch in train_loader:
             labels = batch[1].to(device)
             """
-            The process_batch method is the core of the forward pass, it is defined in
+            The process_batch method below is the core of the forward pass, it is defined in
             
             src.asal_nesy.neurasal.utils. 
             
@@ -148,7 +153,7 @@ if __name__ == "__main__":
             backprop(loss, optimizer)
             total_loss += loss.item()
 
-        actual_latent = torch.cat(actual_latent).numpy()  # Concatenates list of tensors into one
+        actual_latent = torch.cat(actual_latent).numpy()
         predicted_latent = torch.cat(predicted_latent).numpy()
 
         latent_f1_macro = f1_score(actual_latent, predicted_latent, average="macro")
