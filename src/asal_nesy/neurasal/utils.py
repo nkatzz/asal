@@ -194,7 +194,7 @@ def process_batch(batch, model, sfa, batch_size, cnn_output_size):
     decay_factor = 0.989
     seq_lengths = torch.full((batch_size,), sequence_length, dtype=torch.float32)
     # Apply decay to acceptance probabilities based on sequence length
-    decay_weights = torch.pow(decay_factor, seq_lengths)
+    decay_weights = torch.pow(decay_factor, seq_lengths).to(device)
 
     acceptance_probabilities = acceptance_probabilities * decay_weights
 
