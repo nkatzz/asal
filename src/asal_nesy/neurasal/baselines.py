@@ -45,7 +45,7 @@ class CNN_LSTM(nn.Module):
 
 if __name__ == "__main__":
     seq_length, train_num, test_num = 10, 1000, 300
-    OOD = False
+    OOD = True
     train_loader, test_loader = get_data_loaders_OOD(batch_size=50) if OOD else get_data_loaders(batch_size=50)
 
     # Initialize CNN + LSTM model
@@ -102,4 +102,4 @@ if __name__ == "__main__":
         test_f1 = f1_score(actual, predicted, average="macro")
 
         print(f"Epoch {epoch + 1}, Loss: {total_loss / len(train_loader):.3f}, "
-              f"Test F1: {test_f1:.3f}, Time: {int(time.time() - start_time)} secs")
+              f"Test F1: {test_f1:.3f}, Time: {time.time() - start_time:.3f} secs")
