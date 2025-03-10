@@ -43,7 +43,7 @@ if __name__ == "__main__":
     # criterion = nn.CrossEntropyLoss()
 
     logger.info('Generating training/testing data')
-    OOD = False  # Out-of-distribution test data, if true the training/testing seqs are of different size.
+    OOD = True  # Out-of-distribution test data, if true the training/testing seqs are of different size.
     train_loader, test_loader = get_data_loaders_OOD(batch_size=50) if OOD else get_data_loaders(batch_size=50)
 
     if pre_train_nn:
