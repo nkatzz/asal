@@ -18,7 +18,7 @@ t_lim = 60
 max_states = 4
 
 # The target class that we are trying to predict.
-target_class = 1
+target_class = 2
 
 # The size (number of sequences) in a training sample. The ratio of positive/negative
 # sequences in the sample is proportional to that ratio in the entire training set.
@@ -29,11 +29,13 @@ mini_batch_size = 1000
 # dataset = "maritime"
 # dataset = "bsc_lobular"
 # dataset = "weather"
-dataset = "mnist"
-# dataset = "ROAD-R"
 # dataset = "bsc_genes_kidney"
-fold = "few_shot_mnist"
-# fold = "fold_0"
+
+dataset = "ROAD-R"
+fold = "fold_5"
+
+# dataset = "mnist"
+# fold = "few_shot_mnist"
 
 # Paths to the training and testing set files. These may be modified to point to any such pair
 # of files by replacing the following with the absolute paths of the files.
@@ -77,7 +79,7 @@ if __name__ == "__main__":
     if mcts_iterations > 1:  # revise from new batches.
         mcts.run_mcts()
 
-    logger.info(green(f'\nBest model found:\n{mcts.best_model.show(mode="""reasoning""")}\n\n'
+    logger.info(green(f'\nBest model found:\n{mcts.best_model.show(mode="""simple""")}\n\n'
                       f'F1-score on training set: {mcts.best_model.global_performance} '
                       f'(TPs, FPs, FNs: {mcts.best_model.global_performance_counts})\n'
                       f'Generated models: {mcts.generated_models_count}\n'

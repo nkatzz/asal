@@ -59,10 +59,10 @@ used_attribute(A) :- body(_,_,equals(A,_)).
 % used_attribute(A) :- body(_,_,enriched(A)).
 % used_attribute(A) :- body(_,_,not_enriched(A)).
 
-#minimize{1@3,Seq: falseNegative(Seq)}.
-#minimize{1@3,Seq: falsePositive(Seq)}.
+#minimize{1@2,Seq: falseNegative(Seq)}.
+#minimize{1@2,Seq: falsePositive(Seq)}.
 #minimize{C@2,I,J,F: body(I,J,F), cost(F,C)}.
-#minimize{1@2,X: used_attribute(X)}.
+% #minimize{1@2,X: used_attribute(X)}.
 #minimize{1@2,X: state(X)}.
 
 %----------------------------------------------
