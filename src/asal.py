@@ -22,7 +22,7 @@ target_class = 2
 
 # The size (number of sequences) in a training sample. The ratio of positive/negative
 # sequences in the sample is proportional to that ratio in the entire training set.
-mini_batch_size = 1000
+mini_batch_size = 10000
 
 # To use avg_robot set a higher priority to minimizing FPs, FNs, due to the small num. of positive examples per batch.
 # dataset = "avg_robot"
@@ -32,7 +32,7 @@ mini_batch_size = 1000
 # dataset = "bsc_genes_kidney"
 
 dataset = "ROAD-R"
-fold = "fold_5"
+fold = "fold_0"
 
 # dataset = "mnist"
 # fold = "few_shot_mnist"
