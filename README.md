@@ -6,9 +6,26 @@ ASAL is a framework for representing and learning symbolic automata-based comple
 Symbolic automata are an extention of classical automata, where the transition-enabling conditions are logical predicates 
 than need to be evaluated against the input, rather than mere symbols from a finite alphabet. See the following related paper for more information:
 
-_Katzouris N. & Paliouras G., Answer Set Automata: A Learnable Pattern Specification Framework for Complex Event Recognition, ECAI 2023._ ([link](https://cer.iit.demokritos.gr/publications/papers/2023/ecai2023.pdf))
+_Katzouris N. & Paliouras G., Answer Set Automata: A Learnable Pattern Specification Framework for Complex Event Recognition, 
+ECAI 2023._ ([link](https://cer.iit.demokritos.gr/publications/papers/2023/ecai2023.pdf))
 
-To use the software you will need the [Clingo ASP solver](https://potassco.org/clingo). The following set of commands create a fresh conda environment, called ```asal``` and install Clingo there, along with some additional requirements. 
+## Installation
+You will need Python 3.11 and [Clingo ASP solver](https://potassco.org/clingo). You get Python-enabled Clingo by installing the requirements file.
+The latter contains additional libraries (e.g. pytorch), mostly for neuro-symbolic training. 
+
+## Neuro-symbolic ASAL
+Description Coming soon. See the ```arc/neurasal.py``` script. You will need the [dsharp](https://github.com/QuMuLab/dsharp)
+ tool for knowledge compilation and add the ```dhsharp``` folder to your path. Neuro-symbolic training is based on
+the following paper:
+
+_Nikolaos Manginas, George Paliouras, Luc De Raedt., NeSyA: Neurosymbolic Automata, arxiv 2024._ ([link](https://arxiv.org/abs/2412.07331))
+
+and the implementation from that paper of probabilistic reasoning with symbolic automata via compilation to arithmetic circuits. 
+
+
+
+To use the software you will need the [Clingo ASP solver](https://potassco.org/clingo). The following set of commands create a fresh conda environment, 
+called ```asal``` and install Clingo there, along with some additional requirements. 
 
 ```
 conda create -n asal -c conda-forge clingo
