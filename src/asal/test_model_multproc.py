@@ -25,15 +25,15 @@ def combine(res_1: TestResult, res_2: TestResult) -> TestResult:
     return TestResult(tps_seqs, fps_seqs, fn_seqs, scored_paths, scores_per_batch)
 
 
-def test_model_mproc(_automaton, data_path: str,
-                     target_class: str, batch_size: int,
-                     path_scoring=True, shuffle=False,
+def test_model_mproc(_automaton, args, path_scoring=True, shuffle=False,
                      data_whole=None, test_with_clingo=True) -> TestResult:
     """Multiprocessing version of the test_model method in tester.py"""
 
     # automaton = _automaton.show(mode='reasoning') if isinstance(_automaton, Automaton) else _automaton
     automaton = _automaton
     logger.debug(f'Testing (on training set) for model:\n{automaton}')
+
+    data_path, target_class, batch_size = args.test, args.tclass, args.batch_size
 
     data = get_train_data(data_path, target_class,
                           batch_size, shuffle=shuffle) if data_whole is None else data_whole
@@ -45,7 +45,7 @@ def test_model_mproc(_automaton, data_path: str,
     # pool.map(lambda batch: test_on_batch(batch, automaton, path_scoring), ds)
     # which won't compile.
     test_function = functools.partial(test_on_batch,
-                                      target_class=target_class,
+                                      args=args,
                                       automaton=automaton,
                                       path_scoring=path_scoring,
                                       test_with_clingo=test_with_clingo)
@@ -71,13 +71,13 @@ def test_model_mproc(_automaton, data_path: str,
     return result
 
 
-def test_on_batch(batch, target_class, automaton, path_scoring, test_with_clingo=True) -> TestResult:
-
+def test_on_batch(batch, args, automaton, path_scoring, test_with_clingo=True) -> TestResult:
     batch_id, batch_data = batch[0], batch[1]
+    target_class, domain = args.tclass, args.batch_size
 
     if test_with_clingo:
         automaton = automaton.show(mode='reasoning') if isinstance(automaton, Automaton) else automaton
-        tester = Tester(batch_data, target_class, automaton, path_scoring=path_scoring)
+        tester = Tester(batch_data, args, automaton, path_scoring=path_scoring)
         tester.test_model()
         tps, fps, fns = tester.tp_seq_ids, tester.fp_seq_ids, tester.fn_seq_ids
         # tps, fps, fns = len(tester.tp_seq_ids), len(tester.fp_seq_ids), len(tester.fn_seq_ids)

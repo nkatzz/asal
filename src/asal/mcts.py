@@ -12,6 +12,7 @@ import random
 from statistics import mean
 import pickle
 from joblib import Parallel, delayed
+import random
 
 """
 -----------------------------------------------------------------------
@@ -140,38 +141,35 @@ class RootNode(TreeNode):
 class MCTSRun:
 
     def __init__(self,
+                 args,
                  training_data,
-                 training_data_path,
-                 seed_data_batch,
-                 batch_size,
                  template,
-                 solve_time_lim,
-                 iters,
-                 explore_rate,
-                 target_class,
-                 max_children,
                  models_num='0',
                  path_scoring=False,
                  with_joblib=True):
 
+        self.args = args
         self.training_data_whole = training_data
-        self.train_path = training_data_path
-        self.seed_data_batch = seed_data_batch
+        self.train_path = args.train
+
+        # self.seed_data_batch = self.training_data_whole[0]
+        self.seed_data_batch = random.choice(self.training_data_whole)
+
         self.best_score = 0.0
         self.best_model = Automaton()
         self.grounding_times = []
         self.solving_times = []
         self.testing_times = []
         self.generated_models_count = 0
-        self.batch_size = batch_size
+        self.batch_size = args.batch_size
         self.template = template
-        self.t_lim = solve_time_lim
+        self.t_lim = args.tlim
         self.models_num = models_num
         self.path_scoring = path_scoring
-        self.mcts_iterations = iters
-        self.explore_rate = explore_rate
-        self.target_class = target_class
-        self.max_children = max_children
+        self.mcts_iterations = args.mcts_iters
+        self.explore_rate = args.exp_rate
+        self.target_class = args.tclass
+        self.max_children = args.mcts_children
         self.total_training_time = None
         self.root_node = RootNode()
         self.tried_models = []
@@ -244,7 +242,7 @@ class MCTSRun:
 
     def expand_node(self, parent_node, batch_data: str, initial_model=Automaton()):
 
-        learner = Learner(self.template, batch_data, self.t_lim,
+        learner = Learner(self.template, batch_data, self.args,
                           existing_model=initial_model, with_joblib=self.with_joblib)
 
         solve_result = None
@@ -264,10 +262,8 @@ class MCTSRun:
             models = [models]
 
         logger.info(blue(f'Generated {len(models)} new models (max children size: {self.max_children})'))
-        self.update_stats(solve_result)
 
-        if (len(models)) > self.max_children:
-            models = random.sample(models, self.max_children)
+        self.update_stats(solve_result)
 
         # Going for optimal models causes problems in case the optimum has not been found within the time limit.
         # We'll then have zero models returned. So, we compare solving time (ST) with time limit (TM).
@@ -281,6 +277,11 @@ class MCTSRun:
                 models = random.sample(optimal_models, self.max_children)
             else:
                 models = optimal_models
+        else:
+            if (len(models)) > self.max_children:
+                """models = random.sample(models, self.max_children)"""
+                # Just keep the last instead of sampling randomly in this case
+                models = models[-self.max_children:]
 
         # for m in models:
         #    print(f'{m.show()}, {m.cost}\n{[a.str for a in m.body_atoms_asp]}\n')
@@ -288,8 +289,7 @@ class MCTSRun:
         logger.info(f'Testing...')
         start = time.time()
         for m in models:
-            test_model_mproc(m, self.train_path, str(self.target_class),
-                             self.batch_size, path_scoring=self.path_scoring,
+            test_model_mproc(m, self.args, path_scoring=self.path_scoring,
                              data_whole=self.training_data_whole, test_with_clingo=True)
         end = time.time()
         self.testing_times.append(end - start)
@@ -422,31 +422,3 @@ class MCTSRun:
                            f'Average solving time: {mean(self.solving_times)}\n'
                            f'Model evaluation time: {sum(self.testing_times)}\n'
                            f'Total training time: {total_training_time}'))
-
-
-if __name__ == "__main__":
-    t_lim = 120  # 'inf'
-    max_states = 4
-    target_class = 1
-    mini_batch_size = 20
-    tmpl = Template(max_states, target_class)
-    train_path = '../../data/Maritime_TRAIN_SAX_8_ASP.csv'
-    # train_path = '/media/nkatz/storage/seqs/caviar/caviar_data/fold1/train_fold_1_discretized.txt'
-    test_path = '../../debug/Maritime_TEST_SAX_8_ASP.csv'
-    shuffle = False
-    train_data = get_train_data(train_path, str(target_class), mini_batch_size, shuffle=shuffle)
-    selected_mini_batch = 1  # Randomize this.
-    mcts_iterations = 10
-    expl_rate = 0.005
-    max_children = 5  # 100
-    path_scoring = False  # This works if needed, but makes testing a bit  slower.
-    with_joblib = True  # If false uses multiprocessing.Process for multi-processing. Causes problems on Windows!
-
-    seed_data = train_data[selected_mini_batch]
-    root = RootNode()
-
-    mcts = MCTSRun(train_data, train_path,
-                   seed_data, mini_batch_size, tmpl,
-                   t_lim, mcts_iterations, expl_rate,
-                   target_class, max_children, models_num='0', path_scoring=path_scoring, with_joblib=with_joblib)
-    mcts.run_mcts()

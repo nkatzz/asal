@@ -116,6 +116,7 @@ def split_data_rev(train_path: str, target_class: str, mini_batch_size: int, shu
     def exmple_info(string):
         """Helper function to find if an example is positive or negative and to extract its id."""
         # class_atom = string.split(" ").pop()
+        # print(f'string is {string}')
         class_predicate_match = re.search(r'class\(\d+,\s*\d+\)', string)
         if class_predicate_match:
             class_atom = class_predicate_match.group()
