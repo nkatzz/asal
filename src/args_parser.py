@@ -49,7 +49,7 @@ def parse_args():
                         help="minimize the number of attributes that appear in a model.")
 
     parser.add_argument("--warns_off", action="store_true",
-                        help="suppress warnings from Clingo .")
+                        help="suppress warnings from Clingo.")
 
     parser.add_argument(
         "--predicates",
