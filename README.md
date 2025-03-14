@@ -28,12 +28,8 @@ pip install -r requirements.txt
 ```
 python asal.py --help
 
-usage: asal.py [-h] [--tlim <n>] [--states <n>] [--tclass <n>] --train <path> [--test <path>]
-               --domain <path> [--incremental] [--batch_size <n>] [--max_alts <n>]
-               [--mcts_iters <n>] [--exp_rate <float>] [--mcts_children <n>] [--coverage_first]
-               [--min_attrs] [--warns_off] --predicates
-               {equals,neg,lt,at_most,at_least,increase,decrease}
-               [{equals,neg,lt,at_most,at_least,increase,decrease} ...]
+usage: asal.py [-h] [--tlim <n>] [--states <n>] [--tclass <n>] --train <path> [--test <path>] --domain <path> [--incremental] [--batch_size <n>] [--max_alts <n>] [--mcts_iters <n>] [--exp_rate <float>]
+               [--mcts_children <n>] [--coverage_first] [--min_attrs] [--warns_off] --predicates {equals,neg,lt,at_most,at_least,increase,decrease} [{equals,neg,lt,at_most,at_least,increase,decrease} ...]
 
 options:
   -h, --help            show this help message and exit
@@ -51,7 +47,7 @@ options:
   --mcts_children <n>   number of children nodes to consider in MCTS.
   --coverage_first      higher priority to predictive performance optimization constraints over model size ones.
   --min_attrs           minimize the number of attributes that appear in a model.
-  --warns_off           suppress warnings from Clingo .
+  --warns_off           suppress warnings from Clingo.
   --predicates {equals,neg,lt,at_most,at_least,increase,decrease} [{equals,neg,lt,at_most,at_least,increase,decrease} ...]
                         List of predicates to use for synthesizing transition guards. 
                         These are necessary for adding proper generate and test 
@@ -74,7 +70,7 @@ options:
                             - increase: allows atoms of the form increase(A) in the transition guards, meaning that the value of attribute A has
                                         increased since the last time step. Attribute A must be declared as 'numerical' in the domain specification.
                             - decrease: allows atoms of the form decrease(A) in the transition guards, meaning that the value of attribute A has
-                                        decreased since the last time step. Attribute A must be declared as 'numerical' in the domain specification. 
+                                        decreased since the last time step. Attribute A must be declared as 'numerical' in the domain specification.
 ```
 
 ## Neuro-symbolic ASAL
