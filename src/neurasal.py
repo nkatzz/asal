@@ -13,6 +13,7 @@ from src.asal.logger import *
 from src.asal_nesy.neurasal.pre_train_model import pre_train
 from src.asal_nesy.neurasal.utils import *
 from src.asal_nesy.pre_train_cnn import SimpleCNN
+from src.args_parser import parse_args
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 sys.path.insert(0, project_root)
@@ -22,11 +23,14 @@ print(f'Device: {device}')
 
 if __name__ == "__main__":
 
-    # Learn an SFA from a few initial, fully labeled sequences
-    asal_train_path = f'{project_root}/data/mnist_nesy/train.csv'
+    parser = parse_args()
+    args = parser.parse_args()
+
     max_states = 4
     target_class = 1
-    sfa = induce_sfa(asal_train_path, max_states, target_class, time_lim=30)
+
+    # Learn an SFA from a few initial, fully labeled sequences
+    sfa = induce_sfa(args)
 
     pre_train_nn = True  # Pre-train the CNN on a few labeled images.
     pre_training_size = 10  # num of fully labeled seed sequences.
@@ -51,7 +55,7 @@ if __name__ == "__main__":
         # num_samples is number of randomly selected sequences. We pre-train on every image from these seqs.
         pre_train_model(train_loader, test_loader, 10, model, optimizer, num_epochs=100)
 
-    logger.info(f'Training the network alongside the SFA...')
+    logger.info(f'Training the network with the SFA...')
 
     for epoch in range(num_epochs):
         actual, predicted, actual_latent, predicted_latent = [], [], [], []

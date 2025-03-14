@@ -6,21 +6,28 @@ from itertools import groupby
 from src.asal.auxils import get_train_data, precision, recall, f1
 from src.asal.logger import *
 import os
+from src.asal.asp import get_test_program
 
 
 class Tester:
 
-    def __init__(self,
-                 data,
-                 target_class,
-                 automaton,
-                 path_scoring=True):
+    def __init__(self, data, args, automaton, path_scoring=True):
 
+        domain, target_class = args.domain, args.tclass
         self.cores = multiprocessing.cpu_count()
         self.data = data
         self.model = automaton
         self.target_class = target_class
         self.path_scoring = path_scoring
+        self.test_program = get_test_program(args)
+
+        cores_num = multiprocessing.cpu_count()
+        # cores = f'-t{cores_num if cores_num <= 64 else 64}'
+        # self.ctl = clingo.Control([cores])  # clingo.Control([cores, "--warn=none"])  "--warn=no-atom-undefined"
+        if args.warns_off:
+            self.ctl = clingo.Control(["--warn=none"])
+        else:
+            self.ctl = clingo.Control()
 
         # key: a path in the form '1->3->5' (the last state is accepting). Value: tp, fp counts for that path,
         # so that we can calculate path precision. FNs are calculated w.r.t. the entire automaton.
@@ -135,9 +142,7 @@ class Tester:
 
     def test_model(self, test_data_from_file=False):
         enable_python()
-        # ctl = clingo.Control(['-t{0}'.format(self.cores)])
-        ctl = clingo.Control()
-
+        """
         if 'src' in os.getcwd():
             path_scoring_file = os.path.normpath(
                 os.getcwd() + os.sep + 'asp' + os.sep + 'path_scoring.lp')
@@ -156,76 +161,36 @@ class Tester:
             ctl.load(self.data)
         else:
             ctl.add("base", [], self.data)
+        """
 
-        ctl.add("base", [], f'targetClass({self.target_class}).')
+        self.ctl.add("base", [], self.test_program)
+        self.ctl.add("base", [], self.data)
+        # self.ctl.add("base", [], f'targetClass({self.target_class}).')
 
         if isinstance(self.model, Automaton):
-            ctl.add("base", [], self.model.show(mode='reasoning'))
-            ctl.add("base", [], self.model.accepting_states[0])
+            self.ctl.add("base", [], self.model.show(mode='reasoning'))
+            self.ctl.add("base", [], self.model.accepting_states[0])
         else:  # We pass an automaton in string format to test it.
-            ctl.add("base", [], self.model)
+            self.ctl.add("base", [], self.model)
 
         if self.path_scoring:
             # Add Some extra necessary info for performing the scoring.
             start = 'start(1).'
             target_class = f'targetClass({self.target_class}).'
-            ctl.add("base", [], start)
-            ctl.add("base", [], target_class)
+            self.ctl.add("base", [], start)
+            self.ctl.add("base", [], target_class)
 
-        ctl.ground([("base", [])])
+        self.ctl.ground([("base", [])])
         if self.path_scoring:
-            ctl.solve(on_model=self.score_paths)
+            self.ctl.solve(on_model=self.score_paths)
         else:
-            ctl.solve(on_model=self.count_stats)
-
-
-def test_model(_automaton, data_path: str, target_class: str,
-               batch_size: int, path_scoring=True, shuffle=False):
-    """Evaluate an automaton on some data. Calculates TP, FP counts per path in the
-       automaton, in addition to TPs, FPs, Fns for the whole model."""
-    automaton = _automaton.show(mode='reasoning') if isinstance(_automaton, Automaton) else _automaton
-    data = get_train_data(data_path, target_class, batch_size, shuffle=shuffle)
-    tps, fps, fns = 0, 0, 0
-    tp_seq_ids, fp_seq_ids, fn_seq_ids = [], [], []
-    scores_per_batch = {}
-    paths_global_counts: dict[str, (int, int)] = {}
-    for key in data.keys():
-        test_data = data[key]
-        tester = Tester(test_data, target_class, automaton, path_scoring=path_scoring)
-        tester.test_model()
-        new_tps, new_fps, new_fns = len(tester.tp_seq_ids), len(tester.fp_seq_ids), len(tester.fn_seq_ids)
-        tp_seq_ids = tp_seq_ids + tester.tp_seq_ids
-        fp_seq_ids = fp_seq_ids + tester.fp_seq_ids
-        fn_seq_ids = fn_seq_ids + tester.fn_seq_ids
-        scores_per_batch[key] = (new_tps, new_fps, new_fns)
-        tps = tps + new_tps
-        fps = fps + new_fps
-        fns = fns + new_fns
-        paths = tester.scored_paths
-        for path in paths.keys():
-            new_tps, new_fps = paths[path]
-            if path in paths_global_counts:
-                prev_tps, prev_fps = paths_global_counts[path]
-                paths_global_counts[path] = (prev_tps + new_tps, prev_fps + new_fps)
-            else:
-                paths_global_counts[path] = (new_tps, new_fps)
-
-        x = '\n'.join([f'{k}: {v}' for k, v in paths_global_counts.items()])
-
-        print(f'{key}: ({tps},{fps},{fns})', end=',')
-        # logger.debug(f'Batch {key}: tps: {tps}, fps: {fps}, fns: {fns} | Paths: {paths_global_counts}')
-        # logger.debug(f'Batch {key}: tps: {tps}, fps: {fps}, fns: {fns} | Paths: {x}')
-
-    logger.info(f'Performance of training set: tps: {tps}, fps: {fps}, fns: {fns}, '
-                f'precision: {precision(tps, fps)}, recall: {recall(tps, fns)}, f1: {f1(tps, fps, fns)}')
-
-    return paths_global_counts, (tp_seq_ids, fp_seq_ids, fn_seq_ids), scores_per_batch
+            self.ctl.solve(on_model=self.count_stats)
 
 
 def rewrite_automaton(automaton: Automaton):
     """
     Rewrites an automaton into a form that allows to keep track of the particular rules that
-    trigger transitions during path scoring. This is necessary because disjunctive guards definitions may invloves
+    trigger transitions during path scoring. This is necessary because disjunctive guards definitions may involve
     multiple rules with the same head and each such rule may be involved in a different accepting path.
     For instance, the automaton below contains a disjunctive definition for f(1,5).
 

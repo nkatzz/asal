@@ -57,10 +57,10 @@ class Template:
         self.__update_transitions(f'f({m},{m})', m, m)
         self.__self_loop_ids.append(f'f({m},{m})')
         self.__rules_choices = '{rule(' + ';'.join(self.__rules_choices) + ')}.'
-        self.__glue_template()
+        self.__assemble_template()
 
         if 'src' in os.getcwd():
-            asp_template_file = os.path.normpath(os.getcwd() + os.sep + 'asp' + os.sep + 'template.lp')
+            asp_template_file = os.path.normpath(os.getcwd() + os.sep + 'asal' + os.sep + 'asp' + os.sep + 'template.lp')
         else:
             asp_template_file = os.path.normpath(os.getcwd() + os.sep + 'src' + os.sep + 'asp' + os.sep + 'template.lp')
 
@@ -70,7 +70,7 @@ class Template:
         f.write(self.template)
         f.close()
 
-    def __glue_template(self):
+    def __assemble_template(self):
         transition_choices = ' '.join(self.__transition_choices)
         transition_guards = '\n'.join(self.__guard_definitions)
         start_acc = f"{self.__start_state} {self.__accepting_state}"
@@ -78,9 +78,11 @@ class Template:
         constraint = f':- holds(body(I,J),S,T), rule(I), {c}, #count{{F: body(I,J,F)}} = 0.'
         # constraint_1 = f':- holds(I,S,T), rule(I), {c}, #count{{F,J: body(I,J,F)}} = 0.'
         constraint_1 = ''
-        self.template = '\n'.join(
-            [transition_choices, transition_guards, self.__rules_choices, constraint, constraint_1, start_acc])
-        # self.template = '\n'.join([transition_guards, constraint, constraint_1, start_acc])
+        body_def = "holds(body(I,J),S,T) :- rule(I), conjunction(J), sequence(S), time(T), holds(F,S,T) : body(I,J,F)."
+        rules_def = "rule(R) :- transition(I,R,F)."
+        self.template = '\n'.join([transition_choices, transition_guards,
+                                   self.__rules_choices, constraint, constraint_1, start_acc, body_def])
+
 
 
 if __name__ == "__main__":

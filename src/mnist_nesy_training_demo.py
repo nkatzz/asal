@@ -94,7 +94,7 @@ if __name__ == "__main__":
     sequences (e.g. 100), it needs some work.
     """
     logger.info('Generating training/testing data')
-    OOD = True  # Out-of-distribution test data, if true the training/testing seqs are of different size.
+    OOD = False  # Out-of-distribution test data, if true the training/testing seqs are of different size.
     train_loader, test_loader = get_data_loaders_OOD(batch_size=50) if OOD else get_data_loaders(batch_size=50)
 
     # Optionally pre-train the CNN a little bit on a few labeled images.
