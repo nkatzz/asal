@@ -33,13 +33,13 @@ def parse_args():
     parser.add_argument("--max_alts", metavar="<n>",
                         type=int, default=2, help="max number of disjunctive alternatives per transition guard.")
 
-    parser.add_argument("--mcts_iters", metavar="<n>", type=int, default=5,
+    parser.add_argument("--mcts_iters", metavar="<n>", type=int, default=1,
                         help="number of MCTS iterations for incremental learning.")
 
     parser.add_argument("--exp_rate", metavar="<float>", type=float, default=0.005,
                         help="exploration rate for MCTS in incremental learning.")
 
-    parser.add_argument("--mcts_children", metavar="<n>", type=int, default=100,
+    parser.add_argument("--mcts_children", metavar="<n>", type=int, default=10,
                         help="number of children nodes to consider in MCTS.")
 
     parser.add_argument("--coverage_first", action="store_true",
@@ -55,7 +55,7 @@ def parse_args():
         "--predicates",
         nargs="+",  # Accepts one or more values
         choices=["equals", "neg", "lt", "at_most", "at_least", "increase", "decrease"],  # Restrict valid options
-        required=True,
+        default=["equals"],
         help="""List of predicates to use for synthesizing transition guards. 
 These are necessary for adding proper generate and test 
 statements to the ASP induction program. 
