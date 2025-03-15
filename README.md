@@ -73,6 +73,36 @@ options:
                                         decreased since the last time step. Attribute A must be declared as 'numerical' in the domain specification.
 ```
 
+## Example
+The following learns a symbolic automaton, represented as an ASP program, from symbolic sequences of overtake incidents
+in the [ROAD-R](https://sites.google.com/view/road-r/). The task is described in the following MSc thesis:
+
+_Tatiana Boura, Neuro-symbolic Complex Event Recognition in Autonomous Driving, University of Piraeus, 2024._ ([link](https://msc-ai.iit.demokritos.gr/en/thesis/neuro-symbolic-complex-event-recognition-autonomous-driving-neyro-symvoliki-anagnorisi?page=2))
+
+```
+cd asal/src
+python asal.py --tlim 60 --states 4 --tclass 2 --train ../data/ROAD-R/folds/split_9/agent_train.txt --test ../data/ROAD-R/folds/split_9/agent_test.txt --domain asal/asp/domain.lp --batch_size 200 --predicates equals
+```
+The induced SFA looks like this:
+
+```
+accepting(4).
+transition(1,f(1,1),1). transition(1,f(1,2),2). transition(1,f(1,3),3). transition(1,f(1,4),4). transition(2,f(2,2),2). transition(2,f(2,3),3). transition(2,f(2,4),4). transition(3,f(3,2),2). transition(3,f(3,3),3). transition(4,f(4,4),4).
+f(1,4) :- equals(same_lane,true), equals(action_2,movaway).
+f(1,3) :- equals(same_lane,false), not f(1,4).
+f(1,2) :- equals(action_1,stop), not f(1,3), not f(1,4).
+f(2,3) :- equals(action_1,stop), not f(2,4).
+f(2,4) :- equals(action_2,movtow), equals(location_2,incomlane).
+f(3,2) :- equals(action_2,movaway).
+f(4,4) :- #true.
+f(2,2) :- not f(2,3), not f(2,4).
+f(1,1) :- not f(1,2), not f(1,3), not f(1,4).
+f(3,3) :- not f(3,2).
+
+```
+
+There are several other datasets in the ```data``` folder and domain specifications for each in ```src/asal/asp/domains```.
+
 ## Neuro-symbolic ASAL
 Description Coming soon. See the ```arc/neurasal.py``` script. In addition to the libs in requirements.txt, 
 you will need the [dsharp](https://github.com/QuMuLab/dsharp)
@@ -83,26 +113,14 @@ _Nikolaos Manginas, George Paliouras, Luc De Raedt., NeSyA: Neurosymbolic Automa
 
 and the implementation from that paper of probabilistic reasoning with symbolic automata via compilation to arithmetic circuits. 
 
+## Example
+The following performs neuro-symbolic training with a toy SFA on a temporal MNIST arithmetic task (the input is sequences of MNIST images which do, or do not satisfy
+a temporal pattern expressed as an SFA):
 
-
-
-
-
-
-Running the software:
 ```
-conda activate asal
 cd asal/src
-python asal_batch.py
-python asal_mcts.py
+python neurasal.py --tlim 60 --states 4 --tclass 1 --train ../data/mnist_nesy/train.csv --test ../data/mnist_nesy/test.csv --domain asal/asp/domains/mnist.lp --batch_size 200 --coverage_first
 ```
-
-
-With the two scripts above (```asal_batch.py```, ```asal_mcts.py```) the batch and the incremental, Monte Carlo Tree Search-based versions of ASAL can be run. The hyper-parameters/runtime arguments that control a run are explained in comments in the scripts. The arguments can be tweaked by editing a script, since there is no CLI at this point. 
-
-A batch run can be simulated by the ```asal_mcts.py``` script, by setting ```mini_batch_size = n```, where ```n``` is a number larger than the number of sequences in the training set and ```mcts_iterations = 1```. Therefore, the ```asal_batch.py``` script is somewhat redundant. Its main purpose, however, is to showcase the barebones process by which a model can be learned and evaluated. 
-
-To select a particular dataset/fold to run modify, the ```dataset``` and ```fold``` variables in the run scripts. See the paper above for info on (some of) the datasets in the ```data``` folder.
 
 <!---
 To use RPNI/EDSM the LearnLib library is required: https://learnlib.de/. Follow the instructions to install the software. Then use the ```to_rpni``` method in ```src/asal/auxils.py``` to convert the input seqs to RPNI format, by providing the path to a train/test file and follow the LearnLib instructions to run the respective methods (rpni/edsm).
