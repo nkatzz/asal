@@ -21,6 +21,8 @@ def timer(func):
             logger.info(yellow(f'Grounding time: {end - start:.4f} secs'))
         if func.__name__ == "solve":
             logger.info(yellow(f'Solving time: {end - start:.4f} secs'))
+        if func.__name__ == "parse_args":
+            logger.info(f'Args parsing time: {end - start:.4f} secs')
         return result
     return wrapper
 

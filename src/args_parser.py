@@ -1,8 +1,10 @@
 import argparse
 from src.asal.asp import *
 from src.asal.template import Template
+from src.asal.auxils import timer
 
 
+@timer
 def parse_args():
     parser = argparse.ArgumentParser(description="", formatter_class=argparse.RawTextHelpFormatter)
 
@@ -93,8 +95,12 @@ Options:
 
 
 if __name__ == "__main__":
+    import time
+    a = time.time()
     parser = parse_args()
     args = parser.parse_args()
+    b = time.time()
+    print(b-a, 'seconds')
     print(args)
     template = Template(args.states, args.tclass)
     p = get_induction_program(args, template)
