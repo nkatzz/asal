@@ -60,9 +60,11 @@ class Template:
         self.__assemble_template()
 
         if 'src' in os.getcwd():
+            print(1)
             asp_template_file = os.path.normpath(os.getcwd() + os.sep + 'asal' + os.sep + 'asp' + os.sep + 'template.lp')
         else:
-            asp_template_file = os.path.normpath(os.getcwd() + os.sep + 'src' + os.sep + 'asp' + os.sep + 'template.lp')
+            print(2)
+            asp_template_file = os.path.normpath(os.getcwd() + os.sep + 'src' + os.sep + 'asal' + os.sep + 'asp' + os.sep + 'template.lp')
 
         f = open(asp_template_file, "w")
         # f = open("asp/template.lp", "w")

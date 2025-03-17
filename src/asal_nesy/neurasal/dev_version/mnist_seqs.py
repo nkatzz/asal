@@ -83,9 +83,9 @@ def run_generation_loop(
                 raise ValueError(f"No remaining indices for label {number} in the dataset. "
                                  f"Ensure sufficient data for all digits.")
             selected_index = random.choice(label2id[number])
-            
+
             label2id[number].remove(selected_index)  # Remove the selected index to avoid reuse
-           
+
             images.append((train_images if train else test_images)[selected_index])
 
         final_sequences.append(images)
@@ -108,15 +108,12 @@ def run_generation_loop(
             # Check if label2id[number] is empty
             if not label2id[number]:
                 print(f"No remaining indices for label {number} in the dataset. Re-creating indices")
-                # Repopulate only for the exhausted number
                 label2id[number] = [i for i, (_, label) in enumerate(dataset) if label == number]
 
-            # Pick a random index and remove it from the list
+            # Pick a random index
             selected_index = random.choice(label2id[number])
-            # label2id[number].remove(selected_index)  # Not enough images...
-
-            # Load the image using the selected index
-            images.append(dataset[selected_index])
+            image_tensor, label = dataset[selected_index]
+            images.append((image_tensor, label))  # Store tensor and label
 
         final_sequences.append(images)
 
@@ -128,13 +125,27 @@ def create_split(
         negatives: list[list[int]],
         label2id: dict[int, list[int]],
         train: bool = True,
+        starting_seq_id: int = 0
 ):
     label_map = label2id.copy()
     positive_seqs, label_map = run_generation_loop(positives, label_map, train=train)
     negative_seqs, label_map = run_generation_loop(negatives, label_map, train=train)
 
-    return positive_seqs, negative_seqs
+    seq_id = starting_seq_id
+    pos_with_ids = []
+    neg_with_ids = []
 
+    for seq, symbol_seq in zip(positive_seqs, positives):
+        image_data = [(img, symb, f"{seq_id}_{i}") for i, ((img, _), symb) in enumerate(zip(seq, symbol_seq))]
+        pos_with_ids.append((image_data, seq_id, 1))  # label = 1
+        seq_id += 1
+
+    for seq, symbol_seq in zip(negative_seqs, negatives):
+        image_data = [(img, symb, f"{seq_id}_{i}") for i, ((img, _), symb) in enumerate(zip(seq, symbol_seq))]
+        neg_with_ids.append((image_data, seq_id, 0))  # label = 0
+        seq_id += 1
+
+    return pos_with_ids, neg_with_ids, seq_id
 
 def create_dataset(
         sequence_length: int,
@@ -189,11 +200,11 @@ def create_dataset(
         )
     )
 
-    train_positives, train_negatives = create_split(
-        train_positive_sequences, train_negative_sequences, train_label2id
+    train_positives, train_negatives, next_seq_id = create_split(
+        train_positive_sequences, train_negative_sequences, train_label2id, starting_seq_id=0
     )
-    test_positives, test_negatives = create_split(
-        test_positive_sequences, test_negative_sequences, test_label2id, train=False
+    test_positives, test_negatives, _ = create_split(
+        test_positive_sequences, test_negative_sequences, test_label2id, train=False, starting_seq_id=next_seq_id
     )
 
     return train_positives, train_negatives, test_positives, test_negatives
@@ -201,26 +212,18 @@ def create_dataset(
 
 class SequencesDataset(Dataset):
     def __init__(self, pos_seqs, neg_seqs):
-        self.pos_seqs = pos_seqs
-        self.neg_seqs = neg_seqs
-        self.all_seqs = self.merge_seqs()
-
-    def merge_seqs(self):
-        pos = [(list(zip(*p))[0], list(zip(*p))[1], 1) for p in self.pos_seqs]
-        neg = [(list(zip(*p))[0], list(zip(*p))[1], 0) for p in self.neg_seqs]
-        all_seqs = pos + neg
-        return all_seqs
+        self.all_seqs = pos_seqs + neg_seqs
 
     def __len__(self):
         return len(self.all_seqs)
 
     def __getitem__(self, idx):
-        seq = self.all_seqs[idx]
-        tensor_seq, symb_seq, label = seq[0], seq[1], seq[2]
-        tensor_seq = torch.stack(list(tensor_seq), dim=0)
-        symb_seq = torch.tensor(symb_seq)
+        image_data, seq_id, label = self.all_seqs[idx]
+        tensor_seq = torch.stack([img for img, _, _ in image_data], dim=0)
+        symb_seq = torch.tensor([symb for _, symb, _ in image_data])
+        image_ids = [img_id for _, _, img_id in image_data]
         label = torch.tensor(label)
-        return tensor_seq, label, symb_seq
+        return tensor_seq, label, symb_seq, seq_id, image_ids
 
 
 def get_data_loaders_OOD(batch_size=1):

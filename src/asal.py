@@ -49,7 +49,7 @@ if __name__ == "__main__":
     seed_data = train_data[selected_mini_batch]
 
     # This learns something from the seed mini-batch.
-    mcts = MCTSRun(args, train_data, tmpl, models_num='0')
+    mcts = MCTSRun(args, train_data, tmpl)
 
     if mcts_iterations > 1:  # revise from new batches.
         mcts.run_mcts()
@@ -69,4 +69,4 @@ if __name__ == "__main__":
     test_model_mproc(mcts.best_model, args, path_scoring=path_scoring)
 
     logger.info(yellow(f'On testing set: TPs, FPs, FNs: {mcts.best_model.global_performance_counts}, '
-                       f'F1-score: {mcts.best_model.global_performance}'))
+                       f'F1-score: {round(mcts.best_model.global_performance, 4)}'))

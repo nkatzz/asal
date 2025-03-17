@@ -144,9 +144,8 @@ class MCTSRun:
                  args,
                  training_data,
                  template,
-                 models_num='0',
                  path_scoring=False,
-                 with_joblib=True):
+                 with_joblib=False):
 
         self.args = args
         self.training_data_whole = training_data
@@ -164,7 +163,6 @@ class MCTSRun:
         self.batch_size = args.batch_size
         self.template = template
         self.t_lim = args.tlim
-        self.models_num = models_num
         self.path_scoring = path_scoring
         self.mcts_iterations = args.mcts_iters
         self.explore_rate = args.exp_rate
@@ -204,10 +202,10 @@ class MCTSRun:
 
             logger.info(green(f'\nExpanding best leaf node.\nBest node: {best_child.id}\n'
                               f'Visits: {best_child.visits}\n'
-                              f'Mean reward: {best_child.get_mean_reward()}\n'
-                              f'MCTS score: {best_child.get_mcts_score(self.explore_rate)}\n'
+                              f'Mean reward: {best_child.get_mean_reward():.4f}\n'
+                              f'MCTS score: {best_child.get_mcts_score(self.explore_rate):.4f}\n'
                               f'Model:\n'
-                              f'\n{automaton.show(mode="""reasoning""")}'))
+                              f'\n{automaton.show(mode="""simple""")}'))
 
             batch_id = self.get_revision_batch(automaton)
 
@@ -222,7 +220,7 @@ class MCTSRun:
 
             # automaton.counts_per_batch.pop(batch_id)  # Remove it, so that we don't revise on this again.
 
-            logger.info(f'Parent rewards: {best_child.parent_node.rewards}')
+            logger.debug(f'Parent rewards: {best_child.parent_node.rewards}')
             # data = get_train_data(train_path, str(target_class), mini_batch_size)
             data = self.training_data_whole
             self.expand_node(best_child, data[batch_id], initial_model=automaton)
@@ -245,46 +243,66 @@ class MCTSRun:
         learner = Learner(self.template, batch_data, self.args,
                           existing_model=initial_model, with_joblib=self.with_joblib)
 
-        solve_result = None
         if not self.with_joblib:
-            solve_result = self.call(learner, self.models_num)
+            solve_result = self.call(learner)
         else:
-            sr = self.call_learner_joblib(learner, self.models_num)
+            # The main reason that I use subprocess was to have Clingo clean its symbols over iterations
+            # so that we don't have memory issues. joblib might be OK for that as well (but need to check).
+            # joblib is added for compatibility with Windows, but it is not implemented on the Tester side!
+            sr = self.call_learner_joblib(learner)
             solve_result = SolveResultContainer(sr.deserialize_models(), sr.grounding_time, sr.solving_time)
 
         models = solve_result.models
 
         if not models:
             logger.error("No models returned from the solver.")
+            # save the current induction program and data for debugging
+            from src.asal.asp import get_induction_program
+            p = get_induction_program(self.args, self.template)
+            with open('induction_program.lp', 'w') as file:
+                file.write(p)
+            with open('induction_data.lp', 'w') as file:
+                file.write(batch_data)
+            logger.error(f"Current induction program and data saved "
+                         f"in 'induction_program.lp' and 'induction_data.lp' files.")
             sys.exit()
 
         if isinstance(models, Automaton):  # A single automaton is returned.
             models = [models]
 
-        logger.info(blue(f'Generated {len(models)} new models (max children size: {self.max_children})'))
+        logger.info(f'Generated {len(models)} new models (max children size: {self.max_children})')
 
         self.update_stats(solve_result)
 
-        # Going for optimal models causes problems in case the optimum has not been found within the time limit.
-        # We'll then have zero models returned. So, we compare solving time (ST) with time limit (TM).
-        # If ST < TM this means that the optimum has been found and we can ask for models where
-        # optimality_proven = True. Otherwise, it's best to simply test the generated models within the time
-        # limit and work with them.
-        if solve_result.solving_time < self.t_lim:
-            optimal_models = list(filter(lambda x: x.optimality_proven, models))
-            logger.info(f'Optimal models: {len(optimal_models)}')
-            if len(optimal_models) > self.max_children:
-                models = random.sample(optimal_models, self.max_children)
+        if solve_result.solving_time < self.t_lim:  # then an optimal model has been found...
+            # However, the optimality_proven flag is not correctly set only when
+            # ctl.configuration.solve.opt_mode = 'opt'
+            # (is is set when ctl.configuration.solve.opt_mode = 'optN' though...).
+            # Therefore, we cannot use this flag to filter-out the optimals as in the line below:
+            # optimal_models = list(filter(lambda x: x.optimality_proven, models))
+            # So we do is the following:
+            # (i) When args.all_opt=False, we just get the last model
+            # from the solver. Since solve_result.solving_time < self.t_lim, this model will
+            # be optimal.
+            # (ii) When args.all_opt=False we sample n models, or just take the n last models
+            # from the solver, where n is self.max_children.
+            if not self.args.all_opt:
+                logger.info("Optimal model found!")
+                #for m in models: print(m)
+                models = [models[-1]]
             else:
-                models = optimal_models
+                # Here optimality_proven is set correctly.
+                optimal_models = list(filter(lambda x: x.optimality_proven, models))
+                logger.info(f"Optimal models: {len(optimal_models)}")
+                if len(optimal_models) > self.max_children:
+                    models = random.sample(optimal_models, self.max_children)
+                else:
+                    models = optimal_models
         else:
             if (len(models)) > self.max_children:
                 """models = random.sample(models, self.max_children)"""
                 # Just keep the last instead of sampling randomly in this case
                 models = models[-self.max_children:]
-
-        # for m in models:
-        #    print(f'{m.show()}, {m.cost}\n{[a.str for a in m.body_atoms_asp]}\n')
 
         logger.info(f'Testing...')
         start = time.time()
@@ -293,10 +311,10 @@ class MCTSRun:
                              data_whole=self.training_data_whole, test_with_clingo=True)
         end = time.time()
         self.testing_times.append(end - start)
-        logger.info(blue(f'Testing time: {end - start} sec'))
+        logger.info(f'Testing time: {end - start} sec')
 
         logger.info(f'\nNew models: {len(models)}\nParent:  '
-                    f'{parent_node.id}\nModels\' F1-scores: {[m.global_performance for m in models]}.')
+                    f'{parent_node.id}\nModels\' F1-scores: {[round(m.global_performance, 4) for m in models]}.')
 
         for model, m_count in zip(models, range(1, len(models) + 1)):
             if model.global_performance > initial_model.global_performance:
@@ -348,21 +366,13 @@ class MCTSRun:
         return batch_id
 
     @staticmethod
-    def call_learner(_learner: Learner, q: Queue, _models_num):
-        if _models_num == '0':
-            # Return all optimal models.
-            q.put(_learner.induce_models(sols_num='0'))
-        elif _models_num == '1':
-            # Return one optimal model.
-            q.put(_learner.induce_models(sols_num='1'))
-        else:
-            # Return up to _models_num models found within the time limit.
-            # The implementation here needs work.
-            q.put(_learner.induce_multiple(_models_num))
+    def call_learner(_learner: Learner, q: Queue, all_opt):
+        q.put(_learner.induce_models(all_opt=all_opt))
+        # q.put(_learner.induce_multiple(_models_num))
 
-    def call(self, _learner: Learner, _models_num):
+    def call(self, _learner: Learner):
         q = Queue()
-        process = Process(target=self.call_learner, args=(_learner, q, _models_num))
+        process = Process(target=self.call_learner, args=(_learner, q, self.args.all_opt))
         process.start()
         results = q.get()
         process.join()
@@ -378,24 +388,19 @@ class MCTSRun:
         """Convert a list of CFFI objects to a list of picklable bytes."""
         return [bytes(ffi.buffer(obj)) for obj in cffi_list]
 
-    def call_learner_joblib(self, _learner: Learner, models_num):
+    def call_learner_joblib(self, _learner: Learner):
         """Worker function that processes Learner's results."""
-        if models_num == '0':
-            result = _learner.induce_models(sols_num='0')  # Single CFFI object
-            # serialized_result = self.serialize_cffi_obj(result)  # Serialize it
-        elif models_num == '1':
-            result = _learner.induce_models(sols_num='1')  # Single CFFI object
-            # serialized_result = self.serialize_cffi_obj(result)  # Serialize it
-        else:
-            result = _learner.induce_multiple(models_num)  # List of CFFI objects
-            # serialized_result = self.serialize_cffi_list(result)  # Serialize list
+        result = _learner.induce_models(self.args.all_opt)  # Single CFFI object
+        # serialized_result = self.serialize_cffi_obj(result)  # Serialize it
+
+        # result = _learner.induce_multiple(models_num)
 
         return result  # serialized_result
 
     def call_joblib(self, _learner: Learner):
         """Runs the learner in a separate process using joblib."""
         results = Parallel(n_jobs=1, backend="loky")(
-            [delayed(self.call_learner_joblib)(_learner, self.models_num)]  # ✅ Enclosed in a list
+            [delayed(self.call_learner_joblib)(_learner)]  # ✅ Enclosed in a list
         )
 
         return results[0]  # joblib returns a list, so get the first result
@@ -415,10 +420,10 @@ class MCTSRun:
 
     def show_final_msg(self, total_training_time):
         logger.info(yellow(f'\nBest model found:\n{self.best_model.show(mode="""reasoning""")}\n\n'
-                           f'F1-score on training set: {self.best_model.global_performance} '
+                           f'F1-score on training set: {self.best_model.global_performance:.4f} '
                            f'(TPs, FPs, FNs: {self.best_model.global_performance_counts})\n'
                            f'Generated models: {self.generated_models_count}\n'
-                           f'Average grounding time: {mean(self.grounding_times)}\n'
-                           f'Average solving time: {mean(self.solving_times)}\n'
-                           f'Model evaluation time: {sum(self.testing_times)}\n'
-                           f'Total training time: {total_training_time}'))
+                           f'Average grounding time: {mean(self.grounding_times):.4f}\n'
+                           f'Average solving time: {mean(self.solving_times):.4f}\n'
+                           f'Model evaluation time: {sum(self.testing_times):.4f}\n'
+                           f'Total training time: {total_training_time:.4f}'))

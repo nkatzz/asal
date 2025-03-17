@@ -163,7 +163,7 @@ def process_sequence(sequence, symb_sequence, seq_label, model, sfa, criterion):
     prediction = (acceptance_probability >= 0.5)
     return loss, prediction
 
-
+"""
 def process_batch(batch, model, sfa, cnn_output_size):
     #img_sequences, labels, symbolic_sequences = batch[0], batch[1], batch[2]
     img_sequences, labels, symbolic_sequences = batch
@@ -202,7 +202,51 @@ def process_batch(batch, model, sfa, cnn_output_size):
     acceptance_probabilities = acceptance_probabilities * decay_weights
 
     return acceptance_probabilities, actual_latent, predicted_latent
+"""
 
+import torch.nn.functional as F
+
+def process_batch(batch, model, sfa, cnn_output_size):
+    img_sequences, labels, symbolic_sequences, seq_ids, img_ids = batch
+    img_sequences, labels, symbolic_sequences = (
+        img_sequences.to(device), labels.to(device), symbolic_sequences.to(device))
+
+    batch_size = img_sequences.shape[0]
+    sequence_length = img_sequences.shape[1]
+
+    # Flatten for CNN
+    img_sequences = img_sequences.view(-1, img_sequences.shape[2], img_sequences.shape[3],
+                                       img_sequences.shape[4])
+
+    # Forward pass through CNN
+    nn_outputs = model(img_sequences, apply_softmax=True)  # Shape: (batch_size * seq_len, num_classes)
+    nn_outputs = nn_outputs.view(batch_size, sequence_length, cnn_output_size)  # (batch_size, seq_len, num_classes)
+
+    # Store latent predictions
+    actual_latent = symbolic_sequences.flatten().squeeze(0).cpu()
+    predicted_latent = torch.argmax(nn_outputs, dim=2).flatten().cpu()
+
+    # Transpose output for automaton processing
+    output_transposed = nn_outputs.transpose(1, 2)
+
+    # Create probability dictionary for automaton
+    probabilities = {sfa.symbols[i]: output_transposed[:, i, :] for i in range(len(sfa.symbols))}
+
+    # Automaton processing
+    labelling_function = create_labelling_function(probabilities, sfa.symbols)
+    acceptance_probabilities = torch.clamp(sfa.forward(labelling_function), 0, 1)
+
+    # Entropy Calculation
+    # Avoid log(0) issues:
+    eps = 1e-10
+    entropy_per_img = -torch.sum(nn_outputs * torch.log(nn_outputs + eps), dim=2)  # (batch_size, seq_len)
+
+    # Sequence-level entropy score (sum over sequence):
+    seq_entropy_scores = torch.sum(entropy_per_img, dim=1)  # shape: (batch_size,)
+    # Alternatively, sum of entropies could be used (higher sum => more uncertain sequence)
+    # seq_entropy_scores = torch.sum(entropy_per_img, dim=1)  # (batch_size,)
+
+    return acceptance_probabilities, actual_latent, predicted_latent, seq_ids, img_ids, seq_entropy_scores, entropy_per_img, nn_outputs
 
 def test_model(model, sfa, test_loader, cnn_output_size):
     actual, predicted, actual_latent, predicted_latent = [], [], [], []
@@ -211,7 +255,7 @@ def test_model(model, sfa, test_loader, cnn_output_size):
         for batch in test_loader:
             labels = batch[1].to(device)
             # acceptance_probabilities, act_latent, pred_latent = process_batch(batch, model, sfa, cnn_output_size)
-            acceptance_probabilities, act_latent, pred_latent = process_batch(batch, model, sfa, cnn_output_size)
+            acceptance_probabilities, act_latent, pred_latent, _, _, _, _, _ = process_batch(batch, model, sfa, cnn_output_size)
 
             actual_latent.append(act_latent)
             predicted_latent.append(pred_latent)
