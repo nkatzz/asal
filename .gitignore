@@ -4,4 +4,6 @@ __pycache__/
 venv
 .idea
 notepad.txt
+induction_data.lp
+induction_program.lp
 src/asal_nesy/mnist_data/

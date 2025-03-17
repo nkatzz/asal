@@ -2,15 +2,25 @@ import os
 import sys
 import torch
 import torch.nn as nn
-
-#project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-#sys.path.insert(0, project_root)
+from torch.utils.data._utils.collate import default_collate
 
 from src.asal_nesy.neurasal.sfa import *
 from src.asal_nesy.dsfa_old.models import DigitCNN
 from src.asal_nesy.neurasal.dev_version.mnist_seqs import get_data_loaders
 from src.asal_nesy.neurasal.dev_version.utils import *
 from src.args_parser import parse_args
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+sys.path.insert(0, project_root)
+
+# Custom collate function to prevent img_ids transposing
+def custom_collate_fn(batch):
+    tensor_seqs, labels, symb_seqs, seq_ids, image_ids = zip(*batch)
+    return (default_collate(tensor_seqs),
+            default_collate(labels),
+            default_collate(symb_seqs),
+            default_collate(seq_ids),
+            list(image_ids))
 
 if __name__ == "__main__":
 
@@ -42,6 +52,9 @@ if __name__ == "__main__":
     OOD = True
     train_loader, test_loader = get_data_loaders(batch_size=batch_size)
 
+    # Apply custom collate function to train_loader
+    train_loader.collate_fn = custom_collate_fn
+
     if pre_train_nn:
         logger.info(f'Pre-training on images from {pre_training_size} sequences')
         pre_train_model(train_loader, test_loader, 10, model, optimizer, num_epochs=100)
@@ -69,15 +82,24 @@ if __name__ == "__main__":
              pred_latent, seq_ids, img_ids,
              seq_entropy_scores, entropy_per_img, nn_outputs) = process_batch(batch, model, sfa, cnn_output_size)
 
-            # Collect uncertainty scores safely
-            batch_size_current, seq_len = entropy_per_img.shape
+            batch_size_current = len(img_ids)
+            cnn_outputs = []
+            cnn_targets = []
+
             for i in range(batch_size_current):
                 seq_id = seq_ids[i]
+                seq_img_ids = img_ids[i]
+                seq_len = len(seq_img_ids)
                 for j in range(seq_len):
-                    img_id = img_ids[i][j]
+                    img_id = seq_img_ids[j]
                     entropy_val = entropy_per_img[i][j]
                     all_img_scores.append((img_id, entropy_val.item(), symbolic_sequences[i][j].item()))
                     image_outputs_dict[img_id] = nn_outputs[i][j]
+
+                    # Collect CNN outputs if labeled
+                    if img_id in labeled_images:
+                        cnn_outputs.append(nn_outputs[i][j])
+                        cnn_targets.append(symbolic_sequences[i][j].item())
 
                 all_seq_scores.append((seq_id, seq_entropy_scores[i].item()))
 
@@ -87,45 +109,38 @@ if __name__ == "__main__":
             predicted.extend(sequence_predictions)
             actual.extend(labels)
 
-            loss = sequence_criterion(acceptance_probabilities, labels.float())
-            backprop(loss, optimizer)
-            total_seq_loss += loss.item()
+            # Sequence loss
+            seq_loss = sequence_criterion(acceptance_probabilities, labels.float())
+
+            # === Active Learning Step ===
+            all_img_scores.sort(key=lambda x: x[1], reverse=True)
+            newly_labeled = 0
+            for img_id, entropy, true_symbol in all_img_scores:
+                if img_id not in labeled_images:
+                    labeled_images.add(img_id)
+                    newly_labeled += 1
+                    if newly_labeled >= num_images_to_label:
+                        break
+
+            # CNN loss (if we have labeled images in batch)
+            if cnn_outputs:
+                cnn_outputs = torch.stack(cnn_outputs).to(device)
+                cnn_targets = torch.tensor(cnn_targets).to(device)
+                cnn_loss = cnn_criterion(cnn_outputs, cnn_targets)
+                total_loss = seq_loss + cnn_loss
+            else:
+                total_loss = seq_loss
+
+            optimizer.zero_grad()
+            total_loss.backward()
+            optimizer.step()
+            total_seq_loss += seq_loss.item()
 
         actual_latent = torch.cat(actual_latent).numpy()
         predicted_latent = torch.cat(predicted_latent).numpy()
 
         latent_f1_macro = f1_score(actual_latent, predicted_latent, average="macro")
         latent_f1_micro = f1_score(actual_latent, predicted_latent, average="micro")
-
-        # === Active Learning Step ===
-        all_img_scores.sort(key=lambda x: x[1], reverse=True)
-        newly_labeled = 0
-        for img_id, entropy, true_symbol in all_img_scores:
-            if img_id not in labeled_images:
-                labeled_images.add(img_id)
-                newly_labeled += 1
-                if newly_labeled >= num_images_to_label:
-                    break
-
-        # === CNN Loss on labeled images ===
-        cnn_outputs = []
-        cnn_targets = []
-        for img_id in labeled_images:
-            if img_id in image_outputs_dict:
-                cnn_outputs.append(image_outputs_dict[img_id])
-                for (img_id_check, _, true_symbol) in all_img_scores:
-                    if img_id_check == img_id:
-                        cnn_targets.append(true_symbol)
-                        break
-
-        if cnn_outputs:
-            cnn_outputs = torch.stack(cnn_outputs).to(device)
-            cnn_targets = torch.tensor(cnn_targets).to(device)
-            cnn_loss = cnn_criterion(cnn_outputs, cnn_targets)
-
-            optimizer.zero_grad()
-            cnn_loss.backward()
-            optimizer.step()
 
         # === Evaluation ===
         test_f1, test_latent_f1_macro, t_tps, t_fps, t_fns = test_model(model, sfa, test_loader, cnn_output_size)
