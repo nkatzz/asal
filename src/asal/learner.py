@@ -1,4 +1,5 @@
-from src.asal.structs import Automaton, SolveResult, GuardBodyAtom, TransitionAtom, AcceptingStateAtom, CountsAtom, AnyAtom, ScoredModel
+from src.asal.structs import Automaton, SolveResult, GuardBodyAtom, TransitionAtom, AcceptingStateAtom, CountsAtom, \
+    AnyAtom, ScoredModel
 from src.asal.test_model_multproc import test_model_mproc
 from src.asal.template import Template
 from src.asal.tester import rewrite_automaton
@@ -12,6 +13,7 @@ import os
 from clingo.script import enable_python
 from clingo.symbol import parse_term
 from src.asal.asp import get_induction_program
+from src.asal.auxils import timer
 
 
 class Learner:
@@ -37,20 +39,16 @@ class Learner:
         self.mode = mode
         self.debug = debug
         self.induced_models = []
-        self.aim_for_opt = True if self.time_limit == float('inf') else False
         self.generated_automata = []
-        self.model_from_solver = []
 
         cores_num = multiprocessing.cpu_count()
-        # 64 threads is the implementation-defined limit for Clingo
-        cores = f'-t{cores_num if cores_num <= 64 else 64}'
+        cores = f'-t{cores_num if cores_num <= 64 else 64}'  # 64 threads is the implementation-defined limit for Clingo
 
         if args.warns_off:
             self.ctl = clingo.Control([cores, "--warn=none"])
         else:
             self.ctl = clingo.Control([cores])  # clingo.Control([cores, "--warn=none"])  "--warn=no-atom-undefined"
 
-        self.return_multiple_models = False
         self.grounding_time = 0.0
         self.solving_time = 0.0
         self.with_joblib = with_joblib
@@ -71,6 +69,7 @@ class Learner:
                 output.append(AnyAtom(atom))
         return output
 
+    @timer
     def on_model(self, model):
         atoms = [atom for atom in model.symbols(shown=True)]
         parsed_atoms = self.parse_solver_results(atoms)
@@ -80,11 +79,7 @@ class Learner:
         fsm.optimality_proven = model.optimality_proven
 
         if len(fsm.asp_model) >= 1 and len(fsm.transitions) > 0:
-            if self.return_multiple_models:
-                self.induced_models.append(fsm)
-            else:
-                self.induced_models = [fsm]
-                self.model_from_solver = list(map(lambda x: str(x), atoms))
+            self.induced_models.append(fsm)
 
         if True:  # show all generated models
             logger.debug('Found model with cost {0} ({1}):\n{2}\nReturned model is:\n{3}'.
@@ -99,6 +94,7 @@ class Learner:
         file.close()
         """
 
+    @timer
     def ground(self, file=None):
         logger.info('Grounding...')
         start = time.time()
@@ -109,8 +105,8 @@ class Learner:
         end = time.time()
         grounding_time = end - start
         self.grounding_time = grounding_time
-        logger.info(f'Grounding time: {grounding_time} secs')
 
+    @timer
     def solve(self):
         logger.info('Solving with time limit {0}'.format(self.time_limit))
         start = time.time()
@@ -123,7 +119,6 @@ class Learner:
         end = time.time()
         solving_time = end - start
         self.solving_time = solving_time
-        logger.debug(f'Solving time: {solving_time} secs')
 
     def show_model(self, model):
         if not self.debug:
@@ -150,7 +145,7 @@ class Learner:
             self.ctl.add("base", [], conj_atom)
             self.ctl.add("base", [], transition_atom)
 
-    def induce_models(self, sols_num='1'):
+    def induce_models(self, all_opt=False):
         enable_python()
         """
         if 'src' in os.getcwd():
@@ -177,21 +172,24 @@ class Learner:
 
         models = None
 
-        if sols_num == '0':
-            self.return_multiple_models = True
-            self.ctl.configuration.solve.opt_mode = 'optN'
+        if all_opt:
+            self.ctl.configuration.solve.opt_mode = 'optN'  # optimality_proven is set to true only in this case.
+        else:
+            self.ctl.configuration.solve.opt_mode = 'opt'  # default in Clingo.
 
-        self.ctl.ground([("base", [])])
+        self.ground()
         # self.ground(file=induction_program)  # use this if you're loading from a file (as in the commented code above)
         self.solve()
 
+        """
         if sols_num == '1':  # Return one, the best found within the time limit.
             models = self.induced_models[0]
             self.show_model(models)
         elif sols_num == '0':  # Return All optimal (found within the time limit).
             models = self.induced_models
+        """
 
-        # return models
+        models = self.induced_models
         return SolveResult(models, self.grounding_time, self.solving_time, with_joblib=self.with_joblib)
 
     def induce_multiple(self, sols_num):
@@ -200,7 +198,6 @@ class Learner:
 
         model = self.induce_models()
 
-        self.return_multiple_models = True
         cost_str = ','.join(list(map(lambda x: str(x), model.cost)))
         self.ctl.configuration.solve.opt_mode = f'enum,{cost_str}'
         self.ctl.configuration.solve.models = str(sols_num)
@@ -211,7 +208,6 @@ class Learner:
             print(m.show(mode='reasoning'))
 
         return models
-
 
     """
     def induce_iteratively(self, train_path, target_class,

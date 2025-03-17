@@ -6,32 +6,32 @@ from src.asal.template import Template
 def parse_args():
     parser = argparse.ArgumentParser(description="", formatter_class=argparse.RawTextHelpFormatter)
 
-    parser.add_argument("--tlim", metavar="<n>",
-                        type=int, default=0, help="time limit for Clingo in secs (default: 0, no limit).")
-
-    parser.add_argument("--states", metavar="<n>", type=int, default=3,
-                        help="max number of states in a learnt automaton.")
-
-    parser.add_argument("--tclass", metavar="<n>",
-                        type=int, default=1, help="target class to predict (one-vs-rest).")
-
     parser.add_argument("--train", metavar="<path>", required=True,
                         type=str, help="path to the training data.")
+
+    parser.add_argument("--domain", metavar="<path>", required=True,
+                        type=str, help="path to the domain specification file.")
 
     parser.add_argument("--test", metavar="<path>",
                         type=str, help="path to the testing data.")
 
-    parser.add_argument("--domain", metavar="<path>", required=True,
-                        type=str, help="path to the domain specification file.")
+    parser.add_argument("--tlim",
+                        metavar="<n>",
+                        type=int,
+                        default=0,
+                        help="time limit for Clingo in secs [default: 0, no limit].")
+
+    parser.add_argument("--states", metavar="<n>", type=int, default=3,
+                        help="max number of states in a learnt automaton [default: 3].")
+
+    parser.add_argument("--tclass", metavar="<n>",
+                        type=int, default=1, help="target class to predict (one-vs-rest) [default: 1].")
 
     parser.add_argument("--incremental",
                         action="store_true", help="learn incrementally with MCTS.")
 
     parser.add_argument("--batch_size", metavar="<n>",
                         type=int, default=100, help="mini batch size for incremental learning.")
-
-    parser.add_argument("--max_alts", metavar="<n>",
-                        type=int, default=2, help="max number of disjunctive alternatives per transition guard.")
 
     parser.add_argument("--mcts_iters", metavar="<n>", type=int, default=1,
                         help="number of MCTS iterations for incremental learning.")
@@ -42,14 +42,22 @@ def parse_args():
     parser.add_argument("--mcts_children", metavar="<n>", type=int, default=10,
                         help="number of children nodes to consider in MCTS.")
 
-    parser.add_argument("--coverage_first", action="store_true",
-                        help="higher priority to predictive performance optimization constraints over model size ones.")
+    parser.add_argument("--max_alts", metavar="<n>",
+                        type=int, default=2, help="max number of disjunctive alternatives per transition guard.")
+
+    parser.add_argument("--coverage_first",
+                        action="store_true",
+                        help="""set a higher priority to constraints that minimize FPs & FNs 
+over constraints that minimize model size.""")
 
     parser.add_argument("--min_attrs", action="store_true",
                         help="minimize the number of attributes that appear in a model.")
 
     parser.add_argument("--warns_off", action="store_true",
                         help="suppress warnings from Clingo.")
+
+    parser.add_argument("--all_opt", action="store_true",
+                        help="find all optimal models during Clingo search.")
 
     parser.add_argument(
         "--predicates",

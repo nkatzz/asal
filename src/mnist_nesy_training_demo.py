@@ -67,7 +67,7 @@ if __name__ == "__main__":
     sdd_builder.build_nnfs()
     circuits = sdd_builder.circuits
     sfa = nnf_map_to_sfa(circuits)
-    logger.info(f'\nCompiled SFA: {sfa.transitions}\nStates: {sfa.states}\nSymbols: {sfa.symbols}')
+    # logger.info(f'\nCompiled SFA: {sfa.transitions}\nStates: {sfa.states}\nSymbols: {sfa.symbols}')
 
     #-------------------------------#
     # Code for training from here on.
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     pre_train_cnn = True  # Pre-train the CNN on a few labeled images.
     pre_training_size = 10  # num of fully labeled seed sequences.
     num_epochs = 200
-    batch_size = 50
+    batch_size = 100
     cnn_output_size = 10  # digits num. for MNIST
 
     # The CNN that recognizes digits from images in the input image sequences.
@@ -95,7 +95,8 @@ if __name__ == "__main__":
     """
     logger.info('Generating training/testing data')
     OOD = False  # Out-of-distribution test data, if true the training/testing seqs are of different size.
-    train_loader, test_loader = get_data_loaders_OOD(batch_size=50) if OOD else get_data_loaders(batch_size=50)
+    train_loader, test_loader = (
+        get_data_loaders_OOD(batch_size=batch_size)) if OOD else get_data_loaders(batch_size=batch_size)
 
     # Optionally pre-train the CNN a little bit on a few labeled images.
     if pre_train_cnn:
@@ -140,8 +141,7 @@ if __name__ == "__main__":
             src.asal_nesy.neurasal.baselines.py
             """
 
-            acceptance_probabilities, act_latent, pred_latent = process_batch(batch, model, sfa,
-                                                                              batch_size, cnn_output_size)
+            acceptance_probabilities, act_latent, pred_latent = process_batch(batch, model, sfa, cnn_output_size)
 
             actual_latent.append(act_latent)
             predicted_latent.append(pred_latent)
@@ -159,8 +159,7 @@ if __name__ == "__main__":
         latent_f1_macro = f1_score(actual_latent, predicted_latent, average="macro")
         latent_f1_micro = f1_score(actual_latent, predicted_latent, average="micro")
 
-        test_f1, test_latent_f1_macro, t_tps, t_fps, t_fns = test_model(model, sfa, test_loader,
-                                                                        batch_size, cnn_output_size)
+        test_f1, test_latent_f1_macro, t_tps, t_fps, t_fns = test_model(model, sfa, test_loader, cnn_output_size)
 
         _, train_f1, _, tps, fps, fns, _ = get_stats(predicted, actual)
 

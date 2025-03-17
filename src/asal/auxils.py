@@ -8,6 +8,22 @@ import time
 import re
 
 
+def timer(func):
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        end = time.time()
+        if func.__name__ == "on_model":
+            logger.debug(f"{func.__name__} took {end - start:.4f} seconds")
+        if func.__name__ == "compile_sfa":
+            logger.info(yellow(f'Compilation time: {end - start:.4f} secs'))
+        if func.__name__ == "ground":
+            logger.info(yellow(f'Grounding time: {end - start:.4f} secs'))
+        if func.__name__ == "solve":
+            logger.info(yellow(f'Solving time: {end - start:.4f} secs'))
+        return result
+    return wrapper
+
 def sliding_window(elements, window_size):
     slices = []
     if len(elements) <= window_size:

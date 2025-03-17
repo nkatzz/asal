@@ -7,11 +7,11 @@ from src.asal_nesy.cirquits.asp_programs import *
 from src.asal_nesy.cirquits.build_sdds import SDDBuilder
 from src.asal_nesy.cirquits.circuit_auxils import model_count_nnf, nnf_map_to_sfa
 from src.asal.asp import get_induction_program
+from src.asal.auxils import timer
 import time
 
-
+@timer
 def compile_sfa(sfa, asp_compilation_program):
-    start_time = time.perf_counter()
     x = [f'query(guard,{rule.head}) :- {rule.head}.' for rule in sfa.rules]
     y = [f'query(guard,{head}) :- {head}.' for head in sfa.self_loop_guards.keys()]
     query_atoms = x + y
@@ -30,9 +30,7 @@ def compile_sfa(sfa, asp_compilation_program):
 
     # Compile into an SFA:
     sfa = nnf_map_to_sfa(circuits)
-    end_time = time.perf_counter()
-    logger.info(green(f'Compilation time: {end_time - start_time} secs'))
-    logger.info(f'\nCompiled SFA: {sfa.transitions}\nStates: {sfa.states}\nSymbols: {sfa.symbols}')
+    logger.debug(f'\nCompiled SFA: {sfa.transitions}\nStates: {sfa.states}\nSymbols: {sfa.symbols}')
     return sfa
 
 
@@ -45,9 +43,9 @@ def induce_sfa(args):
     logger.debug(f'The induction program is:\n{get_induction_program(args, template)}')
 
     # This learns something from the seed mini-batch.
-    mcts = MCTSRun(args, train_data, template, models_num='0')
+    mcts = MCTSRun(args, train_data, template)
 
-    logger.info(blue(f'\nBest model found:\n{mcts.best_model.show(mode="""reasoning""")}\n\n'
+    logger.info(blue(f'\nBest model found:\n{mcts.best_model.show(mode="""simple""")}\n\n'
                      f'F1-score on training set: {mcts.best_model.global_performance} '
                      f'(TPs, FPs, FNs: {mcts.best_model.global_performance_counts})\n'
                      f'Generated models: {mcts.generated_models_count}\n'
