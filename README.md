@@ -100,13 +100,15 @@ _Tatiana Boura, Neuro-symbolic Complex Event Recognition in Autonomous Driving, 
 
 ```
 cd asal/src
-python asal.py --tlim 60 --states 4 --tclass 2 --train ../data/ROAD-R/folds/split_9/agent_train.txt --test ../data/ROAD-R/folds/split_9/agent_test.txt --domain asal/asp/domains/domain.lp --batch_size 200 --predicates equals
+python asal.py --tlim 60 --states 4 --tclass 2 --train ../data/ROAD-R/folds/split_9/agent_train.txt \
+--test ../data/ROAD-R/folds/split_9/agent_test.txt --domain asal/asp/domains/domain.lp --batch_size 200 --predicates equals
 ```
 The induced SFA looks like this:
 
 ```
 accepting(4).
-transition(1,f(1,1),1). transition(1,f(1,2),2). transition(1,f(1,3),3). transition(1,f(1,4),4). transition(2,f(2,2),2). transition(2,f(2,3),3). transition(2,f(2,4),4). transition(3,f(3,2),2). transition(3,f(3,3),3). transition(4,f(4,4),4).
+transition(1,f(1,1),1). transition(1,f(1,2),2). transition(1,f(1,3),3). transition(1,f(1,4),4). transition(2,f(2,2),2). 
+transition(2,f(2,3),3). transition(2,f(2,4),4). transition(3,f(3,2),2). transition(3,f(3,3),3). transition(4,f(4,4),4).
 f(1,4) :- equals(same_lane,true), equals(action_2,movaway).
 f(1,3) :- equals(same_lane,false), not f(1,4).
 f(1,2) :- equals(action_1,stop), not f(1,3), not f(1,4).
@@ -123,7 +125,8 @@ do so, run ASAL with option ```--show r```. This time the result looks something
 
 ```
 accepting(4).
-transition(1,f(1,1),1). transition(1,f(1,2),2). transition(1,f(1,3),3). transition(2,f(2,2),2). transition(2,f(2,3),3). transition(2,f(2,4),4). transition(3,f(3,3),3). transition(3,f(3,4),4). transition(4,f(4,4),4).
+transition(1,f(1,1),1). transition(1,f(1,2),2). transition(1,f(1,3),3). transition(2,f(2,2),2). transition(2,f(2,3),3). 
+transition(2,f(2,4),4). transition(3,f(3,3),3). transition(3,f(3,4),4). transition(4,f(4,4),4).
 holds(f(1,2),S,T) :- holds(equals(action_1,stop),S,T), holds(equals(action_2,movtow),S,T), not holds(f(1,3),S,T).
 holds(f(2,3),S,T) :- holds(equals(action_1,stop),S,T), not holds(f(2,4),S,T).
 holds(f(3,4),S,T) :- holds(equals(action_1,movaway),S,T), holds(equals(location_2,vehlane),S,T).
@@ -134,12 +137,13 @@ holds(f(1,1),S,T) :- sequence(S), time(T), not holds(f(1,2),S,T), not holds(f(1,
 holds(f(4,4),S,T) :- sequence(S), time(T).
 holds(f(2,2),S,T) :- sequence(S), time(T), not holds(f(2,3),S,T), not holds(f(2,4),S,T).
 ```
-This can be used on make sequence predictions on input data. For instance, by pasting in into the domain file and 
+This can be used on make sequence predictions on input data. For instance, by writing it to a file and 
 running (note the ```--eval``` option):
 
 ```
 cd asal/src
-python asal.py --tclass 2 --test ../data/ROAD-R/folds/split_9/agent_test.txt --domain asal/asp/domains/roadr.lp --eval path/to/sfa --predicates equals 
+python asal.py --tclass 2 --test ../data/ROAD-R/folds/split_9/agent_test.txt --domain asal/asp/domains/roadr.lp \
+ --eval path/to/sfa --predicates equals 
 ```
 the SFA is evaluated on the test data.
 <!---
@@ -156,7 +160,12 @@ same fashion. For instance, ```seq(1,a2(action(movaway)),5).``` dicates that in 
 ```a2``` ```moving away``` from the main vehicle at time 5. The signals for ```a1``` and ```a2```'s actions, locations
 and coordinates over time, form the multivariate sequence with id 1. See the data for more examples.
 
-### & Domain Specification
+### Domain Specification
+The domain file provides background knowledge and a language bias for learning. The comments in the domain file below
+explain the main structure and language bias definition.
+```
+% We use the the attribute/1 predicate to specify attributes that can be used to synthesize SFAs
+```
 
 ## Neuro-symbolic ASAL
 Description Coming soon. See the ```arc/neurasal.py``` script. In addition to the libs in requirements.txt, 
