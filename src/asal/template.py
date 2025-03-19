@@ -18,8 +18,14 @@ class Template:
 
     def __update_transitions(self, guard_name, i, j):
         transition = "{" + f'transition({i},{guard_name},{j})' + "}."
+
         if i != j:
             self.__rules_choices.append(f'f({i},{j})')
+
+        """
+        if True:
+            self.__rules_choices.append(f'f({i},{j})')
+        """
         self.__transition_choices.append(transition)
 
     @staticmethod
@@ -60,10 +66,8 @@ class Template:
         self.__assemble_template()
 
         if 'src' in os.getcwd():
-            print(1)
             asp_template_file = os.path.normpath(os.getcwd() + os.sep + 'asal' + os.sep + 'asp' + os.sep + 'template.lp')
         else:
-            print(2)
             asp_template_file = os.path.normpath(os.getcwd() + os.sep + 'src' + os.sep + 'asal' + os.sep + 'asp' + os.sep + 'template.lp')
 
         f = open(asp_template_file, "w")
@@ -82,9 +86,24 @@ class Template:
         constraint_1 = ''
         body_def = "holds(body(I,J),S,T) :- rule(I), conjunction(J), sequence(S), time(T), holds(F,S,T) : body(I,J,F)."
         rules_def = "rule(R) :- transition(I,R,F)."
-        self.template = '\n'.join([transition_choices, transition_guards,
-                                   self.__rules_choices, constraint, constraint_1, start_acc, body_def])
 
+        self.template = '\n'.join([transition_choices,
+                                   transition_guards,
+                                   self.__rules_choices,
+                                   constraint,
+                                   constraint_1,
+                                   start_acc, body_def
+                                   ])
+
+        """
+        self.template = '\n'.join(["transition(I,f(I,J),J) :- rule(f(I,J)).",
+                                   transition_guards,
+                                   self.__rules_choices,
+                                   constraint,
+                                   constraint_1,
+                                   start_acc, body_def
+                                   ])
+        """
 
 
 if __name__ == "__main__":

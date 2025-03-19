@@ -27,8 +27,10 @@ if __name__ == "__main__":
     max_states = 4
     target_class = 1
 
+    asp_comp_program = mnist_even_odd_learn
+
     # Learn an SFA from a few initial, fully labeled sequences
-    sfa = induce_sfa(args)
+    sfa = induce_sfa(args, asp_comp_program)
 
     pre_train_nn = True  # Pre-train the CNN on a few labeled images.
     pre_training_size = 10  # num of fully labeled seed sequences.

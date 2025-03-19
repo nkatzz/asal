@@ -1,9 +1,18 @@
-import os
 import sys
-import torch
-import torch.nn as nn
-from torch.utils.data._utils.collate import default_collate
+import os
 
+# add the project root to the pythonpath.
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+sys.path.insert(0, project_root)
+
+from src.args_parser import parse_args
+
+if "--help" in sys.argv or "-h" in sys.argv:
+    parser = parse_args()
+    parser.parse_args()
+    sys.exit(0)
+
+from torch.utils.data._utils.collate import default_collate
 from src.asal_nesy.neurasal.sfa import *
 from src.asal_nesy.dsfa_old.models import DigitCNN
 from src.asal_nesy.neurasal.dev_version.mnist_seqs import get_data_loaders
@@ -12,6 +21,7 @@ from src.args_parser import parse_args
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 sys.path.insert(0, project_root)
+
 
 # Custom collate function to prevent img_ids transposing
 def custom_collate_fn(batch):
@@ -22,19 +32,22 @@ def custom_collate_fn(batch):
             default_collate(seq_ids),
             list(image_ids))
 
+
 if __name__ == "__main__":
 
     parser = parse_args()
     args = parser.parse_args()
 
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
-    print(f'Device: {device}')
+    logger.info(f'Device: {device}')
 
     max_states = 4
     target_class = 1
 
+    asp_comp_program = mnist_even_odd_learn
+
     # Learn an SFA from a few initial, fully labeled sequences
-    sfa = induce_sfa(args)
+    sfa = induce_sfa(args, asp_comp_program)
 
     pre_train_nn = False  # Pre-train the CNN on a few labeled images.
     pre_training_size = 10  # num of fully labeled seed sequences.
@@ -127,7 +140,7 @@ if __name__ == "__main__":
                 cnn_outputs = torch.stack(cnn_outputs).to(device)
                 cnn_targets = torch.tensor(cnn_targets).to(device)
                 cnn_loss = cnn_criterion(cnn_outputs, cnn_targets)
-                total_loss = seq_loss + cnn_loss
+                total_loss = seq_loss + cnn_loss  # a weight per loss could be added here.
             else:
                 total_loss = seq_loss
 

@@ -125,3 +125,89 @@ negative(SeqId) :- class(SeqId,X), not targetClass(X).
 
 sequence(S) :- seq(S,_,_).
 time(T) :- seq(_,_,T).
+
+
+%*
+%------- %
+% ROAD-R %
+%------- %
+allowed_actions(stop ; movtow ; movaway).
+allowed_locations(incomlane ; jun ; vehlane).
+
+
+time_point(SeqId,T) :- seq(SeqId,_,T).
+seq(SeqId,obs(type_1,X),T) :- agent_type(SeqId,agent1(X)), time_point(SeqId,T).
+seq(SeqId,obs(type_2,X),T) :- agent_type(SeqId,agent2(X)), time_point(SeqId,T).
+
+seq(SeqId,obs(action_1,X),T) :- seq(SeqId,a1(action(X)),T), allowed_actions(X).
+seq(SeqId,obs(action_2,X),T) :- seq(SeqId,a2(action(X)),T), allowed_actions(X).
+
+seq(SeqId,obs(location_1,X),T) :- seq(SeqId,a1(location(X)),T), allowed_locations(X).
+seq(SeqId,obs(location_2,X),T) :- seq(SeqId,a2(location(X)),T), allowed_locations(X).
+
+
+attribute(action_1 ; action_2).
+categorical(action_1 ; action_2).
+
+value(action_1,V) :- seq(_,a1(action(V)),_), allowed_actions(V).
+value(action_2,V) :- seq(_,a2(action(V)),_), allowed_actions(V).
+
+
+% v1_x1 <= v2_x1
+holds(equals(lt_v1x1_v2x1,true),S,T) :-
+    seq(S, a1(xcoord(x1, V1x1)), T),
+    seq(S, a2(xcoord(x1, V2x1)), T),
+    V1x1 <= V2x1.
+
+% v2_x1 <= v1_x1
+holds(equals(lt_v2x1_v1x1,true),S,T) :-
+    seq(S, a1(xcoord(x1, V1x1)), T),
+    seq(S, a2(xcoord(x1, V2x1)), T),
+    V2x1 <= V1x1.
+
+% v1_x2 <= v2_x2
+holds(equals(lt_v1x2_v2x2,true),S,T) :-
+    seq(S, a1(xcoord(x2, V1x2)), T),
+    seq(S, a2(xcoord(x2, V2x2)), T),
+    V1x2 <= V2x2.
+
+% v2_x2 <= v1_x2
+holds(equals(lt_v2x2_v1x2,true),S,T) :-
+    seq(S, a1(xcoord(x2, V1x2)), T),
+    seq(S, a2(xcoord(x2, V2x2)), T),
+    V2x2 <= V1x2.
+%------------------------------------------
+% v1_y1 <= v2_y1
+holds(equals(lt_v1y1_v2y1,true),S,T) :-
+    seq(S, a1(ycoord(y1, V1y1)), T),
+    seq(S, a2(ycoord(y1, V2y1)), T),
+    V1y1 <= V2y1.
+
+% v2_y1 <= v1_y1
+holds(equals(lt_v2y1_v1y1,true),S,T) :-
+    seq(S, a1(ycoord(y1, V1y1)), T),
+    seq(S, a2(ycoord(y1, V2y1)), T),
+    V2y1 <= V1y1.
+
+% v1_y2 <= v2_y2
+holds(equals(lt_v1y2_v2y2,true),S,T) :-
+    seq(S, a1(ycoord(y2, V1y2)), T),
+    seq(S, a2(ycoord(y2, V2y2)), T),
+    V1y2 <= V2y2.
+
+% v2_y2 <= v1_y2
+holds(equals(lt_v2y2_v1y2,true),S,T) :-
+    seq(S, a1(ycoord(y2, V1y2)), T),
+    seq(S, a2(ycoord(y2, V2y2)), T),
+    V2y2 <= V1y2.
+
+
+holds(equals(same_lane,true),SeqId,T) :- seq(SeqId,obs(location_1,X),T), seq(SeqId,obs(location_2,X),T).
+
+attribute(same_lane ; lt_v1x1_v2x1 ; lt_v2x1_v1x1 ; lt_v1x2_v2x2; lt_v2x2_v1x2; lt_v1y1_v2y1; lt_v2y1_v1y1; lt_v1y2_v2y2; lt_v2y2_v1y2).
+categorical(same_lane ; lt_v1x1_v2x1 ; lt_v2x1_v1x1 ; lt_v1x2_v2x2; lt_v2x2_v1x2; lt_v1y1_v2y1; lt_v2y1_v1y1; lt_v1y2_v2y2; lt_v2y2_v1y2).
+value(same_lane,true). value(lt_v1x1_v2x1,true). value(lt_v2x1_v1x1,true). value(lt_v1x2_v2x2,true).
+value(lt_v2x2_v1x2,true). value(lt_v1y1_v2y1,true). value(lt_v2y1_v1y1,true). value(lt_v1y2_v2y2,true).
+value(lt_v2y2_v1y2,true).
+numerical(none).
+*%

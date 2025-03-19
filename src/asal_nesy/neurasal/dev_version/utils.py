@@ -43,6 +43,8 @@ def pre_train_model(seq_train_loader, seq_test_loader, num_samples, model, optim
     # un-batch the data for sampling.
     train_data_list = [list(x) for batch in seq_train_loader for x in zip(*batch)]
 
+    train_data_list = [elem[:-2] for elem in train_data_list]
+
     # Convert train_loader to a list (efficient for small datasets)
     # train_data_list = list(seq_train_loader)
     selected_samples = random.sample(train_data_list, num_samples)
@@ -62,11 +64,12 @@ def pre_train_model(seq_train_loader, seq_test_loader, num_samples, model, optim
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
-        # print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {total_loss / len(train_loader_individual):.4f}")
+        print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {total_loss / len(train_loader_individual):.4f}")
 
     # Test the model on individual images from the seq_test_loader
     # un-batch the data first.
-    test_data_list = [list(x) for batch in seq_train_loader for x in zip(*batch)]
+    test_data_list = [list(x) for batch in seq_test_loader for x in zip(*batch)]
+    test_data_list = [elem[:-2] for elem in test_data_list]
     test_loader_individual = get_indiv_data_loader(test_data_list)
 
     model.eval()
@@ -241,8 +244,8 @@ def process_batch(batch, model, sfa, cnn_output_size):
     eps = 1e-10
     entropy_per_img = -torch.sum(nn_outputs * torch.log(nn_outputs + eps), dim=2)  # (batch_size, seq_len)
 
-    # Sequence-level entropy score (sum over sequence):
-    seq_entropy_scores = torch.sum(entropy_per_img, dim=1)  # shape: (batch_size,)
+    # Sequence-level entropy score (mean over sequence):
+    seq_entropy_scores = torch.mean(entropy_per_img, dim=1)  # shape: (batch_size,)
     # Alternatively, sum of entropies could be used (higher sum => more uncertain sequence)
     # seq_entropy_scores = torch.sum(entropy_per_img, dim=1)  # (batch_size,)
 
