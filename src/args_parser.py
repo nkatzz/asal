@@ -9,28 +9,28 @@ def parse_args():
     parser = argparse.ArgumentParser(description="", formatter_class=argparse.RawTextHelpFormatter)
 
     parser.add_argument("--train", metavar="<path>",
-                        type=str, help="path to the training data.")
+                        type=str, help="Path to the training data.")
 
     parser.add_argument("--domain", metavar="<path>", required=True,
-                        type=str, help="path to the domain specification file.")
+                        type=str, help="Path to the domain specification file.")
 
     parser.add_argument("--test", metavar="<path>",
-                        type=str, help="path to the testing data.")
+                        type=str, help="Path to the testing data.")
 
     parser.add_argument("--tlim",
                         metavar="<n>",
                         type=int,
                         default=0,
-                        help="time limit for Clingo in secs [default: 0, no limit].")
+                        help="Time limit for Clingo in secs [default: 0, no limit].")
 
     parser.add_argument("--states", metavar="<n>", type=int, default=3,
-                        help="max number of states in a learnt automaton [default: 3].")
+                        help="Max number of states in a learnt automaton.")
 
     parser.add_argument("--tclass", metavar="<n>",
-                        type=int, default=1, help="target class to predict (one-vs-rest) [default: 1].")
+                        type=int, default=1, help="Target class to predict (one-vs-rest) [default: 1].")
 
     parser.add_argument("--unsat_weight", metavar="<n>",
-                        type=int, default=1, help="""penalty for not accepting a positive sequence, or rejecting 
+                        type=int, default=1, help="""Cost/weight of not accepting a positive sequence, or not rejecting 
 a negative one. The default weight is 1 and is applied 
 uniformly to  all training sequences. Individual weights 
 per example can be set via --unsat_weight 0, in which case the 
@@ -38,45 +38,45 @@ weights need to be provided in the training data file as weight(S,W)
 where S is the sequence id and W is an integer.""")
 
     parser.add_argument("--incremental",
-                        action="store_true", help="learn incrementally with MCTS.")
+                        action="store_true", help="Learn incrementally with MCTS.")
 
     parser.add_argument("--batch_size", metavar="<n>",
-                        type=int, default=100, help="mini batch size for incremental learning.")
+                        type=int, default=100, help="Mini batch size for incremental learning.")
 
     parser.add_argument("--mcts_iters", metavar="<n>", type=int, default=1,
-                        help="number of MCTS iterations for incremental learning.")
+                        help="Number of MCTS iterations for incremental learning.")
 
     parser.add_argument("--exp_rate", metavar="<float>", type=float, default=0.005,
-                        help="exploration rate for MCTS in incremental learning.")
+                        help="Exploration rate for MCTS in incremental learning.")
 
     parser.add_argument("--mcts_children", metavar="<n>", type=int, default=10,
-                        help="number of children nodes to consider in MCTS.")
+                        help="Number of children nodes to consider in MCTS.")
 
     parser.add_argument("--max_alts", metavar="<n>",
-                        type=int, default=2, help="max number of disjunctive alternatives per transition guard.")
+                        type=int, default=2, help="Max number of disjunctive alternatives per transition guard.")
 
     parser.add_argument("--coverage_first",
                         action="store_true",
-                        help="""set a higher priority to constraints that minimize FPs & FNs 
+                        help="""Set a higher priority to constraints that minimize FPs & FNs 
 over constraints that minimize model size.""")
 
     parser.add_argument("--min_attrs", action="store_true",
-                        help="minimize the number of different attributes/predicates that appear in a model.")
+                        help="Minimize the number of different attributes/predicates that appear in a model.")
 
     parser.add_argument("--all_opt", action="store_true",
-                        help="find all optimal models during Clingo search.")
+                        help="Find all optimal models during Clingo search.")
 
     parser.add_argument("--eval", metavar="<path>",
-                        type=str, help="""path to a file that contains an SFA specification (learnt/hand-crafted).
+                        type=str, help="""Path to a file that contains an SFA specification (learnt/hand-crafted).
 to evaluate on test data (passed via the --test option). The automaton needs to be
 in reasoning-based format (see option --show)""")
 
     parser.add_argument("--show", metavar="<s|r>", type=str, default="s",
-                        help="""show learnt SFAs in simpler (s), easier to inspect format, 
+                        help="""Show learnt SFAs in simpler (s), easier to inspect format, 
 or in a format that can be used for reasoning (r) with Clingo.""")
 
     parser.add_argument("--warns_off", action="store_true",
-                        help="suppress warnings from Clingo.")
+                        help="Suppress warnings from Clingo.")
 
     parser.add_argument(
         "--predicates",
