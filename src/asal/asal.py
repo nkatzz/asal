@@ -138,21 +138,25 @@ class RootNode(TreeNode):
         return best_child
 
 
-class MCTSRun:
+class Asal:
 
     def __init__(self,
                  args,
                  training_data,
                  template,
                  path_scoring=False,
-                 with_joblib=False):
+                 with_joblib=False,
+                 initialize_only=False):
 
         self.args = args
         self.training_data_whole = training_data
         self.train_path = args.train
 
         # self.seed_data_batch = self.training_data_whole[0]
-        self.seed_data_batch = random.choice(self.training_data_whole)
+        if isinstance(self.training_data_whole, dict):
+            self.seed_data_batch = random.choice(self.training_data_whole)
+        elif isinstance(self.training_data_whole, str):  # in this case we pass a set of seqs as a string, no batching
+            self.seed_data_batch = training_data
 
         self.best_score = 0.0
         self.best_model = Automaton()
@@ -172,9 +176,11 @@ class MCTSRun:
         self.root_node = RootNode()
         self.tried_models = []
         self.with_joblib = with_joblib
+        self.show = "reasoning" if args.show == "r" else "simple"
 
-        # Generate a seed automaton
-        self.expand_root()
+        if not initialize_only:
+            # Generate a seed automaton
+            self.expand_root()
 
     def run_mcts(self):
         start = time.time()
@@ -205,7 +211,7 @@ class MCTSRun:
                               f'Mean reward: {best_child.get_mean_reward():.4f}\n'
                               f'MCTS score: {best_child.get_mcts_score(self.explore_rate):.4f}\n'
                               f'Model:\n'
-                              f'\n{automaton.show(mode="""simple""")}'))
+                              f'\n{automaton.show(mode=self.show)}'))
 
             batch_id = self.get_revision_batch(automaton)
 
@@ -311,7 +317,7 @@ class MCTSRun:
                              data_whole=self.training_data_whole, test_with_clingo=True)
         end = time.time()
         self.testing_times.append(end - start)
-        logger.info(f'Testing time: {end - start} sec')
+        logger.info(f'Testing time: {(end - start):.4f} sec')
 
         logger.info(f'\nNew models: {len(models)}\nParent:  '
                     f'{parent_node.id}\nModels\' F1-scores: {[round(m.global_performance, 4) for m in models]}.')
@@ -336,8 +342,12 @@ class MCTSRun:
             as_node.propagate_reward(reward)
 
         if self.get_model(best_model_found).global_performance > self.best_score:
-            self.best_model = best_model_found.automaton
-            self.best_score = best_model_found.automaton.global_performance
+            if isinstance(best_model_found, InnerNode):
+                self.best_model = best_model_found.automaton
+                self.best_score = best_model_found.automaton.global_performance
+            else:  # it's an asal.structs.Automaton instance
+                self.best_model = best_model_found
+                self.best_score = best_model_found.global_performance
 
         for m in models: self.tried_models.append(m)
 
@@ -419,7 +429,7 @@ class MCTSRun:
             return obj.automaton
 
     def show_final_msg(self, total_training_time):
-        logger.info(yellow(f'\nBest model found:\n{self.best_model.show(mode="""reasoning""")}\n\n'
+        logger.info(yellow(f'\nBest model found:\n{self.best_model.show(mode=self.show)}\n\n'
                            f'F1-score on training set: {self.best_model.global_performance:.4f} '
                            f'(TPs, FPs, FNs: {self.best_model.global_performance_counts})\n'
                            f'Generated models: {self.generated_models_count}\n'

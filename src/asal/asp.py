@@ -14,13 +14,16 @@ def get_domain(domain_file):
     return f"\n% Domain specification:\n{content}"
 
 
-def get_induction_program(args, t: Template):
+def get_induction_program(args, t: Template, existing_model=None):
+    if existing_model is None:
+        existing_model = []
     program = []
-    program.extend([interpreter, get_template(t), state_defs, performance_defs, pos_neg_defs, performance_counts])
+    program.extend([get_interpreter(args), get_template(t),
+                    state_defs, performance_defs, pos_neg_defs, performance_counts])
     program.append("\n% Max number of disjunctive alternatives per transition guard.")
     program.append(generate_conjs(args.max_alts))
     program.append('\n% Minimize false positive and false negative rates.')
-    program.append(minimize_fps_fns(args.coverage_first))
+    program.append(minimize_fps_fns(args))
     program.append('\n% Minimize size.')
     program.append(minimize_size)
     program.append(minimize_states)
@@ -44,6 +47,11 @@ def get_induction_program(args, t: Template):
     if "decrease" in args.predicates:
         program.extend(['\n' + def_decrease, generate_decrease, used_atts_decrease, cost_decrease])
     program.append(get_domain(args.domain))
+
+    if existing_model:  # is not None and isinstance(existing_model, list)
+        existing = '\n'.join(existing_model)
+        program.append(f"""\n% Existing model:\n{existing}""")
+
     program.append('\n\n% Redundancy constraints:\n' + base_constraints)
     if "at_most" in args.predicates or "at_least" in args.predicates:
         program.append(extra_constraints)
@@ -54,7 +62,7 @@ def get_induction_program(args, t: Template):
 
 def get_test_program(args):
     program = []
-    program.extend([interpreter, pos_neg_defs])
+    program.extend([get_interpreter(args), pos_neg_defs])
     program.append(get_domain(args.domain))
     program.append(get_target_class(args.tclass))
 
@@ -78,21 +86,25 @@ def get_test_program(args):
     return program
 
 
-interpreter = """\
-% SFA Interpreter.
-inState(SeqId,1,T) :- sequence(SeqId), seqStart(SeqId,T).
-inState(SeqId,S2,T+1) :- inState(SeqId,S1,T), transition(S1,F,S2), holds(F,SeqId,T).
-accepted(SeqId) :- inState(SeqId,S,T), accepting(S), seqEnd(SeqId,T).
-reach_accept_at(SeqId,T) :- inState(SeqId,S,T), accepting(S); #false: inState(SeqId,S,T1), T1 < T.
-
-% seqEnd/2 definition (used by the interpreter). 
-seq(SeqId,T) :- seq(SeqId,_,T).
-seqEnd(SeqId,T+1) :- seq(SeqId,T), not seq(SeqId,T+1).
-seqStart(SeqId,T) :- seq(SeqId,T), not seq(SeqId,T-1).
-
-sequence(S) :- seq(S,_,_).
-time(T) :- seq(_,_,T).
-"""
+def get_interpreter(args):
+    w = f'weight(S,{args.unsat_weight}) :- sequence(S).' if args.unsat_weight != 0 else ''
+    interpreter = f"""\
+    % SFA Interpreter.
+    inState(SeqId,1,T) :- sequence(SeqId), seqStart(SeqId,T).
+    inState(SeqId,S2,T+1) :- inState(SeqId,S1,T), transition(S1,F,S2), holds(F,SeqId,T).
+    accepted(SeqId) :- inState(SeqId,S,T), accepting(S), seqEnd(SeqId,T).
+    reach_accept_at(SeqId,T) :- inState(SeqId,S,T), accepting(S); #false: inState(SeqId,S,T1), T1 < T.
+    
+    % seqEnd/2 definition (used by the interpreter). 
+    seq(SeqId,T) :- seq(SeqId,_,T).
+    seqEnd(SeqId,T+1) :- seq(SeqId,T), not seq(SeqId,T+1).
+    seqStart(SeqId,T) :- seq(SeqId,T), not seq(SeqId,T-1).
+    
+    sequence(S) :- seq(S,_,_).
+    time(T) :- seq(_,_,T).
+    {w}
+    """
+    return interpreter
 
 state_defs = """\n
 start(1).
@@ -166,8 +178,8 @@ used_attribute(A) :- body(_,_,lt(_,A)).
 used_atts_increase = "used_attribute(A) :- body(_,_,increase(A))."
 used_atts_decrease = "used_attribute(A) :- body(_,_,decrease(A))."
 
-
-def minimize_fps_fns(coverage_first=False):
+"""
+def minimize_fps_fns(coverage_first=False, unsat_weight=1):
     c = []
     if coverage_first:
         c.append("#minimize{1@1,Seq: falseNegative(Seq)}.")
@@ -176,7 +188,16 @@ def minimize_fps_fns(coverage_first=False):
         c.append("#minimize{1@0,Seq: falseNegative(Seq)}.")
         c.append("#minimize{1@0,Seq: falsePositive(Seq)}.")
     return '\n'.join(c)
+"""
 
+#"""
+def minimize_fps_fns(args):
+    c = ["satisfied(Seq) :- positive(Seq), accepted(Seq).", "satisfied(Seq) :- negative(Seq), not accepted(Seq)."]
+    weight = args.unsat_weight if args.unsat_weight != 0 else 'W'
+    level = 1 if args.coverage_first else 0
+    c.append(f"#minimize{{{weight}@{level},Seq: sequence(Seq), weight(Seq,W), not satisfied(Seq)}}.")
+    return '\n'.join(c)
+#"""
 
 minimize_size = "#minimize{C@0,I,J,F: body(I,J,F), cost(F,C)}."
 mimimize_used_atts = "#minimize{1@0,X: used_attribute(X)}."

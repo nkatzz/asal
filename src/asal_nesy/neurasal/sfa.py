@@ -1,6 +1,6 @@
 from src.asal.template import Template
 from src.asal.auxils import get_train_data
-from src.asal.mcts import RootNode, MCTSRun
+from src.asal.asal import RootNode, Asal
 from statistics import mean
 from src.asal.logger import *
 from src.asal_nesy.cirquits.asp_programs import *
@@ -9,6 +9,7 @@ from src.asal_nesy.cirquits.circuit_auxils import model_count_nnf, nnf_map_to_sf
 from src.asal.asp import get_induction_program
 from src.asal.auxils import timer
 import time
+
 
 @timer
 def compile_sfa(sfa, asp_compilation_program):
@@ -34,28 +35,29 @@ def compile_sfa(sfa, asp_compilation_program):
     return sfa
 
 
-def induce_sfa(args):
+def induce_sfa(args, asp_compilation_program, nn_provided_data=None, existing_sfa=None, ):
     shuffle = False
-
     template = Template(args.states, args.tclass)
-    train_data = get_train_data(args.train, str(args.tclass), args.batch_size, shuffle=shuffle)
+    if nn_provided_data is None:
+        train_data = get_train_data(args.train, str(args.tclass), args.batch_size, shuffle=shuffle)
+    else:
+        train_data = nn_provided_data
 
     logger.debug(f'The induction program is:\n{get_induction_program(args, template)}')
 
     # This learns something from the seed mini-batch.
-    mcts = MCTSRun(args, train_data, template)
+    mcts = Asal(args, train_data, template, initialize_only=True)
+    if existing_sfa is None:
+        mcts.expand_root()
+    else:
+        mcts.expand_node(RootNode(), train_data[0], existing_sfa)
 
-    logger.info(blue(f'\nBest model found:\n{mcts.best_model.show(mode="""simple""")}\n\n'
-                     f'F1-score on training set: {mcts.best_model.global_performance} '
-                     f'(TPs, FPs, FNs: {mcts.best_model.global_performance_counts})\n'
-                     f'Generated models: {mcts.generated_models_count}\n'
-                     f'Average grounding time: {mean(mcts.grounding_times)}\n'
-                     f'Average solving time: {mean(mcts.solving_times)}\n'
-                     f'Model evaluation time: {sum(mcts.testing_times)}\n'
-                     f'Total training time: {mcts.total_training_time}'))
+    logger.info(blue(f'New SFA:\n{mcts.best_model.show(mode="""simple""")}\n'
+                     f'training F1-score: {mcts.best_model.global_performance} '
+                     f'(TPs, FPs, FNs: {mcts.best_model.global_performance_counts})'))
 
     # logger.info('Compiling guards into NNF...')
-    asp_program = mnist_even_odd_learn
+    sfa = mcts.best_model
 
-    compiled = compile_sfa(mcts.best_model, asp_program)
-    return compiled
+    compiled = compile_sfa(mcts.best_model, asp_compilation_program)
+    return compiled, sfa

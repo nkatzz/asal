@@ -1,18 +1,26 @@
 import os
 import sys
-from statistics import mean
 
 # Need to add the project root in the pythonpath.
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 sys.path.insert(0, project_root)
 
+from src.args_parser import parse_args
+
+if "--help" in sys.argv or "-h" in sys.argv:
+    parser = parse_args()
+    parser.parse_args()
+    sys.exit(0)
+
+from statistics import mean
 from src.asal.template import Template
 from src.asal.auxils import get_train_data
-from src.asal.mcts import RootNode, MCTSRun
+from src.asal.asal import RootNode, Asal
 from src.asal.test_model_multproc import test_model_mproc
 from src.asal.logger import *
 from src.args_parser import parse_args
 from src.asal.asp import get_induction_program, get_test_program
+from src.asal.auxils import f1
 
 if __name__ == "__main__":
     parser = parse_args()
@@ -41,6 +49,15 @@ if __name__ == "__main__":
         dataset + os.sep + 'folds' + os.sep + fold + os.sep + 'test.csv')
     """
 
+    if args.eval is not None:
+        with open(args.eval, 'r') as file:
+            sfa = file.read()
+        result = test_model_mproc(sfa, args, path_scoring=False)
+        tps, fps, fns = result.get_tps(), result.get_fps(), result.get_fns()
+        logger.info(f'TPs, FPs, FNs: {tps}, {fps}, {fns}, '
+                    f'F1-score: {f1(tps, fps, fns)}')
+        sys.exit(-1)
+
     tmpl = Template(max_states, target_class)
 
     logger.debug(f'The induction program is:\n{get_induction_program(args, tmpl)}')
@@ -49,12 +66,13 @@ if __name__ == "__main__":
     seed_data = train_data[selected_mini_batch]
 
     # This learns something from the seed mini-batch.
-    mcts = MCTSRun(args, train_data, tmpl)
+    mcts = Asal(args, train_data, tmpl)
 
     if mcts_iterations > 1:  # revise from new batches.
         mcts.run_mcts()
 
-    logger.info(blue(f'\nBest model found:\n{mcts.best_model.show(mode="""simple""")}\n\n'
+    mode = "simple" if args.show == "s" else "reasoning"
+    logger.info(blue(f'\nBest model found:\n{mcts.best_model.show(mode=mode)}\n\n'
                      f'F1-score on training set: {mcts.best_model.global_performance} '
                      f'(TPs, FPs, FNs: {mcts.best_model.global_performance_counts})\n'
                      f'Generated models: {mcts.generated_models_count}\n'

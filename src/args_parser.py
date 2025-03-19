@@ -8,7 +8,7 @@ from src.asal.auxils import timer
 def parse_args():
     parser = argparse.ArgumentParser(description="", formatter_class=argparse.RawTextHelpFormatter)
 
-    parser.add_argument("--train", metavar="<path>", required=True,
+    parser.add_argument("--train", metavar="<path>",
                         type=str, help="path to the training data.")
 
     parser.add_argument("--domain", metavar="<path>", required=True,
@@ -28,6 +28,14 @@ def parse_args():
 
     parser.add_argument("--tclass", metavar="<n>",
                         type=int, default=1, help="target class to predict (one-vs-rest) [default: 1].")
+
+    parser.add_argument("--unsat_weight", metavar="<n>",
+                        type=int, default=1, help="""penalty for not accepting a positive sequence, or rejecting 
+a negative one. The default weight is 1 and is applied 
+uniformly to  all training sequences. Individual weights 
+per example can be set via --unsat_weight 0, in which case the 
+weights need to be provided in the training data file as weight(S,W)
+where S is the sequence id and W is an integer.""")
 
     parser.add_argument("--incremental",
                         action="store_true", help="learn incrementally with MCTS.")
@@ -53,13 +61,22 @@ def parse_args():
 over constraints that minimize model size.""")
 
     parser.add_argument("--min_attrs", action="store_true",
-                        help="minimize the number of attributes that appear in a model.")
-
-    parser.add_argument("--warns_off", action="store_true",
-                        help="suppress warnings from Clingo.")
+                        help="minimize the number of different attributes/predicates that appear in a model.")
 
     parser.add_argument("--all_opt", action="store_true",
                         help="find all optimal models during Clingo search.")
+
+    parser.add_argument("--eval", metavar="<path>",
+                        type=str, help="""path to a file that contains an SFA specification (learnt/hand-crafted).
+to evaluate on test data (passed via the --test option). The automaton needs to be
+in reasoning-based format (see option --show)""")
+
+    parser.add_argument("--show", metavar="<s|r>", type=str, default="s",
+                        help="""show learnt SFAs in simpler (s), easier to inspect format, 
+or in a format that can be used for reasoning (r) with Clingo.""")
+
+    parser.add_argument("--warns_off", action="store_true",
+                        help="suppress warnings from Clingo.")
 
     parser.add_argument(
         "--predicates",
@@ -99,8 +116,6 @@ if __name__ == "__main__":
     a = time.time()
     parser = parse_args()
     args = parser.parse_args()
-    b = time.time()
-    print(b-a, 'seconds')
-    print(args)
     template = Template(args.states, args.tclass)
     p = get_induction_program(args, template)
+    print(p)

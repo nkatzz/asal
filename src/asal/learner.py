@@ -27,6 +27,7 @@ class Learner:
                  mode='reasoning',
                  with_joblib=False):
 
+        self.args = args
         self.constraints = constraints  # extra constraints (passed as a list of strings), to be added to the program.
         self.template = template
         self.induction_program = get_induction_program(args, self.template)
@@ -128,22 +129,38 @@ class Learner:
                                 model.show(mode=self.mode),
                                 ' '.join(list(map(lambda x: x.str + '.', model.asp_model)))))
 
-    def add_existing(self, existing_body_atoms: list[GuardBodyAtom]):
+    @staticmethod
+    def __get_existing(existing_body_atoms: list[GuardBodyAtom]):
         """Adds an existing model into the base program."""
+        existing = []
         for atom in existing_body_atoms:
             # Example atom signature: body(f(1,3),1,at_most(latitude,d))
             rule_head_id = atom.guard_head
             conjunction_id = atom.body_id
             from_state = rule_head_id.split(',')[0].split('(')[1]
             to_state = rule_head_id.split(',')[1].split(')')[0]
+
             rule_atom = f'rule({rule_head_id}).'
             conj_atom = f'conjunction({conjunction_id}).'
             transition_atom = f'transition({from_state},{rule_head_id},{to_state}).'
             whole_atom = atom.str + '.'
-            self.ctl.add("base", [], whole_atom)
-            self.ctl.add("base", [], rule_atom)
-            self.ctl.add("base", [], conj_atom)
-            self.ctl.add("base", [], transition_atom)
+
+            # self.ctl.add("base", [], whole_atom)
+            # self.ctl.add("base", [], rule_atom)
+            # self.ctl.add("base", [], conj_atom)
+            # self.ctl.add("base", [], transition_atom)
+
+            # existing.extend([whole_atom, rule_atom, conj_atom, transition_atom])
+
+            choice_atom = f"existing({atom.str})."
+            existing.append(choice_atom)
+
+        rule_constraint = f":- body(Guard,_,_), not rule(Guard)."
+        conj_constraint = f":- body(_,Conj,_), not conjunction(Conj)."
+        transition_constraint = f":- body(f(I,J),_,_), not transition(I,f(I,J),J)."
+        minimize_statement = "#minimize{1@0,F: existing(body(G,C,F)), not body(G,C,F)}."
+        existing.extend([rule_constraint, conj_constraint, transition_constraint, minimize_statement])
+        return existing
 
     def induce_models(self, all_opt=False):
         enable_python()
@@ -169,6 +186,16 @@ class Learner:
         """
         self.ctl.add("base", [], self.induction_program)
         self.ctl.add("base", [], self.mini_batch)
+
+        if not self.existing_model.is_empty:
+            # body_3_facts = ' '.join(list(map(lambda x: f':~ not {x.str}. [5@5]', self.existing_model.body_atoms_asp)))
+            # body_3_facts = ' '.join(list(map(lambda x: f'{x.str}.', self.existing_model.body_atoms_asp)))
+            # self.ctl.add("base", [], body_3_facts)
+            existing = self.__get_existing(self.existing_model.body_atoms_asp)
+            logger.debug(f'Induction program (with prior model) is:'
+                         f'\n{get_induction_program(self.args, self.template, existing)}')
+            #for atom in existing:
+            #    self.ctl.add("base", [], atom)
 
         models = None
 
