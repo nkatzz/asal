@@ -164,7 +164,8 @@ and coordinates over time, form the multivariate sequence with id 1. See the dat
 The domain file provides background knowledge and a language bias for learning. The comments in the domain file below
 explain the main structure and language bias definition.
 ```
-% We use the the attribute/1 predicate to specify attributes that can be used to synthesize SFAs
+% We use the the attribute/1 predicate to specify attributes that can be used to 
+synthesize SFAs.
 ```
 
 ## Neuro-symbolic ASAL
