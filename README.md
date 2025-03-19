@@ -161,49 +161,66 @@ same fashion. For instance, ```seq(1,a2(action(movaway)),5).``` dicates that in 
 and coordinates over time, form the multivariate sequence with id 1. See the data for more examples.
 
 ### Domain Specification
-The domain file provides background knowledge and a language bias for learning. The comments in the domain file below
-from the ROAD-R explain the main structure and language bias definition.
+The domain file provides background knowledge and a language bias for learning. We use the ROAD-R 
+domain file to explain the main structure and language bias definition. The presentation refers to and follows the
+data format in the ROAD-R data (see the data folder), therefore it helps to take a look at the structure of the data
+when going through the description below.
+
+We use the ```attribute/1``` predicate to specify attributes that can be used to 
+synthesize SFAs. Any attribute wrapped inside this predicate is added to the 
+language bias. The attributes below are meant to refer
+to the actions and locations of the two vehicles that are tracked in data sequences. 
+
+```attribute(action_1 ; action_2 ; location_1 ; location_2). ```
+
+To extract attributes from the data they need to be wrapped in an obs/2 predicate
+(which stands for "observation") as in: ```seq(seq_id,obs(action_1,movaway),15).```
+
+If the data are not in such format, we can either convert them, or use rules such as the following ones to 
+transform them on the fly (note the the RHS of these rules are the seq/3 signatures, as
+they appear in the data):
 ```
-% We use the the attribute/1 predicate to specify attributes that can be used to 
-% synthesize SFAs. Any attribute wrapped inside this predicate is added to the 
-% language bias. The attributes below appear directly in the ROAD-R data and refer
-% to the actions and locations of the two vehicles that are tracked in data sequences. 
-
-attribute(action_1 ; action_2 ; location_1 ; location_2). 
-
-% The attributes that appear in the data are expected to be wrapped in an obs/2 predicate
-% (which stands for "observation") as in:
-% 
-% seq(seq_id,obs(action_1,movaway),15).
-%
-% If the data are not in such format, we use rules such as the following ones to 
-% transform them (note the the RHS of these rules are the seq/3 signatures, as
-% they appear in the data):
-
 seq(SeqId,obs(action_1,X),T) :- seq(SeqId,a1(action(X)),T), allowed_actions(X).
 seq(SeqId,obs(action_2,X),T) :- seq(SeqId,a2(action(X)),T), allowed_actions(X).
 seq(SeqId,obs(location_1,X),T) :- seq(SeqId,a1(location(X)),T), allowed_locations(X).
 seq(SeqId,obs(location_2,X),T) :- seq(SeqId,a2(location(X)),T), allowed_locations(X).
 allowed_actions(stop ; movtow ; movaway).
 allowed_locations(incomlane ; jun ; vehlane).
+```
+Here ```allowed_actions/1``` and ```allowed_locations/1``` are used to restrict the range of 
+values that the target attributes can take, in order to make learning more efficient.
+If these are omitted in the rules above, all values that appear in ```seq/3``` atoms in the data
+will be considered during learning, and many of these values may be irrelevant.
 
-% Here allowed_actions/1 and allowed_locations/1 are used to restrict the range of 
-% values that the target attributes can take, in order to make learning more efficient.
-% If these are omitted in the rules above, all values that appear in seq/e atoms in the
-% will be considered during learning, and many of these values may be irrelevant.
-%
-% We use tha value/1 predicate to associate target attributes with allowed values:
-
+We use tha ```value/1``` predicate to associate target attributes with allowed values:
+```
 value(action_1,V) :- seq(_,a1(action(V)),_), allowed_actions(V).
 value(action_2,V) :- seq(_,a2(action(V)),_), allowed_actions(V).
 value(location_1,V) :- seq(_,a1(location(V)),_), allowed_locations(V).
 value(location_2,V) :- seq(_,a2(location(V)),_), allowed_locations(V).  
- 
-% Of course the attribute/value associations can also be specified explicitly, as in 
-%
-% value(action_1,moveaway). value(action_2,movtow). value(location_1,vehlane).
-%
-% and so on.
+```
+
+Of course, the attribute/value associations can also be specified explicitly, as in 
+```value(action_1,moveaway). value(action_2,movtow). value(location_1,vehlane).``` and so on.
+
+Data attributes needs to be declared as either categorical, or numerical. Categorical attributes 
+may be input to the ```equals``` predicate, allowing to learn transition guard rules such as
+
+```f(1,2) :- equals(action_2,movtow), equals(location_2,incomlane).```
+
+Numerical attributes are input to comparison predicates, such as ```at_least(Attribute, Threshold)```, 
+```lt(Attribute_1, Attribute_2)``` and so on. For instance, by declaring additionally:
+
+```
+attribute(xcoord_1_1). attribute(xcoord_2_1).
+seq(SeqId,obs(xcoord_1_2,X),T) :- seq(SeqId,a1(xcoord(x1,X)),T).
+seq(SeqId,obs(xcoord_2_1,X),T) :- seq(SeqId,a2(xcoord(x1,X)),T).
+``` 
+and running ASAL with the option ```--predicates equals lt```, it is possible to learn transition rules such as  
+
+```f(1,2) :- equals(action_2,movtow), lt(xcoord_1_1,xcoord_2_1).```
+
+Inclusion of such predicates in the language bias  
 ```
 
 ## Neuro-symbolic ASAL
