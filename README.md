@@ -203,8 +203,16 @@ value(location_2,V) :- seq(_,a2(location(V)),_), allowed_locations(V).
 Of course, the attribute/value associations can also be specified explicitly, as in 
 ```value(action_1,moveaway). value(action_2,movtow). value(location_1,vehlane).``` and so on.
 
-Data attributes needs to be declared as either categorical, or numerical. Categorical attributes 
-may be input to the ```equals``` predicate, allowing to learn transition guard rules such as
+Target attributes needs to be declared as either categorical, or numerical:
+
+```
+categorical(action_1 ; action_2 ; location_1 ; location_2).
+numerical(xcoord_1_2; xcoord_2_1).
+```
+where ```xcoord_1_2, xcoord_2_1``` refer to the ```x1``` coordinates of the two vehicles, which could also be included
+in the language bias.
+
+Categorical attributes are input to the ```equals``` predicate, allowing to learn transition guard rules such as
 
 ```f(1,2) :- equals(action_2,movtow), equals(location_2,incomlane).```
 
@@ -213,6 +221,7 @@ Numerical attributes are input to comparison predicates, such as ```at_least(Att
 
 ```
 attribute(xcoord_1_1). attribute(xcoord_2_1).
+numerical(xcoord_1_2; xcoord_2_1).
 seq(SeqId,obs(xcoord_1_2,X),T) :- seq(SeqId,a1(xcoord(x1,X)),T).
 seq(SeqId,obs(xcoord_2_1,X),T) :- seq(SeqId,a2(xcoord(x1,X)),T).
 ``` 
@@ -220,8 +229,27 @@ and running ASAL with the option ```--predicates equals lt```, it is possible to
 
 ```f(1,2) :- equals(action_2,movtow), lt(xcoord_1_1,xcoord_2_1).```
 
-Inclusion of such predicates in the language bias  
+To reason with attribute/value pair predicates over time, we use the ```holds/3``` predicate, with signature
+```holds(Predicate, SeqId, Time)```. This predicate is used to define when a predicate holds over time in a sequence.
+```holds/3``` definitions for the basic predicates (```equals, lt, at_least, at_most, neg``` etc) are generated at
+runtime. For instance, the following rules are internally added to the domain, if ASAL is run with e.g ```--predicates equals lt```:
+
 ```
+holds(equals(A,X),SeqId,T) :- seq(SeqId,obs(A,X),T), categorical(A).
+holds(lt(A1,A2),SeqId,T) :- seq(SeqId,obs(A1,X),T), seq(SeqId,obs(A2,Y),T), X < Y, numerical(A1), numerical(A2), A1 != A2.
+```
+
+However, in addition to these basic predicates and the data-extracted feature/value pairs, arbitrary predicates can be
+defined via ```holds/3```, directly in the domain file. This can be achieved by viewing such predicates as boolean-valued
+domain features. For instance, the following rules define a new predicate, which is true when the two vehicles are on
+the same lane:
+
+```
+holds(equals(same_lane,true),SeqId,T) :- seq(SeqId,obs(location_1,X),T), seq(SeqId,obs(location_2,X),T).
+``` 
+
+We can include this predicate in the language bias and allowing to learn rules such as: ```f(1,2) :- equals(same_lane,true).```
+by adding in the domain file: ```attribute(same_lane). categorical(same_lane). value(same_lane,true). ```
 
 ## Neuro-symbolic ASAL
 Description Coming soon. See the ```arc/neurasal.py``` script. In addition to the libs in requirements.txt, 
