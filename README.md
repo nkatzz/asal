@@ -162,10 +162,48 @@ and coordinates over time, form the multivariate sequence with id 1. See the dat
 
 ### Domain Specification
 The domain file provides background knowledge and a language bias for learning. The comments in the domain file below
-explain the main structure and language bias definition.
+from the ROAD-R explain the main structure and language bias definition.
 ```
 % We use the the attribute/1 predicate to specify attributes that can be used to 
-synthesize SFAs.
+% synthesize SFAs. Any attribute wrapped inside this predicate is added to the 
+% language bias. The attributes below appear directly in the ROAD-R data and refer
+% to the actions and locations of the two vehicles that are tracked in data sequences. 
+
+attribute(action_1 ; action_2 ; location_1 ; location_2). 
+
+% The attributes that appear in the data are expected to be wrapped in an obs/2 predicate
+% (which stands for "observation") as in:
+% 
+% seq(seq_id,obs(action_1,movaway),15).
+%
+% If the data are not in such format, we use rules such as the following ones to 
+% transform them (note the the RHS of these rules are the seq/3 signatures, as
+% they appear in the data):
+
+seq(SeqId,obs(action_1,X),T) :- seq(SeqId,a1(action(X)),T), allowed_actions(X).
+seq(SeqId,obs(action_2,X),T) :- seq(SeqId,a2(action(X)),T), allowed_actions(X).
+seq(SeqId,obs(location_1,X),T) :- seq(SeqId,a1(location(X)),T), allowed_locations(X).
+seq(SeqId,obs(location_2,X),T) :- seq(SeqId,a2(location(X)),T), allowed_locations(X).
+allowed_actions(stop ; movtow ; movaway).
+allowed_locations(incomlane ; jun ; vehlane).
+
+% Here allowed_actions/1 and allowed_locations/1 are used to restrict the range of 
+% values that the target attributes can take, in order to make learning more efficient.
+% If these are omitted in the rules above, all values that appear in seq/e atoms in the
+% will be considered during learning, and many of these values may be irrelevant.
+%
+% We use tha value/1 predicate to associate target attributes with allowed values:
+
+value(action_1,V) :- seq(_,a1(action(V)),_), allowed_actions(V).
+value(action_2,V) :- seq(_,a2(action(V)),_), allowed_actions(V).
+value(location_1,V) :- seq(_,a1(location(V)),_), allowed_locations(V).
+value(location_2,V) :- seq(_,a2(location(V)),_), allowed_locations(V).  
+ 
+% Of course the attribute/value associations can also be specified explicitly, as in 
+%
+% value(action_1,moveaway). value(action_2,movtow). value(location_1,vehlane).
+%
+% and so on.
 ```
 
 ## Neuro-symbolic ASAL
