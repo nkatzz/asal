@@ -154,30 +154,31 @@ There are several other datasets in the ```data``` folder and domain specificati
 ASAL learns from (possibly multivariate) sequences, represented as a set of ASP facts. These facts are of the form
 ```seq(SeqId,Pred,Time)```, where ```SeqId``` is unique sequence identifier, ```T``` is a time point (integer) and
 ```Pred``` is a ground predicate, or attribute/value pair that holds (is true) at time ```T``` is sequence ```SeqId```. For instance, the atom 
-```seq(1,a1(action(movtow)),3).``` dictates that ```a1``` (a vehicle is ROAD-R) is performing action ```movtow```
+```seq(1,a1(action(movtow)),3).``` dictates that a1 (a detected vehicle in ROAD-R) is performing action ```movtow```
 (moving towards the main vehicle's camera) at time point 3 in sequence 1. Multivariate sequences are represented in the 
-same fashion. For instance, ```seq(1,a2(action(movaway)),5).``` dicates that in the same sequence (with id 1) vehicle 
-```a2``` ```moving away``` from the main vehicle at time 5. The signals for ```a1``` and ```a2```'s actions, locations
-and coordinates over time, form the multivariate sequence with id 1. See the data for more examples.
+same fashion. For instance, ```seq(1, a2(action(movaway)), 5).``` dictates that in the same sequence (with id 1) vehicle 
+a2 is moving away from the main vehicle at time 5. The symbolic signals for a1 and a2's actions, locations
+and coordinates over time, form the multivariate sequence with id 1.
 
 ### Domain Specification
 The domain file provides background knowledge and a language bias for learning. We use the ROAD-R 
 domain file to explain the main structure and language bias definition. The presentation refers to and follows the
-data format in the ROAD-R data (see the data folder), therefore it helps to take a look at the structure of the data
-when going through the description below.
+data format in the ROAD-R data (see the data folder).
 
-We use the ```attribute/1``` predicate to specify attributes that can be used to 
-synthesize SFAs. Any attribute wrapped inside this predicate is added to the 
-language bias. The attributes below are meant to refer
-to the actions and locations of the two vehicles that are tracked in data sequences. 
+We use the ```attribute/1``` predicate to specify symbols that can be used to 
+synthesize SFAs. Any symbol wrapped inside this predicate is added to the 
+language bias and can be used in the bodies of transition guards. These symbols
+either refer directly to data attributes, or are defined as background knowledge predicates.
+For instance, the attributes below are meant to refer to the actions and locations of the two 
+vehicles that are tracked in ROAD-R data sequences. 
 
 ```attribute(action_1 ; action_2 ; location_1 ; location_2). ```
 
 To extract attributes from the data they need to be wrapped in an obs/2 predicate
 (which stands for "observation") as in: ```seq(seq_id,obs(action_1,movaway),15).```
 
-If the data are not in such format, we can either convert them, or use rules such as the following ones to 
-transform them on the fly (note the the RHS of these rules are the seq/3 signatures, as
+If the data are not in such format, we can either convert them into it, or use rules such as the following ones to 
+transform the data on the fly (note that the RHS of these rules are the seq/3 signatures, as
 they appear in the data):
 ```
 seq(SeqId,obs(action_1,X),T) :- seq(SeqId,a1(action(X)),T), allowed_actions(X).
@@ -209,8 +210,8 @@ Target attributes needs to be declared as either categorical, or numerical:
 categorical(action_1 ; action_2 ; location_1 ; location_2).
 numerical(xcoord_1_2; xcoord_2_1).
 ```
-where ```xcoord_1_2, xcoord_2_1``` refer to the ```x1``` coordinates of the two vehicles, which could also be included
-in the language bias.
+where ```xcoord_1_2, xcoord_2_1``` refer to the ```x1``` coordinates of the two vehicles' bounding boxes, 
+which could also be included in the language bias as potentially informative attributes.
 
 Categorical attributes are input to the ```equals``` predicate, allowing to learn transition guard rules such as
 
@@ -229,8 +230,11 @@ and running ASAL with the option ```--predicates equals lt```, it is possible to
 
 ```f(1,2) :- equals(action_2,movtow), lt(xcoord_1_1,xcoord_2_1).```
 
+Numerical attributes can also be symbols, which are compared in their lexicographical order. This is useful when such
+attributes represent e.g. bins of discretised numerical values. 
+
 To reason with attribute/value pair predicates over time, we use the ```holds/3``` predicate, with signature
-```holds(Predicate, SeqId, Time)```. This predicate is used to define when a predicate holds over time in a sequence.
+```holds(Predicate, SeqId, Time)```. This predicate is used to define when something holds over time in a sequence.
 ```holds/3``` definitions for the basic predicates (```equals, lt, at_least, at_most, neg``` etc) are generated at
 runtime. For instance, the following rules are internally added to the domain, if ASAL is run with e.g ```--predicates equals lt```:
 
@@ -248,8 +252,8 @@ the same lane:
 holds(equals(same_lane,true),SeqId,T) :- seq(SeqId,obs(location_1,X),T), seq(SeqId,obs(location_2,X),T).
 ``` 
 
-We can include this predicate in the language bias and allowing to learn rules such as: ```f(1,2) :- equals(same_lane,true).```
-by adding in the domain file: ```attribute(same_lane). categorical(same_lane). value(same_lane,true). ```
+We can include this predicate in the language bias and allow to learn rules such as: ```f(1,2) :- equals(same_lane,true).```
+by adding to the domain file: ```attribute(same_lane). categorical(same_lane). value(same_lane,true). ```
 
 ## Neuro-symbolic ASAL
 Description Coming soon. See the ```arc/neurasal.py``` script. In addition to the libs in requirements.txt, 
