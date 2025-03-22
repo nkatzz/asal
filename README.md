@@ -94,7 +94,7 @@ options:
 
 ### Example
 The following learns a symbolic automaton, represented as an ASP program, from symbolic sequences of overtake incidents
-in the [ROAD-R](https://sites.google.com/view/road-r/). The task is described in the following MSc thesis:
+in the [ROAD-R](https://sites.google.com/view/road-r/) dataset. The task is described in the following MSc thesis:
 
 _Tatiana Boura, Neuro-symbolic Complex Event Recognition in Autonomous Driving, University of Piraeus, 2024._ ([link](https://msc-ai.iit.demokritos.gr/en/thesis/neuro-symbolic-complex-event-recognition-autonomous-driving-neyro-symvoliki-anagnorisi?page=2))
 
@@ -137,8 +137,8 @@ holds(f(1,1),S,T) :- sequence(S), time(T), not holds(f(1,2),S,T), not holds(f(1,
 holds(f(4,4),S,T) :- sequence(S), time(T).
 holds(f(2,2),S,T) :- sequence(S), time(T), not holds(f(2,3),S,T), not holds(f(2,4),S,T).
 ```
-This can be used on make sequence predictions on input data. For instance, by writing it to a file and 
-running (note the ```--eval``` option):
+This can be used to classify sequences. For instance, by writing the automaton above to a file 
+(```path/to/sfa``` in the command below) and  running (note the ```--eval``` option):
 
 ```
 cd asal/src
@@ -153,7 +153,8 @@ There are several other datasets in the ```data``` folder and domain specificati
 ### Input
 ASAL learns from (possibly multivariate) sequences, represented as a set of ASP facts. These facts are of the form
 ```seq(SeqId,Pred,Time)```, where ```SeqId``` is unique sequence identifier, ```T``` is a time point (integer) and
-```Pred``` is a ground predicate, or attribute/value pair that holds (is true) at time ```T``` is sequence ```SeqId```. For instance, the atom 
+```Pred``` is a ground predicate, or attribute/value pair that holds (is true) at time ```T``` in sequence ```SeqId```. 
+For instance, the atom 
 ```seq(1,a1(action(movtow)),3).``` dictates that a1 (a detected vehicle in ROAD-R) is performing action ```movtow```
 (moving towards the main vehicle's camera) at time point 3 in sequence 1. Multivariate sequences are represented in the 
 same fashion. For instance, ```seq(1, a2(action(movaway)), 5).``` dictates that in the same sequence (with id 1) vehicle 
@@ -190,10 +191,10 @@ allowed_locations(incomlane ; jun ; vehlane).
 ```
 Here ```allowed_actions/1``` and ```allowed_locations/1``` are used to restrict the range of 
 values that the target attributes can take, in order to make learning more efficient.
-If these are omitted in the rules above, all values that appear in ```seq/3``` atoms in the data
+If these are omitted in the rules above, all action/value pairs that appear in ```seq/3``` atoms in the data
 will be considered during learning, and many of these values may be irrelevant.
 
-We use tha ```value/1``` predicate to associate target attributes with allowed values:
+We use the ```value/1``` predicate to associate target attributes with allowed values:
 ```
 value(action_1,V) :- seq(_,a1(action(V)),_), allowed_actions(V).
 value(action_2,V) :- seq(_,a2(action(V)),_), allowed_actions(V).
@@ -201,16 +202,17 @@ value(location_1,V) :- seq(_,a1(location(V)),_), allowed_locations(V).
 value(location_2,V) :- seq(_,a2(location(V)),_), allowed_locations(V).  
 ```
 
+Again, the RHS of these rules follow the ```seq/3``` signature, as it appears in the data file. 
 Of course, the attribute/value associations can also be specified explicitly, as in 
 ```value(action_1,moveaway). value(action_2,movtow). value(location_1,vehlane).``` and so on.
 
-Target attributes needs to be declared as either categorical, or numerical:
+Target attributes needs to be declared as either categorical, or numerical, e.g.:
 
 ```
 categorical(action_1 ; action_2 ; location_1 ; location_2).
 numerical(xcoord_1_2; xcoord_2_1).
 ```
-where ```xcoord_1_2, xcoord_2_1``` refer to the ```x1``` coordinates of the two vehicles' bounding boxes, 
+Here ```xcoord_1_2, xcoord_2_1``` refer to the ```x1``` coordinates of the two vehicles' bounding boxes, 
 which could also be included in the language bias as potentially informative attributes.
 
 Categorical attributes are input to the ```equals``` predicate, allowing to learn transition guard rules such as
@@ -230,11 +232,12 @@ and running ASAL with the option ```--predicates equals lt```, it is possible to
 
 ```f(1,2) :- equals(action_2,movtow), lt(xcoord_1_1,xcoord_2_1).```
 
-Numerical attributes can also be symbols, which are compared in their lexicographical order. This is useful when such
-attributes represent e.g. bins of discretised numerical values. 
+Numerical attributes can also be symbols, which are compared by their lexicographical order. This is useful when such
+attributes represent e.g. bins of discretized numerical values. 
 
-To reason with attribute/value pair predicates over time, we use the ```holds/3``` predicate, with signature
-```holds(Predicate, SeqId, Time)```. This predicate is used to define when something holds over time in a sequence.
+To reason with attribute/value pair predicates over time, ASAL uses the ```holds/3``` predicate, with signature
+```holds(Predicate, SeqId, Time)```. This predicate is used to define when a fluent (temporal property) holds 
+at particular points over time in a sequence.
 ```holds/3``` definitions for the basic predicates (```equals, lt, at_least, at_most, neg``` etc) are generated at
 runtime. For instance, the following rules are internally added to the domain, if ASAL is run with e.g ```--predicates equals lt```:
 
@@ -242,9 +245,12 @@ runtime. For instance, the following rules are internally added to the domain, i
 holds(equals(A,X),SeqId,T) :- seq(SeqId,obs(A,X),T), categorical(A).
 holds(lt(A1,A2),SeqId,T) :- seq(SeqId,obs(A1,X),T), seq(SeqId,obs(A2,Y),T), X < Y, numerical(A1), numerical(A2), A1 != A2.
 ```
+In the bodies of these rules, note the ```obs/2``` predicate discussed earlier, for capturing attribute/value pairs.
+Because target predicate (e.g ```equals```) fluents are defined via ```obs/2```, this is why the data should adhere to
+this representation, as explained above.
 
-However, in addition to these basic predicates and the data-extracted feature/value pairs, arbitrary predicates can be
-defined via ```holds/3```, directly in the domain file. This can be achieved by viewing such predicates as boolean-valued
+In addition to the basic predicates and the data-extracted feature/value pairs, arbitrary predicates can be
+defined via ```holds/3```, directly inside the domain file. This can be achieved by viewing such predicates as boolean-valued
 domain features. For instance, the following rules define a new predicate, which is true when the two vehicles are on
 the same lane:
 
@@ -254,6 +260,15 @@ holds(equals(same_lane,true),SeqId,T) :- seq(SeqId,obs(location_1,X),T), seq(Seq
 
 We can include this predicate in the language bias and allow to learn rules such as: ```f(1,2) :- equals(same_lane,true).```
 by adding to the domain file: ```attribute(same_lane). categorical(same_lane). value(same_lane,true). ```
+
+### Domain Specification summary:
+
+1. Define the symbols that you want to appear in transition guard rules via the ```attribute/1 predicate```. 
+2. Define the values associated with teach attribute via the ```value/2``` predicate.
+3. Define custom predicates via ```holds/3```, by treating such predicates as boolean-valued domain features. Include such
+predicates to the language bias by declaring them as target symbols, as in 1, 2.
+4. Ensure that the data adhere to the ```obs/2``` attribute/value representation and your custom predicate definitions
+use ```obs/2``` in the definitions of fluents.
 
 ## Neuro-symbolic ASAL
 Description Coming soon. See the ```arc/neurasal.py``` script. In addition to the libs in requirements.txt, 

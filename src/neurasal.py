@@ -19,9 +19,6 @@ from src.asal_nesy.neurasal.dev_version.mnist_seqs import get_data_loaders
 from src.asal_nesy.neurasal.dev_version.utils import *
 from src.args_parser import parse_args
 
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-sys.path.insert(0, project_root)
-
 
 # Custom collate function to prevent img_ids transposing
 def custom_collate_fn(batch):
