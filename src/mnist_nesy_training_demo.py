@@ -4,7 +4,9 @@ import torch
 import torch.nn as nn
 import time
 
-sys.path.insert(0, os.path.normpath(os.getcwd() + os.sep + os.pardir))
+# add the project root to the pythonpath.
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+sys.path.insert(0, project_root)
 
 from src.asal_nesy.cirquits.asp_programs import *
 from src.asal_nesy.cirquits.build_sdds import SDDBuilder
@@ -94,7 +96,7 @@ if __name__ == "__main__":
     sequences (e.g. 100), it needs some work.
     """
     logger.info('Generating training/testing data')
-    OOD = False  # Out-of-distribution test data, if true the training/testing seqs are of different size.
+    OOD = True  # Out-of-distribution test data, if true the training/testing seqs are of different size.
     train_loader, test_loader = (
         get_data_loaders_OOD(batch_size=batch_size)) if OOD else get_data_loaders(batch_size=batch_size)
 
