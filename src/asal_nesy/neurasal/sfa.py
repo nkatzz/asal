@@ -9,6 +9,7 @@ from src.asal_nesy.cirquits.circuit_auxils import model_count_nnf, nnf_map_to_sf
 from src.asal.asp import get_induction_program
 from src.asal.auxils import timer
 import time
+import argparse
 
 
 @timer
@@ -35,7 +36,7 @@ def compile_sfa(sfa, asp_compilation_program):
     return sfa
 
 
-def induce_sfa(args, asp_compilation_program, nn_provided_data=None, existing_sfa=None, ):
+def induce_sfa(args, asp_compilation_program, nn_provided_data=None, existing_sfa=None):
     shuffle = False
     template = Template(args.states, args.tclass)
     if nn_provided_data is None:
@@ -45,12 +46,34 @@ def induce_sfa(args, asp_compilation_program, nn_provided_data=None, existing_sf
 
     logger.debug(f'The induction program is:\n{get_induction_program(args, template)}')
 
-    # This learns something from the seed mini-batch.
-    mcts = Asal(args, train_data, template, initialize_only=True)
+
     if existing_sfa is None:
+        mcts = Asal(args, train_data, template, initialize_only=True)
         mcts.expand_root()
     else:
-        mcts.expand_node(RootNode(), train_data[0], existing_sfa)
+        new_args = argparse.Namespace(
+            tclass=args.tclass,
+            batch_size=20,
+            test=args.test,
+            train=args.train,
+            domain=args.domain,
+            predicates="equals",
+            mcts_iters=2,
+            all_opt=True,
+            tlim=60,
+            states=args.states,
+            exp_rate=args.exp_rate,
+            mcts_children=args.mcts_children,
+            show=args.show,
+            unsat_weight=10,  # set this to 0 to have uncertainty weights per sequence
+            max_alts=args.max_alts,
+            coverage_first=args.coverage_first,
+            min_attrs=args.min_attrs,
+            warns_off=False,
+            revise=False
+        )
+        mcts = Asal(new_args, train_data, template)
+        mcts.run_mcts()
 
     logger.info(blue(f'New SFA:\n{mcts.best_model.show(mode="""simple""")}\n'
                      f'training F1-score: {mcts.best_model.global_performance} '

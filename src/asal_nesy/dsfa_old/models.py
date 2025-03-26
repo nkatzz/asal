@@ -34,22 +34,25 @@ class DigitCNN(nn.Module):
             self.softmax = nn.LogSoftmax(dim=1)
         else:
             self.softmax = nn.Softmax(dim=1)
+        self.last_logits = None
 
-    def forward(self, input_image, apply_softmax=True):
+    def forward(self, input_image, apply_softmax=True, store_output=False):
         x = self.avg_pool(self.relu(self.conv1(input_image)))
         x = self.avg_pool(self.relu(self.conv2(x)))
         x = self.avg_pool(self.relu(self.conv3(x)))
 
         x = torch.flatten(x, 1)
-        x = self.dense(x)
+        logits = self.dense(x)
+        if store_output:
+            self.last_logits = logits
 
         # magnitude_outputs = self.softmax(x[:, :3])
         # parity_outputs = self.softmax(x[:, 3:])
         # return torch.cat((magnitude_outputs, parity_outputs), dim=1)
 
         if apply_softmax:  # return the logits in the pre-training setting from individual images.
-            return self.softmax(x)
-        return x
+            return self.softmax(logits)
+        return logits
 
 
 def softmax_with_temperature(logits, temperature=1.0):

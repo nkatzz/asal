@@ -10,7 +10,7 @@ _Katzouris N. & Paliouras G., Answer Set Automata: A Learnable Pattern Specifica
 ECAI 2023._ ([link](https://cer.iit.demokritos.gr/publications/papers/2023/ecai2023.pdf))
 
 ## Installation
-You will need Python 3.11 and [Clingo ASP solver](https://potassco.org/clingo). You get Python-enabled Clingo by installing the requirements file.
+You will need Python 3.11 and the [Clingo ASP solver](https://potassco.org/clingo). You get Python-enabled Clingo by installing the requirements file.
 The latter contains additional libraries (e.g. pytorch), mostly for neuro-symbolic training. The following will generate
 a new environment named ```asal``` with everything:
 
@@ -23,6 +23,8 @@ cd asal
 pip install -r requirements.txt
 ```
 
+For the neuro-symbolic version of ASAL (see below) you will additionally need the [dsharp](https://github.com/QuMuLab/dsharp) tool for knowledge 
+compilation. You need to make it and adding the ```dhsharp``` folder to your ```PATH``` variable.
 ## Usage
 
 ```
@@ -151,36 +153,65 @@ There are several other datasets in the ```data``` folder and domain specificati
 -->
 
 ### Input
-ASAL learns from (possibly multivariate) sequences, represented as a set of ASP facts. These facts are of the form
+We next proceed to the description of the ASAL input data, i.e. the way that the content of the files passed via the
+ ```--train``` and ```--test``` options should be formatted.
+
+ASAL learns from (possibly multivariate) symbolic sequences, represented as a set of ASP facts. These facts are of the form
 ```seq(SeqId,Pred,Time)```, where ```SeqId``` is unique sequence identifier, ```T``` is a time point (integer) and
 ```Pred``` is a ground predicate, or attribute/value pair that holds (is true) at time ```T``` in sequence ```SeqId```. 
 For instance, the atom 
 ```seq(1,a1(action(movtow)),3).``` dictates that a1 (a detected vehicle in ROAD-R) is performing action ```movtow```
 (moving towards the main vehicle's camera) at time point 3 in sequence 1. Multivariate sequences are represented in the 
 same fashion. For instance, ```seq(1, a2(action(movaway)), 5).``` dictates that in the same sequence (with id 1) vehicle 
-a2 is moving away from the main vehicle at time 5. The symbolic signals for a1 and a2's actions, locations
-and coordinates over time, form the multivariate sequence with id 1.
+a2 is moving away from the main vehicle at time 5. The symbolic signals (i.e. sequences of ```seq```) for a1 and a2's actions, locations
+and bounding box coordinates over time, form the symbolic representation of the multivariate sequence with id 1. 
+For instance, the length-three prefix of an actual ```ROAD-R``` sequence is show below:
+
+```
+agent_type(685, agent1(larveh)). agent_type(685, agent2(car)). class(685, 2).
+seq(685, a1(action(stop)), 1). seq(685, a1(action(stop)), 2). seq(685, a1(action(stop)), 3). class(685, 2).
+seq(685, a2(action(movtow)), 1). seq(685, a2(action(movtow)), 2). seq(685, a2(action(movtow)), 3). class(685, 2).
+seq(685, a1(location(incomlane)), 1). seq(685, a1(location(incomlane)), 2). seq(685, a1(location(incomlane)), 3). class(685, 2).
+seq(685, a2(location(incomlane)), 1). seq(685, a2(location(incomlane)), 2). seq(685, a2(location(incomlane)), 3). class(685, 2).
+seq(685, a1(xcoord(x1, "0.8390187771520882")), 1). seq(685, a1(xcoord(x1, "0.8312306151583189")), 2). seq(685, a1(xcoord(x1, "0.8234424531645492")), 3). class(685, 2).
+seq(685, a1(xcoord(x2, "0.8978971677405811")), 1). seq(685, a1(xcoord(x2, "0.8951713110427617")), 2). seq(685, a1(xcoord(x2, "0.8924454543449425")), 3). class(685, 2). 
+seq(685, a1(ycoord(y1, "0.37258568879599885")), 1). seq(685, a1(ycoord(y1, "0.37154726719682957")), 2). seq(685, a1(ycoord(y1, "0.37050884559766034")), 3). class(685, 2).
+seq(685, a1(ycoord(y2, "0.532710280373832")), 1). seq(685, a1(ycoord(y2, "0.5316718587746627")), 2). seq(685, a1(ycoord(y2, "0.5306334371754935")), 3). class(685, 2).
+seq(685, a2(xcoord(x1, "0.7387850752500728")), 1). seq(685, a2(xcoord(x1, "0.7309969132563033")), 2). seq(685, a2(xcoord(x1, "0.7232087512625338")), 3). class(685, 2).
+seq(685, a2(xcoord(x2, "0.8156542911707797")), 1). seq(685, a2(xcoord(x2, "0.8090343534760758")), 2). seq(685, a2(xcoord(x2, "0.8024144157813715")), 3). class(685, 2).
+seq(685, a2(ycoord(y1, "0.44828663288247184")), 1). seq(685, a2(ycoord(y1, "0.4477674220828872")), 2). seq(685, a2(ycoord(y1, "0.44724821128330255")), 3). class(685, 2).
+seq(685, a2(ycoord(y2, "0.5345794582664039")), 1). seq(685, a2(ycoord(y2, "0.5366563014647424")), 2). seq(685, a2(ycoord(y2, "0.5387331446630809")), 3). class(685, 2).
+```
+
+Note that the ```seqId``` in each line is the same, indicating that these are sub-sequences of the same multivariate
+sequence. Note also that each line ends with a ```class(SeqId,ClassLabel)``` atom, that provides a label for the entire
+sequence. It is currently mandatory to have each line in the symbolic representation of a multivariate
+sequence end with such an atom.
 
 ### Domain Specification
-The domain file provides background knowledge and a language bias for learning. We use the ROAD-R 
-domain file to explain the main structure and language bias definition. The presentation refers to and follows the
-data format in the ROAD-R data (see the data folder).
+The domain file provides background knowledge and a language bias for learning. We use the ```ROAD-R``` 
+domain specification to explain the main structure and language bias definition. 
+The presentation refers to and follows the  data format in the ```ROAD-R``` data (see the data folder).
 
 We use the ```attribute/1``` predicate to specify symbols that can be used to 
-synthesize SFAs. Any symbol wrapped inside this predicate is added to the 
+synthesize transition guard rules in an SFA. Any symbol wrapped inside this predicate is added to the 
 language bias and can be used in the bodies of transition guards. These symbols
-either refer directly to data attributes, or are defined as background knowledge predicates.
+either refer directly to data attributes, or are defined as background knowledge predicates 
+(see the section on custom Predicates below for the latter).
+
 For instance, the attributes below are meant to refer to the actions and locations of the two 
-vehicles that are tracked in ROAD-R data sequences. 
+vehicles that are tracked in ```ROAD-R``` data sequences. 
 
 ```attribute(action_1 ; action_2 ; location_1 ; location_2). ```
 
-To extract attributes from the data they need to be wrapped in an obs/2 predicate
-(which stands for "observation") as in: ```seq(seq_id,obs(action_1,movaway),15).```
+Attributes extracted directly from the data need to be wrapped in an ```obs/2``` predicate
+(which stands for "observation") as in: 
+
+```seq(seq_id,obs(action_1,movaway),15).```
 
 If the data are not in such format, we can either convert them into it, or use rules such as the following ones to 
-transform the data on the fly (note that the RHS of these rules are the seq/3 signatures, as
-they appear in the data):
+transform the data on the fly (note that the bodies of these rules are the ```seq/3``` signatures, as
+they appear in the data, e.g. ```seq(1,a2(action(movaway)),5).```):
 ```
 seq(SeqId,obs(action_1,X),T) :- seq(SeqId,a1(action(X)),T), allowed_actions(X).
 seq(SeqId,obs(action_2,X),T) :- seq(SeqId,a2(action(X)),T), allowed_actions(X).
@@ -202,9 +233,12 @@ value(location_1,V) :- seq(_,a1(location(V)),_), allowed_locations(V).
 value(location_2,V) :- seq(_,a2(location(V)),_), allowed_locations(V).  
 ```
 
-Again, the RHS of these rules follow the ```seq/3``` signature, as it appears in the data file. 
+Again, the bodies of these rules follow the ```seq/3``` signature, as it appears in the data file. 
 Of course, the attribute/value associations can also be specified explicitly, as in 
-```value(action_1,moveaway). value(action_2,movtow). value(location_1,vehlane).``` and so on.
+
+```value(action_1,moveaway). value(action_2,movtow). value(location_1,vehlane).``` 
+
+and so on.
 
 Target attributes needs to be declared as either categorical, or numerical, e.g.:
 
@@ -249,6 +283,8 @@ In the bodies of these rules, note the ```obs/2``` predicate discussed earlier, 
 Because target predicate (e.g ```equals```) fluents are defined via ```obs/2```, this is why the data should adhere to
 this representation, as explained above.
 
+#### Adding Custom Predicates to the Language Bias
+
 In addition to the basic predicates and the data-extracted feature/value pairs, arbitrary predicates can be
 defined via ```holds/3```, directly inside the domain file. This can be achieved by viewing such predicates as boolean-valued
 domain features. For instance, the following rules define a new predicate, which is true when the two vehicles are on
@@ -256,19 +292,25 @@ the same lane:
 
 ```
 holds(equals(same_lane,true),SeqId,T) :- seq(SeqId,obs(location_1,X),T), seq(SeqId,obs(location_2,X),T).
+holds(equals(same_lane,false),SeqId,T) :- not holds(equals(same_lane,true),SeqId,T).
 ``` 
 
 We can include this predicate in the language bias and allow to learn rules such as: ```f(1,2) :- equals(same_lane,true).```
-by adding to the domain file: ```attribute(same_lane). categorical(same_lane). value(same_lane,true). ```
+by adding to the domain file: 
+
+```attribute(same_lane). categorical(same_lane). value(same_lane,true). value(same_lane,false).```
 
 ### Domain Specification summary:
 
 1. Define the symbols that you want to appear in transition guard rules via the ```attribute/1 predicate```. 
-2. Define the values associated with teach attribute via the ```value/2``` predicate.
+2. Define the values associated with each attribute via the ```value/2``` predicate.
 3. Define custom predicates via ```holds/3```, by treating such predicates as boolean-valued domain features. Include such
 predicates to the language bias by declaring them as target symbols, as in 1, 2.
 4. Ensure that the data adhere to the ```obs/2``` attribute/value representation and your custom predicate definitions
 use ```obs/2``` in the definitions of fluents.
+5. Allow for the basic predicates via the ```--predicates``` option (see above). Allow for custom predicates by simply
+adding their ```equals```-based definitions into the domain file. Note that ```[equals]``` is the default value for
+the ```--predicates``` option.
 
 ## Neuro-symbolic ASAL
 Description Coming soon. See the ```arc/neurasal.py``` script. In addition to the libs in requirements.txt, 

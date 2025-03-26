@@ -46,7 +46,7 @@ if __name__ == "__main__":
     max_states = 4
     target_class = 1
 
-    pre_train_nn = True  # Pre-train the CNN on a few labeled images.
+    pre_train_nn = False  # Pre-train the CNN on a few labeled images.
     pre_training_size = 10  # num of fully labeled seed sequences.
 
     num_epochs = 1000
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     logger.info(f'Inducing initial automaton...')
     sfa_dnnf, sfa_asal = induce_sfa(args, asp_comp_program)
 
-    partially_labeled_sequences = {}  # seq_id -> {digit_preds, known_labels, seq_label, entropy_weight}
+    partially_labeled_sequences = {}  # seq_id -> {digit_preds, known_labels, seq_label, entropy_weight, seq_entropy_val}
     labeled_images = set()
     labeled_images_dict = {}  # img_id -> label
 
@@ -114,6 +114,9 @@ if __name__ == "__main__":
                 seq_img_ids = img_ids[i]
                 seq_len = len(seq_img_ids)
                 digit_preds = torch.argmax(nn_outputs[i], dim=1).cpu().tolist()
+                digit_probs = torch.max(nn_outputs[i],
+                                        dim=1).values.cpu().tolist()  # Extract probabilities of predictions
+
                 if seq_id not in partially_labeled_sequences:
                     entropy_val = seq_entropy_scores[i].item()
                     max_entropy = math.log(cnn_output_size)  # CNN output size = 10 for MNIST
@@ -125,6 +128,7 @@ if __name__ == "__main__":
 
                     partially_labeled_sequences[seq_id] = {
                         'digit_preds': digit_preds,
+                        'digit_probs': digit_probs,
                         'known_labels': {},
                         'seq_label': labels[i].item(),
                         # 'entropy_weight': int(seq_entropy_scores[i].item() * entropy_scaling_factor)
@@ -199,7 +203,10 @@ if __name__ == "__main__":
         # Active learning step every active_learning_frequency epochs
         if epoch % active_learning_frequency == 0:
             logger.info("Active learning step...")
-            all_seq_scores.sort(key=lambda x: x[1], reverse=False)  # reverse=True
+
+            # reverse=True because we're using entropy, so we want sequences with larger entropy first.
+            # change it if you use e.g. prediction probability as an uncertainty measure.
+            all_seq_scores.sort(key=lambda x: x[1], reverse=True)
             top_seq_ids = [seq_id for seq_id, _ in all_seq_scores[:num_sequences_to_select]]
 
             avg_entropy = sum([score for seq_id, score in all_seq_scores if seq_id in top_seq_ids]) / len(top_seq_ids)
@@ -227,7 +234,9 @@ if __name__ == "__main__":
                 if len(seq_data['known_labels']) > 0 and seq_id in top_seq_ids:
                     facts = sequence_to_facts(seq_id, seq_data['digit_preds'], seq_data['known_labels'], seq_data['seq_label'], seq_data['entropy_weight'])
 
-                    print(seq_id, seq_data['known_labels'], seq_data['seq_label'], seq_data['digit_preds'], seq_data['seq_entropy_val'], seq_data['entropy_weight'])
+                    digit_probs = [round(prob, 3) for prob in seq_data['digit_probs']]
+                    print(seq_id, seq_data['known_labels'], seq_data['seq_label'], seq_data['digit_preds'],
+                          digit_probs, seq_data['seq_entropy_val'], seq_data['entropy_weight'])
 
                     all_facts.append(facts)
 
