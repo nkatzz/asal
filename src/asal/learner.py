@@ -194,8 +194,10 @@ class Learner:
             existing = self.__get_existing(self.existing_model.body_atoms_asp)
             logger.debug(f'Induction program (with prior model) is:'
                          f'\n{get_induction_program(self.args, self.template, existing)}')
-            #for atom in existing:
-            #    self.ctl.add("base", [], atom)
+
+            if self.args.revise:
+                for atom in existing:
+                    self.ctl.add("base", [], atom)
 
         models = None
 

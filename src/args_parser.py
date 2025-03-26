@@ -66,6 +66,9 @@ over constraints that minimize model size.""")
     parser.add_argument("--all_opt", action="store_true",
                         help="Find all optimal models during Clingo search.")
 
+    parser.add_argument("--revise", action="store_true",
+                        help="""Revise existing models instead of inducing from scratch on new data.""")
+
     parser.add_argument("--eval", metavar="<path>",
                         type=str, help="""Path to a file that contains an SFA specification (learnt/hand-crafted).
 to evaluate on test data (passed via the --test option). The automaton needs to be

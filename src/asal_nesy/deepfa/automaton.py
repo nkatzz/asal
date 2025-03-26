@@ -230,6 +230,10 @@ class DeepFA:
         )
         initial_state_distribution[:, self.state2id[self.initial_state]] = 1
 
+        # in case we need the distributions over states. Just return a tuple with
+        # (final_state_distribution, state_distributions).
+        state_distributions = []
+
         def batch_mm(vector: torch.Tensor, matrix: torch.Tensor):
             assert len(vector.shape) == 2
             assert len(matrix.shape) == 3
@@ -241,7 +245,7 @@ class DeepFA:
                     if max_propagation
                     else (vector * matrix[:, :, row]).sum(-1)
                 )
-
+            state_distributions.append(new_vector)
             return new_vector
 
         final_state_distribution = reduce(

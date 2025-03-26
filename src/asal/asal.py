@@ -366,7 +366,10 @@ class Asal:
         # We don't want a batch where the model makes no mistakes.
         mini_batch_found = False
         while not mini_batch_found:
-            if model.counts_per_batch[batch_id] == (0, 0, 0):
+            tps, fps, fns = model.counts_per_batch[batch_id]
+            condition = tps + fns == 0
+            # if model.counts_per_batch[batch_id] == (0, 0, 0):
+            if condition:
                 model.counts_per_batch.pop(batch_id)
                 batch_id = sm.get_most_urgent_mini_batch('f1-score')
             else:
