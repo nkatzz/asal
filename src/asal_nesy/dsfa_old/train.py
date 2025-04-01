@@ -4,11 +4,10 @@ from models import NeuralSFA, softmax_with_temperature
 import os
 from utils import (get_stats, test_model, show_debug_stms, set_correct_model)
 from mnist_seqs_new import get_data_loaders
+from src.asal_nesy.device import device
 
 if not torch.cuda.is_available():
     torch.set_num_threads(1)
-
-device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 
 if __name__ == "__main__":
 

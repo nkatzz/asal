@@ -14,9 +14,11 @@ from src.asal_nesy.dsfa_old.models import DigitCNN
 from src.asal_nesy.neurasal.dev_version.mnist_seqs import get_data_loaders
 from src.asal_nesy.neurasal.dev_version.utils import *
 from src.args_parser import parse_args
+from src.asal_nesy.cirquits.asp_programs import *
 
 from sklearn.metrics import f1_score
 import time
+
 
 # === Utility Functions ===
 
@@ -28,6 +30,7 @@ def custom_collate_fn(batch):
             default_collate(symb_seqs),
             default_collate(seq_ids),
             list(image_ids))
+
 
 # Convert sequence into logical facts
 def sequence_to_facts(seq_id, digit_preds, known_labels, seq_label, seq_entropy):
@@ -41,6 +44,7 @@ def sequence_to_facts(seq_id, digit_preds, known_labels, seq_label, seq_entropy)
     facts.append(f'weight({seq_id},{seq_entropy}).')
     return ' '.join(facts)
 
+
 # Inverse entropy weight (high weight for low entropy sequences)
 def compute_inverse_entropy_weight(entropy_val, cnn_output_size, scaling_factor):
     max_entropy = math.log(cnn_output_size)
@@ -49,9 +53,12 @@ def compute_inverse_entropy_weight(entropy_val, cnn_output_size, scaling_factor)
     scaled_weight = int(inv_weight * scaling_factor)
     return scaled_weight
 
+
 # Entropy based on acceptance probability
 def compute_sequence_entropy(acceptance_prob):
-    return -acceptance_prob * math.log(acceptance_prob + 1e-8) - (1 - acceptance_prob) * math.log(1 - acceptance_prob + 1e-8)
+    return -acceptance_prob * math.log(acceptance_prob + 1e-8) - (1 - acceptance_prob) * math.log(
+        1 - acceptance_prob + 1e-8)
+
 
 # === Main Script ===
 if __name__ == "__main__":
@@ -59,7 +66,6 @@ if __name__ == "__main__":
     parser = parse_args()
     args = parser.parse_args()
 
-    device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     print(f'Device: {device}')
 
     # Hyperparameters & toggles
@@ -92,6 +98,7 @@ if __name__ == "__main__":
     logger.info('Generating training/testing data')
     train_loader, test_loader = get_data_loaders(batch_size=batch_size)
     train_loader.collate_fn = custom_collate_fn
+    test_loader.collate_fn = custom_collate_fn
 
     if pre_train_nn:
         logger.info(f'Pre-training on images from {pre_training_size} sequences')
@@ -117,7 +124,7 @@ if __name__ == "__main__":
         all_img_scores = []
 
         model.train()
-        # optimizer.zero_grad()
+        optimizer.zero_grad()
 
         for batch in train_loader:
             labels = batch[1].to(device)
@@ -197,8 +204,13 @@ if __name__ == "__main__":
         predicted_latent = torch.cat(predicted_latent).numpy()
         latent_f1_macro = f1_score(actual_latent, predicted_latent, average="macro")
         test_f1, test_latent_f1_macro, t_tps, t_fps, t_fns = test_model(model, sfa_dnnf, test_loader, cnn_output_size)
+        _, train_f1, _, tps, fps, fns, _ = get_stats(predicted, actual)
+
         logger.info(
-            f'Epoch {epoch} Loss: {total_seq_loss / len(train_loader):.3f}, F1 Train: {latent_f1_macro:.3f}, F1 Test: {test_f1:.3f}')
+            f'Epoch {epoch}\nLoss: {total_seq_loss / len(train_loader):.3f}, Time: {time.time() - start_time:.3f} secs\n'
+            f'Train F1: {train_f1:.3f} ({tps}, {fps}, {fns}) | latent: {latent_f1_macro:.3f}\n'
+            f'Test F1: {test_f1:.3f} ({t_tps}, {t_fps}, {t_fns}) | latent: {test_latent_f1_macro:.3f}\n'
+            f'Labeled images so far: {len(labeled_images)}')
 
         # --------------------
         # Active learning step
@@ -213,7 +225,7 @@ if __name__ == "__main__":
                 seq_entropy = compute_sequence_entropy(acceptance_prob)
                 avg_img_entropy = sum(ent for img_id, ent, _, s_id, _ in all_img_scores if s_id == seq_id) / seq_len
                 combined_score = (w_label_density * (1 - label_density)) + (w_seq_entropy * seq_entropy) + (
-                            w_img_entropy * avg_img_entropy)
+                        w_img_entropy * avg_img_entropy)
                 ranked_sequences.append((seq_id, combined_score, partially_labeled_sequences[seq_id]['seq_label']))
 
             # Sort sequences descending by score (reverse=True, False for ascending)
@@ -322,6 +334,6 @@ if __name__ == "__main__":
             nn_seq = {0: nn_seq}
 
             logger.info("Revising SFA...")
-            sfa_dnnf, sfa_asal = induce_sfa(args, asp_comp_program, nn_provided_data=nn_seq, existing_sfa=sfa_asal)
+            sfa_dnnf, sfa_asal = induce_sfa(args, asp_comp_program, data=nn_seq, existing_sfa=sfa_asal)
 
 logger.info("Training complete.")

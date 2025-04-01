@@ -1,16 +1,13 @@
-from src.asal.template import Template
-from src.asal.structs import Automaton, ScoredModel, SolveResult, SolveResultContainer, ffi
+from src.asal.structs import Automaton, ScoredModel, SolveResultContainer, ffi
 from src.asal.learner import Learner
-from src.asal.auxils import get_train_data, f1_aux, split_by_n, get_seqs_by_id
+from src.asal.auxils import f1_aux
 from src.asal.test_model_multproc import test_model_mproc
-from src.asal.logger import *
+from src.logger import *
 import math
 import time
 import abc
 from multiprocessing import Process, Queue
-import random
 from statistics import mean
-import pickle
 from joblib import Parallel, delayed
 import random
 

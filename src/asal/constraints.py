@@ -1,5 +1,5 @@
 from src.asal.auxils import get_path_cycles, precision, sliding_window
-from src.asal.logger import *
+from src.logger import *
 from src.asal.structs import Automaton
 
 

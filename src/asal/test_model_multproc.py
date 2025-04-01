@@ -5,7 +5,7 @@ from src.asal.tester_py import TesterPy
 import multiprocessing as mp
 import functools
 import time
-from src.asal.logger import *
+from src.logger import *
 
 
 def combine(res_1: TestResult, res_2: TestResult) -> TestResult:

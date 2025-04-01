@@ -1,27 +1,22 @@
 import os
 import sys
-import torch
-import torch.nn as nn
 import time
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 sys.path.insert(0, project_root)
 
 from src.asal_nesy.neurasal.sfa import *
-from src.asal_nesy.dsfa_old.models import DigitCNN, NonTrainableNeuralSFA
+from src.asal_nesy.dsfa_old.models import DigitCNN
 from src.asal_nesy.dsfa_old.mnist_seqs_new import get_data_loaders, get_data_loaders_OOD
-from src.asal.logger import *
-from src.asal_nesy.neurasal.pre_train_model import pre_train
 from src.asal_nesy.neurasal.utils import *
-from src.asal_nesy.pre_train_cnn import SimpleCNN
 from src.args_parser import parse_args
+from src.asal_nesy.device import device
 
 if __name__ == "__main__":
 
     parser = parse_args()
     args = parser.parse_args()
 
-    device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     print(f'Device: {device}')
 
     max_states = 4

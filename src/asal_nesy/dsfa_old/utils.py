@@ -3,8 +3,7 @@ import torch.nn.functional as F
 # from mnist_seqs_new import get_data_loaders
 from torch.utils.data import DataLoader
 from sklearn.metrics import f1_score
-
-device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
+from src.asal_nesy.device import device
 
 
 def see_gradients(model):

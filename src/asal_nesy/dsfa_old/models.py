@@ -5,6 +5,7 @@ from src.asal_nesy.dsfa_old.utils import digit_probs_to_rule_probs, digit_probs_
 from functools import reduce
 import operator
 import time
+from src.asal_nesy.device import device
 
 '''
 import importlib.util
@@ -79,7 +80,7 @@ class NeuralSFA(nn.Module):
         self.with_backward_transitions = with_backward_transitions
         self.cnn_out_features = cnn_out_features
         self.with_prior_model = with_prior_model
-        self.device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
+        self.device = device
         self.states_distribution = torch.zeros(self.num_states).to(self.device)
         self.cnn = DigitCNN(out_features=self.cnn_out_features)
 

@@ -1,14 +1,11 @@
 from src.asal.template import Template
 from src.asal.auxils import get_train_data
-from src.asal.asal import RootNode, Asal
-from statistics import mean
-from src.asal.logger import *
-from src.asal_nesy.cirquits.asp_programs import *
+from src.asal.asal import Asal
+from src.logger import *
 from src.asal_nesy.cirquits.build_sdds import SDDBuilder
-from src.asal_nesy.cirquits.circuit_auxils import model_count_nnf, nnf_map_to_sfa
+from src.asal_nesy.cirquits.circuit_auxils import nnf_map_to_sfa
 from src.asal.asp import get_induction_program
 from src.asal.auxils import timer
-import time
 import argparse
 
 
@@ -36,16 +33,15 @@ def compile_sfa(sfa, asp_compilation_program):
     return sfa
 
 
-def induce_sfa(args, asp_compilation_program, nn_provided_data=None, existing_sfa=None):
+def induce_sfa(args, asp_compilation_program, data=None, existing_sfa=None):
     shuffle = False
     template = Template(args.states, args.tclass)
-    if nn_provided_data is None:
+    if data is None:  # Read symbolic sequences from a file (args.train)
         train_data = get_train_data(args.train, str(args.tclass), args.batch_size, shuffle=shuffle)
     else:
-        train_data = nn_provided_data
+        train_data = data
 
     logger.debug(f'The induction program is:\n{get_induction_program(args, template)}')
-
 
     if existing_sfa is None:
         mcts = Asal(args, train_data, template, initialize_only=True)
@@ -75,7 +71,8 @@ def induce_sfa(args, asp_compilation_program, nn_provided_data=None, existing_sf
         mcts = Asal(new_args, train_data, template)
         mcts.run_mcts()
 
-    logger.info(blue(f'New SFA:\n{mcts.best_model.show(mode="""simple""")}\n'
+    mode = "simple" if args.show == "s" else "reasoning"
+    logger.info(blue(f'New SFA:\n{mcts.best_model.show(mode=mode)}\n'
                      f'training F1-score: {mcts.best_model.global_performance} '
                      f'(TPs, FPs, FNs: {mcts.best_model.global_performance_counts})'))
 
