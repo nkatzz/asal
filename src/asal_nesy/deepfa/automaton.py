@@ -271,8 +271,10 @@ class DeepFA:
                 .T
             )
 
-        return (
+        '''return (
             final_state_distribution[:, states_to_aggregate].sum(-1)
             if not max_propagation
             else final_state_distribution[:, states_to_aggregate].max(-1).values
-        )
+        )'''
+
+        return final_state_distribution

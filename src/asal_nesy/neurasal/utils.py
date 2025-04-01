@@ -204,6 +204,26 @@ def process_batch(batch, model, sfa, cnn_output_size):
     return acceptance_probabilities, actual_latent, predicted_latent
 
 
+def process_batch_roadr(batch, model, sfa, cnn_output_size):
+    video, bboxes = batch
+
+    sequence_length = video.shape[2]
+    batch_size = video.shape[0]
+
+    nn_outputs = model(video, bboxes)
+
+    nn_outputs = nn_outputs.view(batch_size, sequence_length, cnn_output_size)
+    # nn_outputs = torch.cat((nn_outputs[:, :3], nn_outputs[:, 4:7], nn_outputs[:, 8:11] , nn_outputs[:, 12:15]),  dim=1)
+
+    probabilities = {sfa.symbols[i]: nn_outputs[:, :, i] for i in range(len(sfa.symbols))}
+
+    labelling_function = create_labelling_function(probabilities, sfa.symbols)
+    acceptance_probabilities = sfa.forward(labelling_function)
+    # acceptance_probabilities = torch.clamp(sfa.forward(labelling_function), 0, 1)
+
+    return acceptance_probabilities
+
+
 def test_model(model, sfa, test_loader, cnn_output_size):
     actual, predicted, actual_latent, predicted_latent = [], [], [], []
     model.eval()
