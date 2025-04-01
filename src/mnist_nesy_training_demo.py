@@ -14,11 +14,11 @@ from src.asal_nesy.cirquits.circuit_auxils import model_count_nnf, nnf_map_to_sf
 from src.asal_nesy.dsfa_old.models import DigitCNN
 from src.asal_nesy.dsfa_old.mnist_seqs_new import get_data_loaders, get_data_loaders_OOD
 from src.asal_nesy.neurasal.utils import *
+from src.asal_nesy.device import device
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 sys.path.insert(0, project_root)
 
-device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 print(f'Device: {device}')
 
 """

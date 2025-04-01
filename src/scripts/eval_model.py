@@ -5,7 +5,7 @@ import argparse
 sys.path.insert(0, os.path.normpath(os.getcwd() + os.sep + os.pardir))
 
 from src.asal.test_model_multproc import test_model_mproc
-from src.asal.logger import *
+from src.logger import *
 from src.asal.auxils import f1
 
 args = argparse.Namespace(

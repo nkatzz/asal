@@ -1,7 +1,7 @@
 from src.asal.auxils import precision, recall, f1, flatten
 from src.asal.template import Template
 from clingo.symbol import parse_term
-from src.asal.logger import *
+from src.logger import *
 import random
 import cffi
 

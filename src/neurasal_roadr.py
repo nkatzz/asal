@@ -10,16 +10,19 @@ from src.asal_nesy.cirquits.circuit_auxils import model_count_nnf, nnf_map_to_sf
 from src.asal_nesy.neurasal.utils import *
 
 asp_program = \
-"""
-1 {value(a1,stop) ; value(a1,movaway) ; value(a1,movtow)} 1.
-1 {value(a2,stop) ; value(a2,movaway) ; value(a2,movtow)} 1.
-1 {value(l1,incomlane) ; value(l1,jun) ; value(l1,vehlane)} 1.
-1 {value(l2,incomlane) ; value(l2,jun) ; value(l2,vehlane)} 1.
+    """
+% The allowed values need to be alligned with what the NN predicts
+% for each attribute (a1, a2, l1, l2).
+ 
+1 {value(a1,stop) ; value(a1,movaway) ; value(a1,movtow) ; value(a1,other)} 1.
+1 {value(a2,stop) ; value(a2,movaway) ; value(a2,movtow) ; value(a2,other)} 1.
+1 {value(l1,incomlane) ; value(l1,jun) ; value(l1,vehlane) ; value(l1,other)} 1.
+1 {value(l2,incomlane) ; value(l2,jun) ; value(l2,vehlane) ; value(l2,other)} 1.
 
-equals(same_lane,true) :- value(l1,X), value(l2,X).
+equals(same_lane,true) :- value(l1,X), value(l2,X), X != other.
 equals(same_lane,false) :- value(l1,X), value(l2,Y), X != Y.
 
-equals(action_1,A) :- value(a2,A).
+equals(action_1,A) :- value(a1,A).
 equals(action_2,A) :- value(a2,A).
 
 equals(location_1,L) :- value(l1,L).
@@ -27,7 +30,7 @@ equals(location_2,L) :- value(l2,L).
 """
 
 automaton = \
-"""
+    """
 f(1,4) :- equals(same_lane,true), equals(action_2,movaway).
 f(1,3) :- equals(same_lane,false), not f(1,4).
 f(2,4) :- equals(action_1,stop), equals(location_2,incomlane).
@@ -58,6 +61,7 @@ query_defs = \
     #show query/2.
     """
 
+
 def compile_roadr_sfa():
     asp_compilation_program = asp_program + automaton + query_defs
     sdd_builder = SDDBuilder(asp_compilation_program,
@@ -68,7 +72,6 @@ def compile_roadr_sfa():
     circuits = sdd_builder.circuits
     sfa = nnf_map_to_sfa(circuits)
     return sfa
-
 
 
 if __name__ == "__main__":

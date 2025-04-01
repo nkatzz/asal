@@ -263,6 +263,13 @@ def get_data_loaders(batch_size=1):
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
     return train_loader, test_loader
 
+def generate_data(sequence_length, num_train, num_test):
+    train_positives, train_negatives, test_positives, test_negatives = (
+        create_dataset(
+            sequence_length, num_train, num_test, r"\d*(8)\d*(1|3|5)\d*(0|1|2|3)"
+        )
+    )
+    return train_positives, train_negatives, test_positives, test_negatives
 
 if __name__ == "__main__":
     seq_length, train_num, test_num = 10, 1000, 300

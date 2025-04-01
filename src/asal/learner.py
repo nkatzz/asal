@@ -1,17 +1,11 @@
 from src.asal.structs import Automaton, SolveResult, GuardBodyAtom, TransitionAtom, AcceptingStateAtom, CountsAtom, \
-    AnyAtom, ScoredModel
-from src.asal.test_model_multproc import test_model_mproc
+    AnyAtom
 from src.asal.template import Template
-from src.asal.tester import rewrite_automaton
-from src.asal.constraints import generate_constraints
-from src.asal.logger import *
+from src.logger import *
 import multiprocessing
 import clingo
-from clingo import Number
 import time
-import os
 from clingo.script import enable_python
-from clingo.symbol import parse_term
 from src.asal.asp import get_induction_program
 from src.asal.auxils import timer
 

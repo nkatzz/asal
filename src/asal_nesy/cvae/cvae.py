@@ -14,7 +14,7 @@ from xgboost import XGBClassifier
 
 # Parameters
 input_dim = 784  # For MNIST
-latent_dim = 2
+latent_dim = 2  # 300  # 2  larger latent dim seems to mess the results. XGBoost's classification score does not improve
 num_classes = 10
 batch_size = 128
 num_epochs = 50

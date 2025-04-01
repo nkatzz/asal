@@ -7,12 +7,11 @@ from mnist_seqs_new import get_data_loaders
 from src.asal_nesy.cirquits.build_sdds import SDDBuilder
 from src.asal_nesy.cirquits.asp_programs import mnist_even_odd
 import tracemalloc
+from src.asal_nesy.device import device
 
 
 if not torch.cuda.is_available():
     torch.set_num_threads(1)  # usually faster than using multiple threads in the CPU case
-
-device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 
 current_dir = os.path.dirname(__file__)
 save_models_path = os.path.join(current_dir, '..', 'saved_models')

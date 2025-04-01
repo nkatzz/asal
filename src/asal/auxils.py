@@ -1,9 +1,8 @@
 import math
-import sys
 from itertools import islice
 import random
 import pickle
-from src.asal.logger import *
+from src.logger import *
 import time
 import re
 
@@ -232,7 +231,7 @@ def get_train_data(train_data_path: str, target_class: str, mini_batch_size: int
     for i in range(len(mini_batches)):
         mini_batch_dict[i] = extract_data(mini_batches[i])
     end = time.time()
-    logger.info(f'Get data time: {end - start} sec')
+    # logger.info(f'Get data time: {end - start} sec')
     return mini_batch_dict
 
 

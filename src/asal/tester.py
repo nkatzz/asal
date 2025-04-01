@@ -3,9 +3,6 @@ import clingo
 from clingo.script import enable_python
 from src.asal.structs import Automaton
 from itertools import groupby
-from src.asal.auxils import get_train_data, precision, recall, f1
-from src.asal.logger import *
-import os
 from src.asal.asp import get_test_program
 
 

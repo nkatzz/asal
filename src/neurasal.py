@@ -18,6 +18,7 @@ from src.asal_nesy.dsfa_old.models import DigitCNN
 from src.asal_nesy.neurasal.dev_version.mnist_seqs import get_data_loaders
 from src.asal_nesy.neurasal.dev_version.utils import *
 from src.args_parser import parse_args
+from src.asal_nesy.device import device
 
 
 # Custom collate function to prevent img_ids transposing
@@ -35,7 +36,6 @@ if __name__ == "__main__":
     parser = parse_args()
     args = parser.parse_args()
 
-    device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     logger.info(f'Device: {device}')
 
     max_states = 4

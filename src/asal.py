@@ -15,9 +15,9 @@ if "--help" in sys.argv or "-h" in sys.argv:
 from statistics import mean
 from src.asal.template import Template
 from src.asal.auxils import get_train_data
-from src.asal.asal import RootNode, Asal
+from src.asal.asal import Asal
 from src.asal.test_model_multproc import test_model_mproc
-from src.asal.logger import *
+from src.logger import *
 from src.args_parser import parse_args
 from src.asal.asp import get_induction_program, get_test_program
 from src.asal.auxils import f1

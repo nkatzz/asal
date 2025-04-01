@@ -3,7 +3,7 @@ import random
 import torch
 import torch.nn as nn
 from sklearn.metrics import f1_score
-from src.asal.logger import *
+from src.logger import *
 
 
 class ImageDataset(Dataset):

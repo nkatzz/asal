@@ -5,11 +5,11 @@ import sys
 sys.path.insert(0, os.path.normpath(os.getcwd() + os.sep + os.pardir))
 
 from src.asal.template import Template
-from src.asal.auxils import get_train_data, f1
+from src.asal.auxils import get_train_data
 from src.asal.learner import Learner
 from src.asal.structs import Automaton
 from src.asal.test_model_multproc import test_model_mproc
-from src.asal.logger import *
+from src.logger import *
 from src.args_parser import parse_args
 
 # Time limit (in seconds) for the solver to find a solution. Set this to 'inf' to disable time limit.

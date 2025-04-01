@@ -9,6 +9,7 @@ from src.asal_nesy.cirquits.build_sdds import SDDBuilder
 from src.asal_nesy.cirquits.asp_programs import mnist_even_odd
 import time
 import logging
+from src.asal_nesy.device import device
 
 # Configure logger and set its level
 logger = logging.getLogger(__name__)
@@ -24,8 +25,6 @@ stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
-
-device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 print(device)
 
 

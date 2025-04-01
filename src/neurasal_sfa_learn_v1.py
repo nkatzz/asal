@@ -5,14 +5,16 @@ import torch.nn as nn
 import math
 from torch.utils.data._utils.collate import default_collate
 
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+sys.path.insert(0, project_root)
+
 from src.asal_nesy.neurasal.sfa import *
 from src.asal_nesy.dsfa_old.models import DigitCNN
 from src.asal_nesy.neurasal.dev_version.mnist_seqs import get_data_loaders
 from src.asal_nesy.neurasal.dev_version.utils import *
 from src.args_parser import parse_args
+from src.asal_nesy.device import device
 
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-sys.path.insert(0, project_root)
 
 # Custom collate function to prevent img_ids transposing
 def custom_collate_fn(batch):
@@ -22,6 +24,7 @@ def custom_collate_fn(batch):
             default_collate(symb_seqs),
             default_collate(seq_ids),
             list(image_ids))
+
 
 # Convert sequence to logical facts
 def sequence_to_facts(seq_id, digit_preds, known_labels, seq_label, seq_entropy):
@@ -35,12 +38,12 @@ def sequence_to_facts(seq_id, digit_preds, known_labels, seq_label, seq_entropy)
     facts.append(f'weight({seq_id},{seq_entropy}).')
     return ' '.join(facts)
 
+
 if __name__ == "__main__":
 
     parser = parse_args()
     args = parser.parse_args()
 
-    device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     print(f'Device: {device}')
 
     max_states = 4
@@ -212,7 +215,9 @@ if __name__ == "__main__":
             avg_entropy = sum([score for seq_id, score in all_seq_scores if seq_id in top_seq_ids]) / len(top_seq_ids)
             logger.info(yellow(f'Average entropy over selected sequences: {avg_entropy:.3f}'))
 
-            filtered_img_scores = [(img_id, entropy, true_symbol, seq_id, img_idx) for (img_id, entropy, true_symbol, seq_id, img_idx) in all_img_scores if seq_id in top_seq_ids]
+            filtered_img_scores = [(img_id, entropy, true_symbol, seq_id, img_idx) for
+                                   (img_id, entropy, true_symbol, seq_id, img_idx) in all_img_scores if
+                                   seq_id in top_seq_ids]
             filtered_img_scores.sort(key=lambda x: x[1], reverse=True)
 
             newly_labeled = 0
@@ -232,7 +237,8 @@ if __name__ == "__main__":
             for seq_id, seq_data in partially_labeled_sequences.items():
                 #--------------------------------------------------------------
                 if len(seq_data['known_labels']) > 0 and seq_id in top_seq_ids:
-                    facts = sequence_to_facts(seq_id, seq_data['digit_preds'], seq_data['known_labels'], seq_data['seq_label'], seq_data['entropy_weight'])
+                    facts = sequence_to_facts(seq_id, seq_data['digit_preds'], seq_data['known_labels'],
+                                              seq_data['seq_label'], seq_data['entropy_weight'])
 
                     digit_probs = [round(prob, 3) for prob in seq_data['digit_probs']]
                     print(seq_id, seq_data['known_labels'], seq_data['seq_label'], seq_data['digit_preds'],
@@ -244,6 +250,6 @@ if __name__ == "__main__":
             nn_seq = {0: nn_seq}
 
             logger.info("Revising SFA...")
-            sfa_dnnf, sfa_asal = induce_sfa(args, asp_comp_program, nn_provided_data=nn_seq, existing_sfa=sfa_asal)
+            sfa_dnnf, sfa_asal = induce_sfa(args, asp_comp_program, data=nn_seq, existing_sfa=sfa_asal)
 
     logger.info("Training complete.")

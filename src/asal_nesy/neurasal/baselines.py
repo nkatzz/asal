@@ -1,5 +1,3 @@
-import torch.nn as nn
-import torch
 import os
 import sys
 import time
@@ -8,7 +6,6 @@ sys.path.insert(0, os.path.normpath(os.getcwd() + os.sep + os.pardir))
 
 from src.asal_nesy.dsfa_old.models import DigitCNN
 from src.asal_nesy.dsfa_old.mnist_seqs_new import get_data_loaders, get_data_loaders_OOD
-from src.asal.logger import *
 from src.asal_nesy.neurasal.utils import *
 
 
@@ -45,7 +42,7 @@ class CNN_LSTM(nn.Module):
 
 if __name__ == "__main__":
     seq_length, train_num, test_num = 10, 1000, 300
-    OOD = True
+    OOD = False
     train_loader, test_loader = get_data_loaders_OOD(batch_size=50) if OOD else get_data_loaders(batch_size=50)
 
     # Initialize CNN + LSTM model

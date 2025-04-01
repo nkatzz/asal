@@ -3,11 +3,9 @@ import random
 import torch
 import torch.nn as nn
 from sklearn.metrics import f1_score
-from src.asal.logger import *
+from src.logger import *
 import nnf
-
-device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
-
+from src.asal_nesy.device import device
 
 class ImageDataset(Dataset):
     """Container class for individual image/label pairs"""
@@ -127,41 +125,6 @@ def get_stats(predicted, actual):
     f1_weighted = f1_score(actual, predicted, average='weighted')
 
     return f1_binary, f1_macro, f1_weighted, tp, fp, fn, tn
-
-
-def process_sequences_debug(data, model, criterion, num_states):
-    sequence, label, symbolic_sequence = data[0], data[1], data[2]
-    sequence, label, symbolic_sequence = sequence.to(device), label.to(device), symbolic_sequence.to(device)
-    cnn_prediction, guard_prediction, final_states_distribution = model(sequence)
-    acceptance_probability = final_states_distribution[:, num_states - 1]
-
-    # print(f'Acceptance probability: {acceptance_probability}')
-    acceptance_probability = torch.clamp(acceptance_probability, 0, 1)
-
-    loss = criterion(acceptance_probability, label.float())
-    # Collect stats for training F1
-    predicted = (acceptance_probability >= 0.5)
-
-    return acceptance_probability, loss, label, predicted
-
-
-def process_sequence(sequence, symb_sequence, seq_label, model, sfa, criterion):
-    # Make the sequence of size (batch_size * seq_len, 1, 28, 28)
-    sequence = sequence.view(-1, sequence.shape[2], sequence.shape[3], sequence.shape[4])
-    nn_outputs = model(sequence, apply_softmax=True)
-
-    # Transpose the tensor to align predictions per digit
-    output_transposed = nn_outputs.T  # Shape becomes [10, 10]
-
-    # Create dictionary mapping each digit to its respective predictions
-    weights = {sfa.symbols[i]: output_transposed[i] for i in range(len(sfa.symbols))}
-
-    labelling_function = create_labelling_function(weights, sfa.symbols)
-
-    acceptance_probability = torch.clamp(sfa.forward(labelling_function), 0, 1)
-    loss = criterion(acceptance_probability, seq_label.float())
-    prediction = (acceptance_probability >= 0.5)
-    return loss, prediction
 
 
 def process_batch(batch, model, sfa, cnn_output_size):
