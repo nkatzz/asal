@@ -15,6 +15,7 @@ from src.logger import *
 from src.asal.asal import Asal
 from src.asal.auxils import get_train_data
 from src.asal.asp import get_induction_program
+from typing import Dict, List
 
 
 def create_labelling_function(weights: dict, sfa_symbols: list[str]):
@@ -46,10 +47,10 @@ def nn_forward_pass(train_loader, model, cnn_output_size):
         for i, seq in enumerate(batch.sequences):
             seq.predicted_trace = latent_predictions[i].tolist()
 
-
+"""
 def nesy_forward_pass(batch, model, sfa, cnn_output_size, with_decay=False):
     training_tensors = torch.stack([
-        seq.get_sequence_tensor() for seq in batch.sequences
+        seq.get_sequence_tensor() for seq in batch
     ]).to(device)  # (BS, SeqLen, C, H, W)
 
     bs, seqlen, c, w, h = training_tensors.shape
@@ -86,21 +87,80 @@ def nesy_forward_pass(batch, model, sfa, cnn_output_size, with_decay=False):
     entropy_per_img = -torch.sum(nn_outputs * torch.log(nn_outputs + eps), dim=2)  # (BS, SeqLen)
 
     return acceptance_probabilities, latent_predictions, nn_outputs
+"""
+
+def nesy_forward_pass(batch, model, sfa, cnn_output_size, with_decay=False, update_seqs_stats=False):
+    training_tensors = torch.stack([seq.images for seq in batch]).to(device)  # (bs, seqlen, dim, c, h, w)
+    bs, seqlen, dim, c, w, h = training_tensors.shape
+    training_tensors = training_tensors.view(-1, c, w, h)  # Flatten for CNN into (BS * SeqLen * dim, C, W, H)
+    logits = model(training_tensors, apply_softmax=False)  # (BS * SeqLen * Dim, NumClasses)
+    logits = logits.view(bs, seqlen, dim, cnn_output_size)  # (BS, SeqLen, Dim, NumClasses)
+
+    # dim=-1 refers to the last dimension of the tensor, more generic and orbust than explicitly
+    # giving the dimension, especially if tensor shapes slightly change at some point. This will
+    # work as long as the class predictions are the last dimension.
+    nn_probs = torch.softmax(logits, dim=-1)
+
+    probabilities = get_probs_dict(nn_probs, sfa.symbols)
+    labelling_function = create_labelling_function(probabilities, sfa.symbols)
+    acceptance_probabilities = torch.clamp(sfa.forward(labelling_function), 0, 1)
+
+    """
+    if with_decay:
+        decay_factor = 0.989
+        seq_lengths = torch.full((bs,), seqlen, dtype=torch.float32)
+        # Apply decay to acceptance probabilities based on sequence length
+        decay_weights = torch.pow(decay_factor, seq_lengths).to(device)
+        acceptance_probabilities = acceptance_probabilities * decay_weights
+
+    # Entropy Calculation
+    eps = 1e-10  # Avoid log(0) issues
+    entropy_per_img = -torch.sum(nn_outputs * torch.log(nn_outputs + eps), dim=2)  # (BS, SeqLen)
+    """
+
+    # dim=3 because nn_outputs is a (BS, SeqLen, Dim, num_classes)-tensor and we need to reduce over num_classes
+    latent_predictions = torch.argmax(nn_probs, dim=3).flatten().cpu()  # (BS * SeqLen * Dim,)
+
+    if update_seqs_stats:
+        for sequence, p in zip(batch, acceptance_probabilities):
+            sequence.acceptance_probability = p
+
+    return acceptance_probabilities, latent_predictions, logits
+
+def get_probs_dict(nn_outputs: torch.Tensor, symbols: List[str]) -> Dict[str, torch.Tensor]:
+    """
+        Converts CNN output into a dictionary mapping each symbol to a (BatchSize, SeqLen) tensor of probabilities.
+
+        Args:
+            nn_outputs (torch.Tensor): Tensor of shape (BatchSize, SeqLen, Dim, NumClasses)
+            symbols (List[str]): List of D * C symbols in order (e.g., ['d1_0', ..., 'd3_9'])
+
+        Returns:
+            Dict[str, torch.Tensor]: Mapping from symbol to tensor of shape (BatchSize, SeqLen)
+        """
+    B, T, D, C = nn_outputs.shape
+    output_transposed = nn_outputs.permute(2, 3, 0, 1)  # (D, C, B, T)
+    return {
+        symbols[d * C + c]: output_transposed[d, c]
+        for d in range(D) for c in range(C)
+    }
 
 
-def get_latent_loss(batch, nn_outputs, nn_criterion):
+def get_latent_loss(batch, nn_outputs, nn_criterion, class_attributes):
     labeled_points_predictions, labeled_points_labels = [], []
     latent_loss = torch.tensor(0.0)
-    for i, seq in enumerate(batch.sequences):
-        # seq.set_label(2, 4)  debugging
+    for i, seq in enumerate(batch):
+        # seq.set_image_label(1, 2)
         labeled_indices = seq.get_labeled_indices()
-        labeled_points_predictions.extend([nn_outputs[i][j] for j in labeled_indices])
-        labeled_points_labels.extend([torch.tensor(seq.get_image_label(j)).long() for j in labeled_indices])
+        labeled_points_predictions.extend([nn_outputs[i][j][k] for j, k in labeled_indices])
+        labeled_points_labels.extend([
+            torch.tensor(seq.get_image_label(j, k, class_attributes)).long() for j, k in labeled_indices
+        ])
 
     if labeled_points_labels:
         labeled_points_predictions = torch.stack(labeled_points_predictions).to(device)
-        labeled_points_labels = torch.stack(labeled_points_labels).to(device)
-        latent_loss = nn_criterion(labeled_points_predictions, labeled_points_labels)
+        labels_tensor = torch.cat(labeled_points_labels).to(device)
+        latent_loss = nn_criterion(labeled_points_predictions, labels_tensor)
 
     return latent_loss
 
@@ -110,16 +170,16 @@ class StatsCollector:
         self.start_time = time.time()
         self.target_loss = 0.0
         self.latent_loss = 0.0
-        self.seq_labels_actual = []
-        self.seq_labels_predicted = []
-        self.latent_labels_actual = []
-        self.latent_labels_predicted = []
+        self.seq_actual = []
+        self.seq_predicted = []
+        self.latent_actual = []
+        self.latent_predicted = []
 
-    def update_stats(self, batch, latent_predictions, seq_predictions, target_loss=0.0, latent_loss=0.0):
-        self.seq_labels_predicted.extend([s.item() for s in seq_predictions])
-        self.seq_labels_actual.extend([seq.get_sequence_label().item() for seq in batch.sequences])
-        self.latent_labels_predicted.extend([s.item() for s in latent_predictions])
-        self.latent_labels_actual.extend(list(chain.from_iterable([seq.label_trace for seq in batch.sequences])))
+    def update_stats(self, batch, latent_predictions, seq_predictions, class_attributes, target_loss=0.0, latent_loss=0.0):
+        self.seq_predicted.extend([s.item() for s in seq_predictions])
+        self.seq_actual.extend([seq.seq_label for seq in batch])
+        self.latent_predicted.extend([s.item() for s in latent_predictions])
+        self.latent_actual.extend(list(chain(*[seq.get_image_labels(class_attributes) for seq in batch])))
         self.target_loss += target_loss
         self.latent_loss += latent_loss
 
@@ -129,11 +189,12 @@ def eval_model(ts: StatsCollector,
                model: torch.nn.Module,
                sfa_dnnf: src.asal_nesy.deepfa.automaton.DeepFA,
                cnn_output_size,
-               train_loader_length,
+               class_attributes,
                epoch_num=None):
+
     def get_score(ts: StatsCollector):
-        latent_f1_macro = f1_score(ts.latent_labels_actual, ts.latent_labels_predicted, average="macro")
-        f1, tps, fps, fns = get_sequence_stats(ts.seq_labels_predicted, ts.seq_labels_actual)
+        latent_f1_macro = f1_score(ts.latent_actual, ts.latent_predicted, average="macro")
+        f1, tps, fps, fns = get_sequence_stats(ts.seq_predicted, ts.seq_actual)
         return f1, tps, fps, fns, latent_f1_macro
 
     end_time = time.time()
@@ -148,7 +209,7 @@ def eval_model(ts: StatsCollector,
             nesy_forward_pass(batch, model, sfa_dnnf, cnn_output_size)
         )
         sequence_predictions = (acceptance_probabilities >= 0.5)
-        sc.update_stats(batch, latent_predictions, sequence_predictions)
+        sc.update_stats(batch, latent_predictions, sequence_predictions, class_attributes)
 
     # Testing stats:
     test_f1, test_tps, test_fps, test_fns, test_latent_f1 = get_score(sc)
@@ -188,15 +249,17 @@ def pretrain_nn(train_data: SequenceDataset,
                 num_samples,
                 model,
                 optimizer,
+                class_attributes,
                 num_epochs=10):
+
     def get_image_dataset(seq_list: list[TensorSequence],
                           batch_size, shuffle=True) -> DataLoader[IndividualImageDataset]:
         train_images, train_labels = [], []
         for seq in seq_list:
             images = [seq.get_image(i, j) for i, j in seq.get_image_indices()]
-            labels = [seq.get_image_label(i, j) for i, j in seq.get_image_indices()]
-
-            labels = torch.tensor([x for d in labels for x in d.values() ])
+            labels = [seq.get_image_label(i, j, class_attributes) for i, j in seq.get_image_indices()]
+            labels_flat = list(chain(*labels))
+            labels = torch.tensor(labels_flat).long()
 
             train_images.extend(images)
             train_labels.extend(labels)
@@ -282,3 +345,12 @@ def induce_sfa_simple(args, asp_compilation_program, data=None, existing_sfa=Non
 
     compiled = compile_sfa(mcts.best_model, asp_compilation_program)
     return compiled, sfa
+
+
+def set_all_labelled(batch: list[TensorSequence]):
+    """Set all training sequences as labelled. Used for debugging."""
+    for s in batch:
+        for t in range(s.seq_length):
+            for d in range(s.dimensionality):
+                if not s.is_labeled(t, d):
+                    s.set_image_label(t, d)

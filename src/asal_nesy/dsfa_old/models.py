@@ -44,6 +44,7 @@ class DigitCNN(nn.Module):
 
         x = torch.flatten(x, 1)
         logits = self.dense(x)
+
         if store_output:
             self.last_logits = logits
 
@@ -51,9 +52,9 @@ class DigitCNN(nn.Module):
         # parity_outputs = self.softmax(x[:, 3:])
         # return torch.cat((magnitude_outputs, parity_outputs), dim=1)
 
-        if apply_softmax:  # return the logits in the pre-training setting from individual images.
+        if apply_softmax:
             return self.softmax(logits)
-        return logits
+        return logits  # return the logits in the pre-training setting from individual images.
 
 
 def softmax_with_temperature(logits, temperature=1.0):

@@ -18,7 +18,6 @@ class TensorSequence:
         self.seq_label = seq_label
         self.images = seq_images
         self.labels = seq_labels
-
         seq_length, dimensionality, _, _, _ = self.images.shape
         self.seq_length = seq_length
         self.dimensionality = dimensionality
@@ -28,6 +27,8 @@ class TensorSequence:
             [f"{seq_id}_{t}_{d}" for d in range(dimensionality)]
             for t in range(seq_length)
         ]
+
+        self.acceptance_probability = 0.0
 
     def set_image_label(self, t: int, d: int, label=None):
         """
@@ -60,17 +61,29 @@ class TensorSequence:
         else:
             return None
 
-    def get_image_label(self, t: int, d: int):
+    def get_image_label(self, t: int, d: int, attributes: list):
         """
         if self.is_labeled(t, d):
             return self.labels[t][d]
         else:
             return None
         """
-        return self.labels[t][d]
+        dict = self.labels[t][d]
+        labels = [dict[key] for key in attributes if key in dict]
+        return labels
+
+    def get_image_labels(self, attributes: list):
+        res = []
+        for t in range(self.seq_length):
+            for d in range(self.dimensionality):
+                res.extend(self.get_image_label(t, d, attributes))
+        return res
 
     def get_image_indices(self):
         return [(t, d) for d in range(self.dimensionality) for t in range(self.seq_length)]
+
+    def get_labeled_indices(self):
+        return [(t, d) for t, d in self.get_image_indices() if self.is_labeled(t, d)]
 
 
 class SequenceDataset(Dataset):
@@ -95,9 +108,12 @@ class IndividualImageDataset(Dataset):
     def __getitem__(self, idx):
         return self.images[idx], self.labels[idx]
 
+def seq_collate_fn(batch):
+    return batch
+
 def get_data_loader(dataset: Dataset, batch_size: int, train=True):
     shuffle = True if train else False
-    return DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, collate_fn=seq_collate_fn)
 
 
 def get_data(
