@@ -78,6 +78,8 @@ seq(1119,obs(d1,6),0). seq(1119,obs(d1,6),1). seq(1119,obs(d1,2),2). seq(1119,ob
 seq(1119,obs(d2,7),0). seq(1119,obs(d2,3),1). seq(1119,obs(d2,5),2). seq(1119,obs(d2,4),3). seq(1119,obs(d2,6),4). seq(1119,obs(d2,2),5). seq(1119,obs(d2,9),6). seq(1119,obs(d2,7),7). seq(1119,obs(d2,8),8). seq(1119,obs(d2,6),9). class(1119,0).
 seq(1119,obs(d3,8),0). seq(1119,obs(d3,1),1). seq(1119,obs(d3,4),2). seq(1119,obs(d3,9),3). seq(1119,obs(d3,8),4). seq(1119,obs(d3,7),5). seq(1119,obs(d3,4),6). seq(1119,obs(d3,7),7). seq(1119,obs(d3,4),8). seq(1119,obs(d3,6),9). class(1119,0).
 
+
+
 seq(470,obs(d1,8),0). seq(470,obs(d1,3),1). seq(470,obs(d1,5),2). seq(470,obs(d1,4),3). seq(470,obs(d1,8),4). seq(470,obs(d1,8),5). seq(470,obs(d1,2),6). seq(470,obs(d1,7),7). seq(470,obs(d1,8),8). seq(470,obs(d1,2),9). class(470,1).
 seq(470,obs(d2,3),0). seq(470,obs(d2,2),1). seq(470,obs(d2,6),2). seq(470,obs(d2,3),3). seq(470,obs(d2,9),4). seq(470,obs(d2,1),5). seq(470,obs(d2,1),6). seq(470,obs(d2,6),7). seq(470,obs(d2,2),8). seq(470,obs(d2,7),9). class(470,1).
 seq(470,obs(d3,6),0). seq(470,obs(d3,2),1). seq(470,obs(d3,2),2). seq(470,obs(d3,5),3). seq(470,obs(d3,4),4). seq(470,obs(d3,3),5). seq(470,obs(d3,5),6). seq(470,obs(d3,5),7). seq(470,obs(d3,5),8). seq(470,obs(d3,4),9). class(470,1).
@@ -193,6 +195,8 @@ seq(26,obs(d3,5),0). seq(26,obs(d3,5),1). seq(26,obs(d3,5),2). seq(26,obs(d3,5),
 seq(944,obs(d1,8),0). seq(944,obs(d1,3),1). seq(944,obs(d1,5),2). seq(944,obs(d1,4),3). seq(944,obs(d1,8),4). seq(944,obs(d1,8),5). seq(944,obs(d1,2),6). seq(944,obs(d1,7),7). seq(944,obs(d1,8),8). seq(944,obs(d1,2),9). class(944,1).
 seq(944,obs(d2,3),0). seq(944,obs(d2,2),1). seq(944,obs(d2,6),2). seq(944,obs(d2,3),3). seq(944,obs(d2,9),4). seq(944,obs(d2,1),5). seq(944,obs(d2,1),6). seq(944,obs(d2,6),7). seq(944,obs(d2,2),8). seq(944,obs(d2,7),9). class(944,1).
 seq(944,obs(d3,6),0). seq(944,obs(d3,2),1). seq(944,obs(d3,2),2). seq(944,obs(d3,5),3). seq(944,obs(d3,4),4). seq(944,obs(d3,3),5). seq(944,obs(d3,5),6). seq(944,obs(d3,5),7). seq(944,obs(d3,5),8). seq(944,obs(d3,4),9). class(944,1).
+
+
 
 seq(932,obs(d1,4),0). seq(932,obs(d1,2),1). seq(932,obs(d1,1),2). seq(932,obs(d1,9),3). seq(932,obs(d1,4),4). seq(932,obs(d1,8),5). seq(932,obs(d1,8),6). seq(932,obs(d1,5),7). seq(932,obs(d1,9),8). seq(932,obs(d1,5),9). class(932,1).
 seq(932,obs(d2,1),0). seq(932,obs(d2,4),1). seq(932,obs(d2,5),2). seq(932,obs(d2,3),3). seq(932,obs(d2,3),4). seq(932,obs(d2,7),5). seq(932,obs(d2,3),6). seq(932,obs(d2,5),7). seq(932,obs(d2,7),8). seq(932,obs(d2,8),9). class(932,1).
