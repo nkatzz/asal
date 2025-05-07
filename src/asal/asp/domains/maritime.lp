@@ -35,3 +35,4 @@ numerical(none).
 value(A,V) :- attribute(A), symbol(V).
 symbol(@get_symbol(Y)) :- alphabetNum(Y).
 index(Y,@get_index(Y)) :- symbol(Y).
+
