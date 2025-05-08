@@ -255,7 +255,8 @@ base_constraints = """\
 % holds(f(2,4),S,T) :- holds(equals(even,1),S,T), holds(equals(odd,1),S,T).
 % Such rules may be generated during the generate phase, unless explicitly pruned.
 %---------------------------------------------------------------------------------------------
-:- body(I,J,F1), body(I,J,F2), F1 != F2, #count{S,T: holds(F1,S,T), holds(F2,S,T)} = 0.
+% Update (8/5/2025): This is a very expensive constraint, blows up the grounding time. 
+% :- body(I,J,F1), body(I,J,F2), F1 != F2, #count{S,T: holds(F1,S,T), holds(F2,S,T)} = 0.
 
 %----------------------------------------------------------------------------------------------
 % Always include self-loops for all states that appear in the automaton (skip-till-next-match).
