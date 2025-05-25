@@ -16,11 +16,11 @@ def get_index(symbol):
 
 alphabetNum(1..20).
 
-% attribute(euclidean_distance).
-% categorical(euclidean_distance).
+% attribute(dist).
+% categorical(dist).
 
-attribute(px_1; py_1; yaw_1; px_2; py_2; yaw_2; vx_1; vy_1; vx_2; vy_2).
-categorical(px_1; py_1; yaw_1; px_2; py_2; yaw_2; vx_1; vy_1; vx_2; vy_2).
+% attribute(px_1; py_1; yaw_1; px_2; py_2; yaw_2; vx_1; vy_1; vx_2; vy_2).
+% categorical(px_1; py_1; yaw_1; px_2; py_2; yaw_2; vx_1; vy_1; vx_2; vy_2).
 
 % attribute(px_1; py_1; px_2; py_2; yaw_1; yaw_2; dist).
 % categorical(px_1; py_1; px_2; py_2; yaw_1; yaw_2; dist).
