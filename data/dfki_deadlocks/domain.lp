@@ -14,7 +14,7 @@ def get_index(symbol):
 
 #end.
 
-alphabetNum(1..20).
+alphabetNum(1..10).
 
 % attribute(dist).
 % categorical(dist).
@@ -22,8 +22,8 @@ alphabetNum(1..20).
 % attribute(px_1; py_1; yaw_1; px_2; py_2; yaw_2; vx_1; vy_1; vx_2; vy_2).
 % categorical(px_1; py_1; yaw_1; px_2; py_2; yaw_2; vx_1; vy_1; vx_2; vy_2).
 
-% attribute(px_1; py_1; px_2; py_2; yaw_1; yaw_2; dist).
-% categorical(px_1; py_1; px_2; py_2; yaw_1; yaw_2; dist).
+attribute(px_1; py_1; px_2; py_2; yaw_1; yaw_2; dist).
+categorical(px_1; py_1; px_2; py_2; yaw_1; yaw_2; dist).
 
 numerical(none).
 
