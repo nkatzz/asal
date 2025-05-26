@@ -14,7 +14,7 @@ def get_index(symbol):
 
 #end.
 
-alphabetNum(1..10).
+alphabetNum(1..15).
 
 % attribute(dist).
 % categorical(dist).
