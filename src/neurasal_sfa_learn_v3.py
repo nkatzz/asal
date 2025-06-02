@@ -63,7 +63,8 @@ if __name__ == "__main__":
     # for s in train_data:
     #     print(s.seq_id)
 
-    class_attrs = ['d1', 'd2', 'd3']
+    # class_attrs = ['d1', 'd2', 'd3']
+    class_attrs = ['d1']
 
     if nn_args.pre_train_nn:
         logger.info(f'Pre-training on images from {nn_args.pre_training_size} sequences')
@@ -102,10 +103,10 @@ if __name__ == "__main__":
         with open(data_write_to, 'w') as f:
             f.write('\n'.join(data))
         asal_args.train = data_write_to
-        sfa_dnnf, sfa_asal = induce_sfa_simple(asal_args, asp_comp_program)
+        sfa_dnnf, sfa_asal = induce_sfa_simple(asal_args, asp_comp_program, class_attrs)[:-1]  # Get the last one only
     else:
-        # sfa_dnnf, sfa_asal = induce_sfa(args, asp_comp_program)
-        sfa_dnnf = get_sfa()
+        sfa_dnnf, sfa_asal = induce_sfa(args, asp_comp_program, class_attrs)
+        # sfa_dnnf = get_sfa()
 
     logger.info(f'Starting CNN + Automaton training with interleaved active learning...')
     # sequence_loss_weight = epoch / num_epochs
@@ -118,7 +119,7 @@ if __name__ == "__main__":
         optimizer.zero_grad()
 
         for batch in train_loader:
-
+            # optimizer.zero_grad()
             # for debugging
             # set_all_labelled(batch)
 
@@ -144,7 +145,7 @@ if __name__ == "__main__":
             sc.update_stats(batch, latent_predictions, sequence_predictions,
                             class_attrs, seq_loss.item(), latent_loss.item())
 
-        eval_model(sc, test_loader, model, sfa_dnnf, cnn_output_size, class_attrs, epoch)
+        eval_model(sc, train_loader, test_loader, model, sfa_dnnf, cnn_output_size, class_attrs, epoch)
 
         if epoch % nn_args.active_learning_frequency == 0:
             pass

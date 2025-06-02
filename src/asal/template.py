@@ -66,7 +66,12 @@ class Template:
         self.__assemble_template()
 
         if 'src' in os.getcwd():
-            asp_template_file = os.path.normpath(os.getcwd() + os.sep + 'asal' + os.sep + 'asp' + os.sep + 'template.lp')
+            if 'asal_nesy' in os.getcwd():
+                prefix = os.getcwd().split('asal_nesy')[0][:-1]
+                asp_template_file = os.path.normpath(
+                    prefix + os.sep + 'asal' + os.sep + 'asp' + os.sep + 'template.lp')
+            else:
+                asp_template_file = os.path.normpath(os.getcwd() + os.sep + 'asal' + os.sep + 'asp' + os.sep + 'template.lp')
         else:
             asp_template_file = os.path.normpath(os.getcwd() + os.sep + 'src' + os.sep + 'asal' + os.sep + 'asp' + os.sep + 'template.lp')
 

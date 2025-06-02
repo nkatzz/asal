@@ -16,8 +16,8 @@ class TensorSequence:
         """
         self.seq_id = int(seq_id)
         self.seq_label = seq_label
+        self.image_labels = seq_labels
         self.images = seq_images
-        self.labels = seq_labels
         seq_length, dimensionality, _, _, _ = self.images.shape
         self.seq_length = seq_length
         self.dimensionality = dimensionality
@@ -29,6 +29,7 @@ class TensorSequence:
         ]
 
         self.acceptance_probability = 0.0
+        self.elr_score = None
 
     def set_image_label(self, t: int, d: int, label=None):
         """
@@ -39,7 +40,7 @@ class TensorSequence:
         seq.set_image_label(2, 1, {'action': 2, 'location': 1, coords: (10, 15)})
         """
         if label is not None:
-            self.labels[t][d] = label
+            self.image_labels[t][d] = label
         self.labeled_mask[t, d] = True
 
     def is_labeled(self, t: int, d: int):
@@ -57,7 +58,7 @@ class TensorSequence:
         s = img_id.split('_')
         time, dim = int(s[1]), int(s[2])
         if self.is_labeled(time, dim):
-            return self.labels[time][dim]
+            return self.image_labels[time][dim]
         else:
             return None
 
@@ -68,7 +69,7 @@ class TensorSequence:
         else:
             return None
         """
-        dict = self.labels[t][d]
+        dict = self.image_labels[t][d]
         labels = [dict[key] for key in attributes if key in dict]
         return labels
 
@@ -84,6 +85,49 @@ class TensorSequence:
 
     def get_labeled_indices(self):
         return [(t, d) for t, d in self.get_image_indices() if self.is_labeled(t, d)]
+
+    def mark_seq_as_fully_labelled(self):
+        for t in range(self.seq_length):
+            for d in range(self.dimensionality):
+                self.set_image_label(t, d)
+
+    def get_symbolic_seq(self):
+        grouped = [list(group) for group in zip(*self.image_labels)]
+        result = [
+            [
+                f"seq({self.seq_id},obs({key},{value}),{i})."
+                for i, d in enumerate(group)
+                for key, value in d.items()
+            ]
+            for group in grouped
+        ]
+        for x in result:
+            x.append(f'class({self.seq_id},{self.seq_label}).')
+        return '\n'.join(" ".join(seq) for seq in result)
+
+    def sample_symbolic_sequence(self, model):
+        model.eval()
+        label = self.seq_label
+        vars = [k for v in self.image_labels[0] for k, _ in v.items()]
+        with torch.no_grad():
+            # (T, D, C, H, W) -> (T * D, C, H, W)
+            T, D, C, H, W = self.images.shape
+            images = self.images.view(T * D, C, H, W).to(next(model.parameters()).device)
+
+            # Forward pass: (T * D, num_classes)
+            logits = model(images)
+            probs = torch.softmax(logits, dim=-1)
+
+            # Sample one class per image
+            sampled_symbols = torch.multinomial(probs, num_samples=1).squeeze(-1)  # (T * D,)
+
+            # Reshape back to (T, D) and convert to nested list
+            symbolic_seq = sampled_symbols.view(T, D).cpu().tolist()
+            seqs = [
+                [f'seq({self.seq_id},obs({vars[j]},{d}),{i}).' for i, d in enumerate(g)] + [f'class({self.seq_id},{label}).']
+                for j, g in enumerate(zip(*symbolic_seq))
+            ]
+            return '\n'.join(' '.join(x) for x in seqs)
 
 
 class SequenceDataset(Dataset):
@@ -108,8 +152,10 @@ class IndividualImageDataset(Dataset):
     def __getitem__(self, idx):
         return self.images[idx], self.labels[idx]
 
+
 def seq_collate_fn(batch):
     return batch
+
 
 def get_data_loader(dataset: Dataset, batch_size: int, train=True):
     shuffle = True if train else False
@@ -171,6 +217,27 @@ def get_data(
 
 
 if __name__ == "__main__":
-    train_path = '/data/mnist_nesy/mnist_train.pt'
-    test_path = '/data/mnist_nesy/mnist_test.pt'
-    train, test = get_data(train_path, test_path)
+    # train_path = '/data/mnist_nesy/mnist_train.pt'
+    # test_path = '/data/mnist_nesy/mnist_test.pt'
+    # train, test = get_data(train_path, test_path)
+
+    x = [[7, 2, 3], [5, 6, 7], [3, 4, 8]]
+    grouped = zip(*x)
+    id = 123
+    vars = ['d1', 'd2', 'd3']
+
+    #for j, g in enumerate(grouped):
+    #    seq = [f'seq({id},obs({vars[j]},{d}),{i}).' for i, d in enumerate(g)]
+    #    seqs.append(seq)
+
+    #print(seqs)
+
+    seqs = [
+        [f'seq({id},obs({vars[j]},{d}),{i}).' for i, d in enumerate(g)] + [f'class({id},1).']
+        for j, g in enumerate(grouped)
+    ]
+
+    print(list(seqs))
+
+    y = '\n'.join(' '.join(x) for x in seqs)
+    print(y)

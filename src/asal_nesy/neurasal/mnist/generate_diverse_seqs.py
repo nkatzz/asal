@@ -58,7 +58,7 @@ accepting(4).
 transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2). 
 transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4). 
 transition(4,f(4,4),4).
-
+%*
 holds(f(1,2),T) :- holds(equals(d1,even),T), holds(equals(d2,gt_6),T).
 holds(f(2,3),T) :- holds(equals(d2,odd),T), holds(equals(d1,leq_6),T).
 holds(f(3,4),T) :- holds(equals(d1,leq_3),T), holds(equals(d2,gt_5),T).
@@ -67,8 +67,8 @@ holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
 holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
 holds(f(4,4),T) :- time(T).
 holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
+*%
 
-%*
 holds(f(1,2),T) :- holds(equals(d1,even),T), holds(equals(d1,gt_6),T).
 holds(f(2,3),T) :- holds(equals(d1,odd),T), holds(equals(d1,leq_6),T).
 holds(f(3,4),T) :- holds(equals(d1,leq_3),T).
@@ -76,7 +76,7 @@ holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
 holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
 holds(f(4,4),T) :- time(T).
 holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
-*%
+
 % Predicate definitions
 holds(equals(D,even),T) :- seq(obs(D,X),T), X \ 2 = 0.
 holds(equals(D,odd),T) :- seq(obs(D,X),T), X \ 2 != 0.
@@ -87,8 +87,8 @@ holds(equals(D,leq_3),T) :- seq(obs(D,X),T), X <= 3.
 holds(equals(D,gt_5),T) :- seq(obs(D,X),T), X > 5.
 
 1 {seq(obs(d1,X),T): digit(X)} 1 :- time(T).
-1 {seq(obs(d2,X),T): digit(X)} 1 :- time(T).
-1 {seq(obs(d3,X),T): digit(X)} 1 :- time(T).
+% 1 {seq(obs(d2,X),T): digit(X)} 1 :- time(T).
+% 1 {seq(obs(d3,X),T): digit(X)} 1 :- time(T).
 
 #show.
 #show seq/2.

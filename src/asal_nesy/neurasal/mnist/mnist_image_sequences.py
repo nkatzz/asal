@@ -4,7 +4,7 @@ from torch.utils.data import Dataset, DataLoader
 from src.asal_nesy.dsfa_old.mnist_seqs_new import generate_data
 
 
-class ImageSequence:
+class MNISTImageSequence:
     """
     Represents a sequence of images and their associated symbolic labels.
     """
@@ -61,7 +61,7 @@ class ImageSequence:
 
 
 class SequenceBatch:
-    def __init__(self, sequences: List[ImageSequence], label_dict: Optional[Dict[str, Dict[str, int]]] = None):
+    def __init__(self, sequences: List[MNISTImageSequence], label_dict: Optional[Dict[str, Dict[str, int]]] = None):
         self.sequences = sequences
         self.label_dict = label_dict
 
@@ -77,7 +77,7 @@ class ImageSequenceDataset(Dataset):
     Dataset for ImageSequence objects.
     """
 
-    def __init__(self, sequences: List[ImageSequence]):
+    def __init__(self, sequences: List[MNISTImageSequence]):
         self.sequences = sequences
 
     def __getitem__(self, idx):
@@ -130,9 +130,9 @@ def get_data(app_name: str) -> (ImageSequenceDataset, ImageSequenceDataset):
                 seq_id = seq_counter
                 img_ids = [f'img_{seq_counter}_{i}' for i in range(1, len(image_labels) + 1)]
                 if train_test == 'train':
-                    train_image_seqs_objects.append(ImageSequence(seq_id, img_ids, image_tensors, label, image_labels))
+                    train_image_seqs_objects.append(MNISTImageSequence(seq_id, img_ids, image_tensors, label, image_labels))
                 else:
-                    test_image_seqs_objects.append(ImageSequence(seq_id, img_ids, image_tensors, label, image_labels))
+                    test_image_seqs_objects.append(MNISTImageSequence(seq_id, img_ids, image_tensors, label, image_labels))
                 seq_counter += 1
         train, test = ImageSequenceDataset(train_image_seqs_objects), ImageSequenceDataset(test_image_seqs_objects)
 

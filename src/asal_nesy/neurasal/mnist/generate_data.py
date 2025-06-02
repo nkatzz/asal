@@ -8,7 +8,7 @@ from torchvision.datasets import MNIST
 import os
 import torchvision
 
-from src.asal_nesy.neurasal.image_sequences import ImageSequence
+from src.asal_nesy.neurasal.mnist.mnist_image_sequences import MNISTImageSequence
 from src.asal_nesy.neurasal.mnist.generate_diverse_seqs import generate_seqs, DigitSequence
 
 
@@ -78,7 +78,7 @@ def assign_images_to_sequences(digit_sequences, image_pool, augment_transform, s
     return assigned_sequences
 
 
-def pair_seqs_ims(sequences: list[ImageSequence], dataset: Dataset, transform: transforms.Compose):
+def pair_seqs_ims(sequences: list[MNISTImageSequence], dataset: Dataset, transform: transforms.Compose):
     image_pool = defaultdict(list)
     for idx, (img, label) in enumerate(dataset):
         image_pool[label].append((img, label, f"train_{idx}"))

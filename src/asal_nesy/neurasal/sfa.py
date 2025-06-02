@@ -10,7 +10,7 @@ import argparse
 
 
 @timer
-def compile_sfa(sfa, asp_compilation_program):
+def compile_sfa(sfa, asp_compilation_program, vars):  # vars, e.g. ['d1', 'd2', 'd3'] for multivar MNIST
     x = [f'query(guard,{rule.head}) :- {rule.head}.' for rule in sfa.rules]
     y = [f'query(guard,{head}) :- {head}.' for head in sfa.self_loop_guards.keys()]
     query_atoms = x + y
@@ -18,8 +18,8 @@ def compile_sfa(sfa, asp_compilation_program):
     asp_program = asp_compilation_program + sfa_to_str + '\n'.join(query_atoms) + '#show value/2.\n' + '#show query/2.'
 
     sdd_builder = SDDBuilder(asp_program,
-                             vars_names=['d'],
-                             categorical_vars=['d'],
+                             vars_names=vars,
+                             categorical_vars=vars,
                              clear_fields=False)
 
     sdd_builder.build_nnfs()
@@ -33,7 +33,7 @@ def compile_sfa(sfa, asp_compilation_program):
     return sfa
 
 
-def induce_sfa(args, asp_compilation_program, data=None, existing_sfa=None):
+def induce_sfa(args, asp_compilation_program, vars, data=None, existing_sfa=None):
     shuffle = False
     template = Template(args.states, args.tclass)
     if data is None:  # Read symbolic sequences from a file (args.train)
@@ -79,5 +79,5 @@ def induce_sfa(args, asp_compilation_program, data=None, existing_sfa=None):
     # logger.info('Compiling guards into NNF...')
     sfa = mcts.best_model
 
-    compiled = compile_sfa(mcts.best_model, asp_compilation_program)
+    compiled = compile_sfa(mcts.best_model, asp_compilation_program, vars)
     return compiled, sfa

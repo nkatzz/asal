@@ -179,6 +179,48 @@ class Asal:
             # Generate a seed automaton
             self.expand_root()
 
+    def run(self, batch_data: str, initial_model=Automaton()):
+        """A simple clingo run on a batch of data."""
+        learner = Learner(self.template, batch_data[0], self.args,
+                          existing_model=initial_model, with_joblib=self.with_joblib)
+        solve_result = self.call(learner)
+        models = solve_result.models
+
+        if not models:
+            logger.error("No models returned from the solver.")
+            # save the current induction program and data for debugging
+            from src.asal.asp import get_induction_program
+            p = get_induction_program(self.args, self.template)
+            with open('induction_program.lp', 'w') as file:
+                file.write(p)
+            with open('induction_data.lp', 'w') as file:
+                file.write(batch_data)
+            logger.error(f"Current induction program and data saved "
+                         f"in 'induction_program.lp' and 'induction_data.lp' files.")
+            sys.exit()
+
+        self.update_stats(solve_result)
+
+        if isinstance(models, Automaton):  # A single automaton is returned.
+            models = [models]
+
+        if solve_result.solving_time < self.t_lim:
+            if not self.args.all_opt:
+                models = [models[-1]]
+            else:  # Here optimality_proven is set correctly.
+                optimal_models = list(filter(lambda x: x.optimality_proven, models))
+                logger.info(f"Optimal models: {len(optimal_models)}")
+                if len(optimal_models) > self.max_children:
+                    models = random.sample(optimal_models, self.max_children)
+                else:
+                    models = optimal_models
+        else:
+            if (len(models)) > self.max_children:
+                # Just keep the last instead of sampling randomly in this case
+                models = models[-self.max_children:]
+
+        return models
+
     def run_mcts(self):
         start = time.time()
         for i in range(self.mcts_iterations):
@@ -280,8 +322,8 @@ class Asal:
         if solve_result.solving_time < self.t_lim:  # then an optimal model has been found...
             # However, the optimality_proven flag is not correctly set only when
             # ctl.configuration.solve.opt_mode = 'opt'
-            # (is is set when ctl.configuration.solve.opt_mode = 'optN' though...).
-            # Therefore, we cannot use this flag to filter-out the optimals as in the line below:
+            # (it is set when ctl.configuration.solve.opt_mode = 'optN' though...).
+            # Therefore, we cannot use this flag to filter-out the optimal models as in the line below:
             # optimal_models = list(filter(lambda x: x.optimality_proven, models))
             # So we do is the following:
             # (i) When args.all_opt=False, we just get the last model

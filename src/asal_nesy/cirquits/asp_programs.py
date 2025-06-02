@@ -40,36 +40,38 @@ mnist_even_odd = \
 
 mnist_even_odd_learn = \
     """
-    1 {value(d,0..9)} 1.
-    even(d) :- value(d,N), N \ 2 = 0.
-    odd(d) :- value(d,N), N \ 2 != 0.
-    larger_than_6(d) :- value(d,N), N > 6.
-    less_eq_6(d) :- value(d,N), N <= 6.
-    larger_than_3(d) :- value(d,N), N > 3.
-    less_eq_3(d) :- value(d,N), N <= 3.
-    larger_than_2(d) :- value(d,N), N > 2.
-    less_eq_2(d) :- value(d,N), N <= 2.
-    larger_than_4(d) :- value(d,N), N > 4.
-    less_eq_4(d) :- value(d,N), N <= 4.
-    larger_than_5(d) :- value(d,N), N > 5.
-    less_eq_5(d) :- value(d,N), N <= 5.
-    larger_than_7(d) :- value(d,N), N > 7.
-    less_eq_7(d) :- value(d,N), N <= 7.
+    1 {value(d1,0..9)} 1.
+    % 1 {value(d2,0..9)} 1.
+    % 1 {value(d3,0..9)} 1.
+    even(D) :- value(D,N), N \ 2 = 0.
+    odd(D) :- value(D,N), N \ 2 != 0.
+    larger_than_6(D) :- value(D,N), N > 6.
+    less_eq_6(D) :- value(D,N), N <= 6.
+    larger_than_3(D) :- value(D,N), N > 3.
+    less_eq_3(D) :- value(D,N), N <= 3.
+    larger_than_2(D) :- value(D,N), N > 2.
+    less_eq_2(D) :- value(D,N), N <= 2.
+    larger_than_4(D) :- value(D,N), N > 4.
+    less_eq_4(D) :- value(D,N), N <= 4.
+    larger_than_5(D) :- value(D,N), N > 5.
+    less_eq_5(D) :- value(D,N), N <= 5.
+    larger_than_7(D) :- value(D,N), N > 7.
+    less_eq_7(D) :- value(D,N), N <= 7.
     
-    equals(even,1) :- even(d).
-    equals(odd,1) :- odd(d).
-    equals(gt_6,1) :- larger_than_6(d).
-    equals(leq_6,1) :- less_eq_6(d).
-    equals(gt_2,1) :- larger_than_2(d).
-    equals(leq_2,1) :- less_eq_2(d).
-    equals(gt_3,1) :- larger_than_3(d).
-    equals(leq_3,1) :- less_eq_3(d).
-    equals(gt_4,1) :- larger_than_4(d).
-    equals(leq_4,1) :- less_eq_4(d).
-    equals(gt_5,1) :- larger_than_5(d).
-    equals(leq_5,1) :- less_eq_5(d).
-    equals(gt_7,1) :- larger_than_7(d).
-    equals(leq_7,1) :- less_eq_7(d).
+    equals(even(D),1) :- even(D).
+    equals(odd(D),1) :- odd(D).
+    equals(gt_6(D),1) :- larger_than_6(D).
+    equals(leq_6(D),1) :- less_eq_6(D).
+    equals(gt_2(D),1) :- larger_than_2(D).
+    equals(leq_2(D),1) :- less_eq_2(D).
+    equals(gt_3(D),1) :- larger_than_3(D).
+    equals(leq_3(D),1) :- less_eq_3(D).
+    equals(gt_4(D),1) :- larger_than_4(D).
+    equals(leq_4(D),1) :- less_eq_4(D).
+    equals(gt_5(D),1) :- larger_than_5(D).
+    equals(leq_5(D),1) :- less_eq_5(D).
+    equals(gt_7(D),1) :- larger_than_7(D).
+    equals(leq_7(D),1) :- less_eq_7(D).
     """
 
 road_r_101_seq = """
