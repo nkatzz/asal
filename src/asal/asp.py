@@ -47,6 +47,10 @@ def get_induction_program(args, t: Template, existing_model=None):
     if "decrease" in args.predicates:
         program.extend(['\n' + def_decrease, generate_decrease, used_atts_decrease, cost_decrease])
 
+    if args.max_rule_length > 0:
+        program.append(f'\n% Max rule length constraint for length {args.max_rule_length}.')
+        program.append(f'\n:- body(I,J,_), #count{{F: body(I,J,F)}} > {args.max_rule_length}.')
+
     program.append(get_domain(args.domain))
 
     if existing_model:  # is not None and isinstance(existing_model, list)
