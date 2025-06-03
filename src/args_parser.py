@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument("--unsat_weight", metavar="<n>",
                         type=int, default=1, help="""Cost/weight of not accepting a positive sequence, or not rejecting 
 a negative one. The default weight is 1 and is applied 
-uniformly to  all training sequences. Individual weights 
+uniformly to all training sequences. Individual weights 
 per example can be set via --unsat_weight 0, in which case the 
 weights need to be provided in the training data file as weight(S,W)
 where S is the sequence id and W is an integer.""")

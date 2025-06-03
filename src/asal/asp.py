@@ -46,6 +46,7 @@ def get_induction_program(args, t: Template, existing_model=None):
         program.extend(['\n' + def_increase, generate_increase, used_atts_increase, cost_increase])
     if "decrease" in args.predicates:
         program.extend(['\n' + def_decrease, generate_decrease, used_atts_decrease, cost_decrease])
+
     program.append(get_domain(args.domain))
 
     if existing_model:  # is not None and isinstance(existing_model, list)
@@ -195,7 +196,8 @@ def minimize_fps_fns(args):
     c = ["satisfied(Seq) :- positive(Seq), accepted(Seq).", "satisfied(Seq) :- negative(Seq), not accepted(Seq)."]
     weight = args.unsat_weight if args.unsat_weight != 0 else 'W'
     level = 1 if args.coverage_first else 0
-    c.append(f"#minimize{{{weight}@{level},Seq: sequence(Seq), weight(Seq,W), not satisfied(Seq)}}.")
+    # c.append(f"#minimize{{{weight}@{level},Seq: sequence(Seq), weight(Seq,W), not satisfied(Seq)}}.")
+    c.append(f"#minimize{{W@{level},Seq: sequence(Seq), weight(Seq,W), not satisfied(Seq)}}.")
     return '\n'.join(c)
 #"""
 

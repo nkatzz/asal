@@ -162,7 +162,7 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
         )
 
         logger.info(green(msg))
-        
+
         for query in range(query_budget):
             best_seq = get_labelled_point(train_loader, fully_labelled_seqs,
                                           current_nesy_model, random_query=random_query)
