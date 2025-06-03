@@ -38,7 +38,7 @@ weights need to be provided in the training data file as weight(S,W)
 where S is the sequence id and W is an integer.""")
 
     parser.add_argument("--max_rule_length", metavar="<n>",
-                        type=int, default=0, help="Max allowed rule length. Default is 0 meaning no length limit.")
+                        type=int, default=1000, help="Max allowed rule length.")
 
     parser.add_argument("--incremental",
                         action="store_true", help="Learn incrementally with MCTS.")

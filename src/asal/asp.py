@@ -32,24 +32,23 @@ def get_induction_program(args, t: Template, existing_model=None):
     program.append('\n')
     program.append(get_target_class(args.tclass))
     program.append(attribute_defs)
-    if "equals" in args.predicates:
-        program.extend(['\n' + def_equals, generate_equals, used_atts_equals, cost_equals])
-    if "at_least" in args.predicates:
-        program.extend(['\n' + def_at_least, generate_at_least, used_atts_at_least, cost_at_least])
-    if "at_most" in args.predicates:
-        program.extend(['\n' + def_at_most, generate_at_most, used_atts_at_most, cost_at_most])
-    if "lt" in args.predicates:
-        program.extend(['\n' + def_lt, generate_lt, used_atts_lt, cost_lt])
-    if "neg" in args.predicates:
-        program.extend(['\n' + def_neg, generate_neg, used_atts_neg, cost_neg])
-    if "increase" in args.predicates:
-        program.extend(['\n' + def_increase, generate_increase, used_atts_increase, cost_increase])
-    if "decrease" in args.predicates:
-        program.extend(['\n' + def_decrease, generate_decrease, used_atts_decrease, cost_decrease])
 
-    if args.max_rule_length > 0:
-        program.append(f'\n% Max rule length constraint for length {args.max_rule_length}.')
-        program.append(f'\n:- body(I,J,_), #count{{F: body(I,J,F)}} > {args.max_rule_length}.')
+    m = args.max_rule_length
+
+    if "equals" in args.predicates:
+        program.extend(['\n' + def_equals, generate_equals(m), used_atts_equals, cost_equals])
+    if "at_least" in args.predicates:
+        program.extend(['\n' + def_at_least, generate_at_least(m), used_atts_at_least, cost_at_least])
+    if "at_most" in args.predicates:
+        program.extend(['\n' + def_at_most, generate_at_most(m), used_atts_at_most, cost_at_most])
+    if "lt" in args.predicates:
+        program.extend(['\n' + def_lt, generate_lt(m), used_atts_lt, cost_lt])
+    if "neg" in args.predicates:
+        program.extend(['\n' + def_neg, generate_neg(m), used_atts_neg, cost_neg])
+    if "increase" in args.predicates:
+        program.extend(['\n' + def_increase, generate_increase(m), used_atts_increase, cost_increase])
+    if "decrease" in args.predicates:
+        program.extend(['\n' + def_decrease, generate_decrease(m), used_atts_decrease, cost_decrease])
 
     program.append(get_domain(args.domain))
 
@@ -111,6 +110,7 @@ def get_interpreter(args):
     """
     return interpreter
 
+
 state_defs = """\n
 start(1).
 state(S) :- transition(S,_,_).
@@ -159,14 +159,37 @@ fn(SeqId) :- positive(SeqId), not accepted(SeqId).
 #show fn/1.
 """
 
-generate_at_most = "{body(I,J,at_most(A,V)) : rule(I), conjunction(J), numerical(A), value(A,V)}."
-generate_at_least = "{body(I,J,at_least(A,V)) : rule(I), conjunction(J), numerical(A), value(A,V)}."
-generate_lt = "{body(I,J,lt(A1,A2)) : rule(I), conjunction(J), numerical(A1), numerical(A2), A1 != A2}."
-generate_equals = "{body(I,J,equals(A,V)) : rule(I), conjunction(J), categorical(A), value(A,V)}."
-generate_neg = "{body(I,J,neg(A,V)) : rule(I), conjunction(J), categorical(A), value(A,V)}."
-generate_increase = "{body(I,J,increase(A)) : rule(I), conjunction(J), numerical(A)}."
-generate_decrease = "{body(I,J,decrease(A)) : rule(I), conjunction(J), numerical(A)}."
+def_at_most = "holds(at_most(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y <= X, symbol(X)."
+def_at_least = "holds(at_least(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y >= X, symbol(X)."
+# def_lt = ("holds(lt(A1,A2),SeqId,T) :- seq(SeqId,obs(A1,X),T), seq(SeqId,obs(A2,Y),T), X < Y, "
+#           "numerical(A1), numerical(A2), A1 != A2.")
+def_lt = ("holds(lt(A1,A2),SeqId,T) :- seq(SeqId,obs(A1,X),T), seq(SeqId,obs(A2,Y),T), X <= Y, "
+          "numerical(A1), numerical(A2).")
+def_equals = "holds(equals(A,X),SeqId,T) :- seq(SeqId,obs(A,X),T), categorical(A), A != none."
+def_neg = "holds(neg(E,X),SeqId,T) :- seq(SeqId,obs(E,Y),T), value(E,X), Y != X."
+def_decrease = "holds(decrease(A),S,T) :- seq(S,obs(A,X),T), seq(S,obs(A,Y),T-1), X < Y, numerical(A)."
+def_increase = "holds(increase(A),S,T) :- seq(S,obs(A,X),T), seq(S,obs(A,Y),T-1), X > Y, numerical(A)."
 
+generate_at_most = lambda \
+    lim: f"0 {{body(I,J,at_most(A,V)) : rule(I), conjunction(J), numerical(A), value(A,V)}} {lim}."
+generate_at_least = lambda \
+    lim: f"0 {{body(I,J,at_least(A,V)) : rule(I), conjunction(J), numerical(A), value(A,V)}}. {lim}"
+generate_lt = lambda \
+    lim: f"0 {{body(I,J,lt(A1,A2)) : rule(I), conjunction(J), numerical(A1), numerical(A2), A1 != A2}} {lim}."
+generate_equals = lambda \
+    lim: f"0 {{body(I,J,equals(A,V)) : rule(I), conjunction(J), categorical(A), value(A,V)}} {lim}."
+generate_neg = lambda lim: f"0 {{body(I,J,neg(A,V)) : rule(I), conjunction(J), categorical(A), value(A,V)}} {lim}."
+generate_increase = lambda lim: f"0 {{body(I,J,increase(A)) : rule(I), conjunction(J), numerical(A)}}. {lim}"
+generate_decrease = lambda lim: f"0 {{body(I,J,decrease(A)) : rule(I), conjunction(J), numerical(A)}} {lim}."
+
+# Costs can be modified here.
+cost_lt = "cost(lt(A1,A2),1) :- attribute(A1), attribute(A2)."
+cost_at_most = "cost(at_most(A,V),1) :- value(A,V)."
+cost_at_least = "cost(at_least(A,V),1) :- value(A,V)."
+cost_equals = "cost(equals(A,V),1) :- value(A,V)."
+cost_neg = "cost(neg(A,V),1) :- value(A,V)."
+cost_increase = "cost(increase(A),1) :- numerical(A)."
+cost_decrease = "cost(decrease(A),1) :- numerical(A)."
 
 def generate_conjs(max_alts):
     return f"{{conjunction(1..{max_alts})}}."
@@ -195,6 +218,7 @@ def minimize_fps_fns(coverage_first=False, unsat_weight=1):
     return '\n'.join(c)
 """
 
+
 #"""
 def minimize_fps_fns(args):
     c = ["satisfied(Seq) :- positive(Seq), accepted(Seq).", "satisfied(Seq) :- negative(Seq), not accepted(Seq)."]
@@ -203,6 +227,8 @@ def minimize_fps_fns(args):
     # c.append(f"#minimize{{{weight}@{level},Seq: sequence(Seq), weight(Seq,W), not satisfied(Seq)}}.")
     c.append(f"#minimize{{W@{level},Seq: sequence(Seq), weight(Seq,W), not satisfied(Seq)}}.")
     return '\n'.join(c)
+
+
 #"""
 
 minimize_size = "#minimize{C@0,I,J,F: body(I,J,F), cost(F,C)}."
@@ -219,24 +245,6 @@ attribute(A) :- numerical(A).
 attribute(A) :- categorical(A).
 :- numerical(A), categorical(A).
 """
-
-def_at_most = "holds(at_most(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y <= X, symbol(X)."
-def_at_least = "holds(at_least(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y >= X, symbol(X)."
-def_lt = ("holds(lt(A1,A2),SeqId,T) :- seq(SeqId,obs(A1,X),T), seq(SeqId,obs(A2,Y),T), X < Y, "
-          "numerical(A1), numerical(A2), A1 != A2.")
-def_equals = "holds(equals(A,X),SeqId,T) :- seq(SeqId,obs(A,X),T), categorical(A), A != none."
-def_neg = "holds(neg(E,X),SeqId,T) :- seq(SeqId,obs(E,Y),T), value(E,X), Y != X."
-def_decrease = "holds(decrease(A),S,T) :- seq(S,obs(A,X),T), seq(S,obs(A,Y),T-1), X < Y, numerical(A)."
-def_increase = "holds(increase(A),S,T) :- seq(S,obs(A,X),T), seq(S,obs(A,Y),T-1), X > Y, numerical(A)."
-
-# Costs can be modified here.
-cost_lt = "cost(lt(A1,A2),1) :- attribute(A1), attribute(A2)."
-cost_at_most = "cost(at_most(A,V),1) :- value(A,V)."
-cost_at_least = "cost(at_least(A,V),1) :- value(A,V)."
-cost_equals = "cost(equals(A,V),1) :- value(A,V)."
-cost_neg = "cost(neg(A,V),1) :- value(A,V)."
-cost_increase = "cost(increase(A),1) :- numerical(A)."
-cost_decrease = "cost(decrease(A),1) :- numerical(A)."
 
 base_constraints = """\
 %------------------------------------------------------------------------------------------
