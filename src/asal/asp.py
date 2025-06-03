@@ -173,13 +173,13 @@ def_increase = "holds(increase(A),S,T) :- seq(S,obs(A,X),T), seq(S,obs(A,Y),T-1)
 generate_at_most = lambda \
     lim: f"0 {{body(I,J,at_most(A,V)) : rule(I), conjunction(J), numerical(A), value(A,V)}} {lim}."
 generate_at_least = lambda \
-    lim: f"0 {{body(I,J,at_least(A,V)) : rule(I), conjunction(J), numerical(A), value(A,V)}}. {lim}"
+    lim: f"0 {{body(I,J,at_least(A,V)) : rule(I), conjunction(J), numerical(A), value(A,V)}} {lim}."
 generate_lt = lambda \
     lim: f"0 {{body(I,J,lt(A1,A2)) : rule(I), conjunction(J), numerical(A1), numerical(A2), A1 != A2}} {lim}."
 generate_equals = lambda \
     lim: f"0 {{body(I,J,equals(A,V)) : rule(I), conjunction(J), categorical(A), value(A,V)}} {lim}."
 generate_neg = lambda lim: f"0 {{body(I,J,neg(A,V)) : rule(I), conjunction(J), categorical(A), value(A,V)}} {lim}."
-generate_increase = lambda lim: f"0 {{body(I,J,increase(A)) : rule(I), conjunction(J), numerical(A)}}. {lim}"
+generate_increase = lambda lim: f"0 {{body(I,J,increase(A)) : rule(I), conjunction(J), numerical(A)}} {lim}."
 generate_decrease = lambda lim: f"0 {{body(I,J,decrease(A)) : rule(I), conjunction(J), numerical(A)}} {lim}."
 
 # Costs can be modified here.
