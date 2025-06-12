@@ -8,9 +8,10 @@ from src.asal.asp import get_test_program
 
 class Tester:
 
-    def __init__(self, data, args, automaton, path_scoring=True):
+    def __init__(self, data, args, automaton, path_scoring=False):
 
         domain, target_class = args.domain, args.tclass
+        self.args = args
         self.cores = multiprocessing.cpu_count()
         self.data = data
         self.model = automaton
@@ -33,6 +34,9 @@ class Tester:
         self.fp_seq_ids = []
         self.fn_seq_ids = []
 
+        self.tp_earliness = {}
+        self.fp_earliness = {}
+
     def count_stats(self, model):
         """Used when we are just evaluating an automaton on the training/testing set.
            We are simply counting stats here."""
@@ -46,6 +50,44 @@ class Tester:
                 self.fn_seq_ids.append(seq_id)
             else:
                 pass
+
+    def count_stats_with_earliness(self, model):
+        # tps_seqs & fp_seqs are dicts of the form {seq_id: earliness_val}, fn_seqs is a list with fn seq ids.
+        tps_seqs, fp_seqs, fn_seqs = {}, {}, []
+        for atom in model.symbols(shown=True):
+            seq_id = str(atom.arguments[0])
+            if atom.match("fn", 1):
+                self.fn_seq_ids.append(seq_id)
+            else:
+                accept_time, seq_len = int(str(atom.arguments[1])), int(str(atom.arguments[2]))
+                earliness = (seq_len - accept_time) / seq_len
+                if atom.match("tp", 3):
+                    self.tp_earliness[seq_id] = earliness
+                else:
+                    self.fp_earliness[seq_id] = earliness
+
+    def calculate_earliness(self):
+        def prf(tp, fp, fn):
+            precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+            recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+            if precision + recall == 0:
+                f1 = 0.0
+            else:
+                f1 = 2 * precision * recall / (precision + recall)
+            return precision, recall, f1
+
+        tps, fps, fns = len(self.tp_earliness), len(self.fp_earliness), len(self.fn_seq_ids)
+        avg_tp_earliness, avg_fp_earliness = None, None
+        if tps > 0:
+            avg_tp_earliness = sum(self.tp_earliness.values()) * 100 / tps
+        if fps > 0:
+            avg_fp_earliness = sum(self.fp_earliness.values()) * 100 / fps
+        p, r, f1 = prf(tps, fps, fns)
+        print(f'F1-score: {f1:.3f} (tps, fps, fns: {tps}, {fps}, {fns})')
+        if avg_tp_earliness is not None:
+            print(f'Average tp earliness: {avg_tp_earliness:.0f}%')
+        if avg_fp_earliness is not None:
+            print(f'Average fp earliness: {avg_fp_earliness:.0f}%')
 
     @staticmethod
     def __split(data, predicate):
@@ -181,7 +223,10 @@ class Tester:
         if self.path_scoring:
             self.ctl.solve(on_model=self.score_paths)
         else:
-            self.ctl.solve(on_model=self.count_stats)
+            if self.args.eval_earliness is not None:
+                self.ctl.solve(on_model=self.count_stats_with_earliness)
+            else:
+                self.ctl.solve(on_model=self.count_stats)
 
 
 def rewrite_automaton(automaton: Automaton):

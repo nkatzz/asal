@@ -106,8 +106,14 @@ def get_labelled_point(train_loader: DataLoader[SequenceDataset],
 
         best_seq_id = max(filtered_losses, key=filtered_losses.get)
         best_seq = next(seq for seq in unlabeled_candidates if seq.seq_id == best_seq_id)
+
+        logger.info(yellow(f'Selected: {best_seq.seq_id} | Acceptance probability: '
+                           f'{best_seq.acceptance_probability} | Label: {best_seq.seq_label} | '
+                           f'BCE loss: {filtered_losses[best_seq.seq_id]}'))
     else:
         best_seq = random.choice(unlabeled_candidates)
+        logger.info(yellow(f'Selected: {best_seq.seq_id} | Acceptance probability: '
+                           f'{best_seq.acceptance_probability} | Label: {best_seq.seq_label}'))
 
     return best_seq
 
@@ -128,7 +134,11 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
         nn_criterion = nn.CrossEntropyLoss()
 
         # Pick an initial set of fully labelled sequences
-        fully_labeled_seq_ids = initialize_fully_labeled_seqs(train_loader, num_init_fully_labelled)
+        # fully_labeled_seq_ids = initialize_fully_labeled_seqs(train_loader, num_init_fully_labelled)
+        fully_labeled_seq_ids = [823, 1748, 1021, 276]  # This is a good seed
+
+        logger.info(yellow(f'Fully labelled: {[s for s in fully_labeled_seq_ids]}'))
+
         fully_labelled_seqs = list(filter(lambda seq: seq.seq_id in fully_labeled_seq_ids, train_data))
         for seq in fully_labelled_seqs:
             # Mark them all as fully labelled
@@ -145,7 +155,8 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
                                            cnn_output_size, nn_criterion, sequence_criterion,
                                            asal_args, asp_comp_program, class_attrs, epochs, current_nesy_model)
 
-        logger.info(green(f"""Best model:\n{current_nesy_model.sfa_asal.show(mode="simple")}\nLoss: {current_nesy_model.combined_loss} 
+        logger.info(green(
+            f"""Best model:\n{current_nesy_model.sfa_asal.show(mode="simple")}\nLoss: {current_nesy_model.combined_loss} 
         (target: {current_nesy_model.target_loss}), latent: {current_nesy_model.latent_loss}\n
         Test F1: target: {current_nesy_model.training_history['seq_f1'][-1]}, latent: {current_nesy_model.training_history['img_f1'][-1]}"""))
 
@@ -187,19 +198,35 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
         #            num_epochs, seq_loss_weight, class_attrs, test_loader, show_log=show_stats)
 
 
-
 if __name__ == "__main__":
     parser = parse_args()
     args = parser.parse_args()
 
     asal_args = argparse.Namespace(tclass=args.tclass, batch_size=20000, test=args.test, train=args.train,
                                    domain=args.domain,
-                                   predicates="equals", mcts_iters=10, all_opt=True,  # Get multiple optimal models!
-                                   tlim=60, states=args.states,
+                                   predicates="equals",
+                                   mcts_iters=10,
+                                   all_opt=False,  # Get multiple optimal models!
+                                   tlim=60,
+                                   states=args.states,
                                    exp_rate=args.exp_rate, mcts_children=args.mcts_children, show=args.show,
                                    unsat_weight=10,  # Set this to 0 to have uncertainty weights per sequence
                                    max_alts=args.max_alts, coverage_first=args.coverage_first, min_attrs=args.min_attrs,
-                                   warns_off=False, revise=False)
+                                   warns_off=False,
+                                   revise=False,
+                                   max_rule_length=300)
+
+    """"---------------"""
+    args = asal_args
+    """"---------------"""
+
+    """
+    Things to try:
+    1. Add more examples than the fully labelled ones during the revision process, properly weighted.
+    2. Compute all optimal, select the best.
+    3. Labelled the best K seqs instead of just one.
+    4. Properly revise the current model
+    """
 
     nn_args = argparse.Namespace(app_name='mnist', num_epochs=100, active_learning_frequency=5, points_to_label=100,
                                  top_N_seqs=20, entropy_scaling_factor=100, w_label_density=2.0, w_seq_entropy=1.0,

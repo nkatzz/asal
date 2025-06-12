@@ -6,6 +6,7 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir
 sys.path.insert(0, project_root)
 
 from src.args_parser import parse_args
+from src.asal.tester import Tester
 
 if "--help" in sys.argv or "-h" in sys.argv:
     parser = parse_args()
@@ -56,6 +57,15 @@ if __name__ == "__main__":
         tps, fps, fns = result.get_tps(), result.get_fps(), result.get_fns()
         logger.info(f'TPs, FPs, FNs: {tps}, {fps}, {fns}, '
                     f'F1-score: {f1(tps, fps, fns)}')
+        sys.exit(-1)
+
+    if args.eval_earliness is not None:
+        with open(args.eval_earliness, 'r') as file:
+            sfa = file.read()
+        data = get_train_data(args.test, str(args.tclass), 1000000, shuffle=shuffle)
+        tester = Tester(data[0], args, sfa)
+        tester.test_model()
+        tester.calculate_earliness()
         sys.exit(-1)
 
     tmpl = Template(max_states, target_class)

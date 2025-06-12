@@ -85,7 +85,11 @@ def get_test_program(args):
     if "decrease" in args.predicates:
         program.extend(['\n' + def_decrease])
 
-    program.append(test_show)
+    if args.eval_earliness is not None:
+        program.append(test_show_earliness)
+    else:
+        program.append(test_show)
+
     program = '\n'.join(program)
     return program
 
@@ -159,6 +163,16 @@ fn(SeqId) :- positive(SeqId), not accepted(SeqId).
 #show fn/1.
 """
 
+test_show_earliness = """
+tp(SeqId,T,T1) :- positive(SeqId), reach_accept_at(SeqId,T), seqEnd(SeqId,T1).
+fp(SeqId,T,T1) :- negative(SeqId), reach_accept_at(SeqId,T), seqEnd(SeqId,T1).
+fn(SeqId) :- positive(SeqId), not accepted(SeqId).
+
+#show tp/3.
+#show fp/3.
+#show fn/1.
+"""
+
 def_at_most = "holds(at_most(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y <= X, symbol(X)."
 def_at_least = "holds(at_least(A,X),SeqId,T) :- seq(SeqId,obs(A,Y),T), numerical(A), Y >= X, symbol(X)."
 # def_lt = ("holds(lt(A1,A2),SeqId,T) :- seq(SeqId,obs(A1,X),T), seq(SeqId,obs(A2,Y),T), X < Y, "
@@ -218,8 +232,6 @@ def minimize_fps_fns(coverage_first=False, unsat_weight=1):
     return '\n'.join(c)
 """
 
-
-#"""
 def minimize_fps_fns(args):
     c = ["satisfied(Seq) :- positive(Seq), accepted(Seq).", "satisfied(Seq) :- negative(Seq), not accepted(Seq)."]
     weight = args.unsat_weight if args.unsat_weight != 0 else 'W'
@@ -227,9 +239,6 @@ def minimize_fps_fns(args):
     # c.append(f"#minimize{{{weight}@{level},Seq: sequence(Seq), weight(Seq,W), not satisfied(Seq)}}.")
     c.append(f"#minimize{{W@{level},Seq: sequence(Seq), weight(Seq,W), not satisfied(Seq)}}.")
     return '\n'.join(c)
-
-
-#"""
 
 minimize_size = "#minimize{C@0,I,J,F: body(I,J,F), cost(F,C)}."
 mimimize_used_atts = "#minimize{1@0,X: used_attribute(X)}."
@@ -296,15 +305,17 @@ base_constraints = """\
 %---------------------------------------------------------------------------------------------
 % Prune automata with paths that do not end to the accepting state.
 %---------------------------------------------------------------------------------------------
-reachable_from(X,Y) :- transition(X,_,Y).
-reachable_from(X,Z) :- reachable_from(X,Y), reachable_from(Y,Z).
-stranded_state(X) :- reachable_from(1,X), not reachable_from(X,S), accepting(S).
-:- stranded_state(X), state(X).
+% Update (4/6/2025): these forbid explicit reject states, which are often necessary.  
+% reachable_from(X,Y) :- transition(X,_,Y).
+% reachable_from(X,Z) :- reachable_from(X,Y), reachable_from(Y,Z).
+% stranded_state(X) :- reachable_from(1,X), not reachable_from(X,S), accepting(S).
+% :- stranded_state(X), state(X).
 
 %---------------------------------------------------------------------------------------------
 % Prune useless states that are not reachable from the start state.
 %---------------------------------------------------------------------------------------------
-:- not reachable_from(1,S), state(S).
+% Update (4/6/2025): same as above.
+% :- not reachable_from(1,S), state(S).
 
 %---------------------------------------------------------------------------------------------
 % Prune automata with unreachable states.

@@ -93,7 +93,7 @@ def nesy_forward_pass(batch, model, sfa, cnn_output_size, with_decay=False):
 """
 
 
-def nesy_forward_pass(batch, model, sfa, cnn_output_size, with_decay=False, update_seqs_stats=False):
+def nesy_forward_pass(batch, model, sfa, cnn_output_size, with_decay=False, update_seqs_stats=True):
     training_tensors = torch.stack([seq.images for seq in batch]).to(device)  # (bs, seqlen, dim, c, h, w)
     bs, seqlen, dim, c, w, h = training_tensors.shape
     training_tensors = training_tensors.view(-1, c, w, h)  # Flatten for CNN into (BS * SeqLen * dim, C, W, H)
@@ -300,7 +300,7 @@ def pretrain_nn(train_data: SequenceDataset,
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
-        print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {total_loss / len(train_loader):.4f}")
+        # print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {total_loss / len(train_loader):.4f}")
 
     test_loader = get_image_dataset(test_data.sequences, batch_size=32, shuffle=False)
 

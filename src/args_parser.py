@@ -77,6 +77,12 @@ over constraints that minimize model size.""")
 to evaluate on test data (passed via the --test option). The automaton needs to be
 in reasoning-based format (see option --show)""")
 
+    parser.add_argument("--eval_earliness", metavar="<path>",
+                        type=str, help="""Path to a file that contains an SFA specification (learnt/hand-crafted).
+    to evaluate on test data (passed via the --test option). The automaton needs to be
+    in reasoning-based format (see option --show). 
+    This option calculates the average earliness score for accepted sequences.""")
+
     parser.add_argument("--show", metavar="<s|r>", type=str, default="s",
                         help="""Show learnt SFAs in simpler (s), easier to inspect format, 
 or in a format that can be used for reasoning (r) with Clingo.""")

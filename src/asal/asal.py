@@ -194,7 +194,7 @@ class Asal:
             with open('induction_program.lp', 'w') as file:
                 file.write(p)
             with open('induction_data.lp', 'w') as file:
-                file.write(batch_data)
+                file.write(batch_data[0])
             logger.error(f"Current induction program and data saved "
                          f"in 'induction_program.lp' and 'induction_data.lp' files.")
             sys.exit()
@@ -211,7 +211,8 @@ class Asal:
                 optimal_models = list(filter(lambda x: x.optimality_proven, models))
                 logger.info(f"Optimal models: {len(optimal_models)}")
                 if len(optimal_models) > self.max_children:
-                    models = random.sample(optimal_models, self.max_children)
+                    # models = random.sample(optimal_models, self.max_children)
+                    models = models[-self.max_children:]  # keep the last instead of sampling randomly
                 else:
                     models = optimal_models
         else:
