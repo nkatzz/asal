@@ -352,6 +352,7 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
 
 
 if __name__ == "__main__":
+    """
     parser = parse_args()
     args = parser.parse_args()
 
@@ -369,6 +370,28 @@ if __name__ == "__main__":
                                    max_alts=args.max_alts,
                                    coverage_first=False,  # args.coverage_first,
                                    min_attrs=args.min_attrs,
+                                   warns_off=False,
+                                   revise=False,
+                                   max_rule_length=100)
+    """
+
+    asal_args = argparse.Namespace(tclass=1,
+                                   batch_size=20000,
+                                   test=None,
+                                   train=None,
+                                   domain="/home/nkatz/dev/asal/src/asal/asp/domains/mnist_multivar.lp",
+                                   predicates="equals",
+                                   mcts_iters=10,
+                                   all_opt=False,  # Get multiple optimal models!
+                                   tlim=120,
+                                   states=4,
+                                   exp_rate=0.005,
+                                   mcts_children=1,
+                                   show='s',
+                                   unsat_weight=10,  # Set this to 0 to have uncertainty weights per sequence
+                                   max_alts=3,
+                                   coverage_first=False,  # args.coverage_first,
+                                   min_attrs=False,
                                    warns_off=False,
                                    revise=False,
                                    max_rule_length=100)
