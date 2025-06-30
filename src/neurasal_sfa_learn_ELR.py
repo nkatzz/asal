@@ -165,7 +165,7 @@ def run_comparative_experiments_rs_vs_eal(train_data, test_data, N_runs, query_b
 
         logger.info("Inducing initial SFA from fully labelled sequences...")
 
-        symb_seqs = [s.get_symbolic_seq() for s in seed_seqs]
+        symb_seqs = [s.get_labelled_seq_asp() for s in seed_seqs]
         init_sfa_dnnf, init_sfa_asal = induce_sfa(symb_seqs, asal_args, asp_comp_program, class_attrs)[-1]
 
         base_model = DigitCNN(out_features=cnn_output_size).to(device)

@@ -179,10 +179,10 @@ class Asal:
             # Generate a seed automaton
             self.expand_root()
 
-    def run(self, batch_data: str, initial_model=Automaton()):
+    def run(self, batch_data: str, existing_sfa=Automaton()):
         """A simple clingo run on a batch of data."""
         learner = Learner(self.template, batch_data[0], self.args,
-                          existing_model=initial_model, with_joblib=self.with_joblib)
+                          existing_model=existing_sfa, with_joblib=self.with_joblib)
         solve_result = self.call(learner)
         models = solve_result.models
 

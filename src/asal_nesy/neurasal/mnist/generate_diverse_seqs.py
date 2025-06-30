@@ -53,12 +53,12 @@ time(1..10).  % increase the end point to get longer seqs
 digit(0..9).
 
 % Automaton
+%*
 accepting(4).
-
 transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2). 
 transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4). 
 transition(4,f(4,4),4).
-%*
+
 holds(f(1,2),T) :- holds(equals(d1,even),T), holds(equals(d2,gt_6),T).
 holds(f(2,3),T) :- holds(equals(d2,odd),T), holds(equals(d1,leq_6),T).
 holds(f(3,4),T) :- holds(equals(d1,leq_3),T), holds(equals(d2,gt_5),T).
@@ -69,9 +69,33 @@ holds(f(4,4),T) :- time(T).
 holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
 *%
 
+%*
+accepting(4).
+transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2). 
+transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4). 
+transition(4,f(4,4),4).
+
 holds(f(1,2),T) :- holds(equals(d1,even),T), holds(equals(d1,gt_6),T).
 holds(f(2,3),T) :- holds(equals(d1,odd),T), holds(equals(d1,leq_6),T).
 holds(f(3,4),T) :- holds(equals(d1,leq_3),T).
+holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
+holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
+holds(f(4,4),T) :- time(T).
+holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
+*%
+
+accepting(4).
+transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2). 
+transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4). 
+transition(3,f(3,1),1). transition(2,f(2,1),1). 
+transition(4,f(4,4),4).
+
+holds(f(1,2),T) :- holds(equals(d1,even),T), holds(equals(d2,gt_6),T).
+holds(f(2,3),T) :- holds(equals(d2,odd),T), holds(equals(d1,leq_6),T).
+holds(f(3,4),T) :- holds(equals(d1,leq_3),T), holds(equals(d2,gt_5),T).
+holds(f(3,4),T) :- holds(equals(d2,odd),T).
+holds(f(3,1),T) :- holds(equals(d1,odd),T), holds(equals(d2,even),T).
+holds(f(2,1),T) :- holds(equals(d1,odd),T), holds(equals(d2,even),T).
 holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
 holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
 holds(f(4,4),T) :- time(T).
@@ -87,7 +111,7 @@ holds(equals(D,leq_3),T) :- seq(obs(D,X),T), X <= 3.
 holds(equals(D,gt_5),T) :- seq(obs(D,X),T), X > 5.
 
 1 {seq(obs(d1,X),T): digit(X)} 1 :- time(T).
-% 1 {seq(obs(d2,X),T): digit(X)} 1 :- time(T).
+1 {seq(obs(d2,X),T): digit(X)} 1 :- time(T).
 % 1 {seq(obs(d3,X),T): digit(X)} 1 :- time(T).
 
 #show.
@@ -363,10 +387,10 @@ def generate_seqs():
     print(counts_per_label_pos)
     print(counts_per_label_neg)
 
-    train_file = '../../../../data/mnist_nesy/clingo_generated_train.lp'
-    test_file = '../../../../data/mnist_nesy/clingo_generated_test.lp'
-    train_csv_file = '../../../../data/mnist_nesy/clingo_generated_train.csv'
-    test_csv_file = '../../../../data/mnist_nesy/clingo_generated_tets.csv'
+    train_file = '../../../../data/mnist_nesy/double_digit/clingo_generated_train.lp'
+    test_file = '../../../../data/mnist_nesy/double_digit/clingo_generated_test.lp'
+    train_csv_file = '../../../../data/mnist_nesy/double_digit/clingo_generated_train.csv'
+    test_csv_file = '../../../../data/mnist_nesy/double_digit/clingo_generated_test.csv'
 
     with open(train_file, 'w') as f1:
         for seq in train:

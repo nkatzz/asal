@@ -27,6 +27,8 @@ class CustomFormatter(logging.Formatter):
         return formatter.format(record)
 
 
+show_models = False  # set to False to log models in debug mode.
+
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 _formatter = logging.Formatter(

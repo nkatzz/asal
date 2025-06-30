@@ -85,7 +85,7 @@ def get_test_program(args):
     if "decrease" in args.predicates:
         program.extend(['\n' + def_decrease])
 
-    if args.eval_earliness is not None:
+    if 'eval_earliness' in args and args.eval_earliness is not None:
         program.append(test_show_earliness)
     else:
         program.append(test_show)
@@ -200,7 +200,7 @@ generate_decrease = lambda lim: f"0 {{body(I,J,decrease(A)) : rule(I), conjuncti
 cost_lt = "cost(lt(A1,A2),1) :- attribute(A1), attribute(A2)."
 cost_at_most = "cost(at_most(A,V),1) :- value(A,V)."
 cost_at_least = "cost(at_least(A,V),1) :- value(A,V)."
-cost_equals = "cost(equals(A,V),1) :- value(A,V)."
+cost_equals = "cost(equals(A,V),20) :- value(A,V)."
 cost_neg = "cost(neg(A,V),1) :- value(A,V)."
 cost_increase = "cost(increase(A),1) :- numerical(A)."
 cost_decrease = "cost(decrease(A),1) :- numerical(A)."

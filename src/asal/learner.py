@@ -9,6 +9,22 @@ from clingo.script import enable_python
 from src.asal.asp import get_induction_program
 from src.asal.auxils import timer
 
+"""
+For the solver configuration:
+>>> prg.configuration.keys
+['tester', 'solve', 'asp', 'solver', 'configuration', 'share', 'learn_explicit', 'sat_prepro', 'stats', 'parse_ext', 'parse_maxsat']
+>>> prg.configuration.solve.keys
+['solve_limit', 'parallel_mode', 'global_restarts', 'distribute', 'integrate', 'enum_mode', 'project', 'models', 'opt_mode']
+>>> prg.configuration.solve.opt_mode
+'opt'
+
+# enable_python() Necessary for allowing python script evaluation with Clingo-5.5.x. In general there are
+# two options for that: Use the enable_python() function:
+# https://potassco.org/clingo/python-api/5.5/clingo/script.html#clingo.script.enable_python
+# or, use the context argument of the ground function as in this example:
+# https://potassco.org/clingo/python-api/5.5/clingo/#examples.
+"""
+
 
 class Learner:
     def __init__(self,
@@ -76,10 +92,13 @@ class Learner:
         if len(fsm.asp_model) >= 1 and len(fsm.transitions) > 0:
             self.induced_models.append(fsm)
 
-        if True:  # show all generated models
+        if not show_models:  # show all generated models
             logger.debug('Found model with cost {0} ({1}):\n{2}\nReturned model is:\n{3}'.
                          format(fsm.cost, ' '.join(fsm.local_performance),
                                 fsm.show(mode=self.mode), list(map(lambda x: x.str, fsm.asp_model))))
+        else:
+            logger.info('Found model with cost {0} ({1}):\n{2}'.
+                        format(fsm.cost, ' '.join(fsm.local_performance), fsm.show(mode=self.mode)))
 
         """
         # Save them as objects for debugging.

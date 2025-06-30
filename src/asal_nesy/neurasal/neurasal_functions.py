@@ -1,6 +1,7 @@
 import random
 import torch
 from torch import nn as nn
+import torch.nn.functional as F
 import time
 import src.asal_nesy.deepfa.automaton
 from src.asal_nesy.device import device
@@ -18,6 +19,7 @@ from typing import Dict, List
 from collections import defaultdict
 from copy import deepcopy
 import tempfile
+from src.asal.structs import Automaton
 
 
 def create_labelling_function(weights: dict, sfa_symbols: list[str]):
@@ -92,6 +94,24 @@ def nesy_forward_pass(batch, model, sfa, cnn_output_size, with_decay=False):
     return acceptance_probabilities, latent_predictions, nn_outputs
 """
 
+def get_nn_predicted_seqs(batch, model, cnn_output_size):
+    training_tensors = torch.stack([seq.images for seq in batch]).to(device)  # (bs, seqlen, dim, c, h, w)
+    bs, seqlen, dim, c, w, h = training_tensors.shape
+    training_tensors = training_tensors.view(-1, c, w, h)  # Flatten for CNN into (BS * SeqLen * dim, C, W, H)
+
+    model.eval()
+    with torch.no_grad():
+        logits = model(training_tensors, apply_softmax=False)  # (BS * SeqLen * Dim, NumClasses)
+        logits = logits.view(bs, seqlen, dim, cnn_output_size)  # (BS, SeqLen, Dim, NumClasses)
+        nn_probs = torch.softmax(logits, dim=-1)
+        latent_predictions = torch.argmax(nn_probs, dim=3).cpu()  # shape: (BS, SeqLen, Dim)
+
+    predicted_symbolic_seqs = [
+        latent_predictions[i].numpy()  # shape: (SeqLen, Dim)
+        for i in range(bs)
+    ]
+    model.train()
+    return predicted_symbolic_seqs
 
 def nesy_forward_pass(batch, model, sfa, cnn_output_size, with_decay=False, update_seqs_stats=True):
     training_tensors = torch.stack([seq.images for seq in batch]).to(device)  # (bs, seqlen, dim, c, h, w)
@@ -100,7 +120,7 @@ def nesy_forward_pass(batch, model, sfa, cnn_output_size, with_decay=False, upda
     logits = model(training_tensors, apply_softmax=False)  # (BS * SeqLen * Dim, NumClasses)
     logits = logits.view(bs, seqlen, dim, cnn_output_size)  # (BS, SeqLen, Dim, NumClasses)
 
-    # dim=-1 refers to the last dimension of the tensor, more generic and orbust than explicitly
+    # dim=-1 refers to the last dimension of the tensor, more generic and robust than explicitly
     # giving the dimension, especially if tensor shapes slightly change at some point. This will
     # work as long as the class predictions are the last dimension.
     nn_probs = torch.softmax(logits, dim=-1)
@@ -130,6 +150,75 @@ def nesy_forward_pass(batch, model, sfa, cnn_output_size, with_decay=False, upda
             sequence.acceptance_probability = p
 
     return acceptance_probabilities, latent_predictions, logits
+
+
+def compute_seq_probs(model, batch_images):
+    B = len(batch_images)
+    T, D, C, H, W = batch_images[0].images.shape
+
+    # Reshape to (B * T * D, C, H, W)
+    flat_images = torch.cat(
+        [seq.images.view(-1, C, H, W) for seq in batch_images], dim=0
+    ).to(next(model.parameters()).device)
+
+    # Forward pass
+    model.eval()
+    with torch.no_grad():
+        logits = model(flat_images)  # (B * T * D, num_classes)
+        probs = F.softmax(logits, dim=1)  # (B * T * D, num_classes)
+        argmax_probs = probs.max(dim=1).values  # (B * T * D,)
+
+    # Reshape to (B, T, D) and compute product over T and D
+    argmax_probs = argmax_probs.view(B, T, D)
+    # seq_probs = argmax_probs.prod(dim=(1, 2))  # (B,)
+    seq_probs = argmax_probs.prod(dim=2).prod(dim=1)
+
+    """
+    seq_prob_dict = {
+        seq.seq_id: prob.item()
+        for seq, prob in zip(batch_images, seq_probs)
+    }
+    """
+
+    model.train()
+    # return seq_prob_dict
+    return seq_probs
+
+
+def set_asp_weights(unlabelled_seqs, fully_labelled_seqs, max_unlabelled_weight=100):
+    import numpy as np
+    hard_weight = 10000000000
+    probs = [seq.sequence_probability for seq in unlabelled_seqs]
+
+    # To prevent tiny floating point values from becoming indistinguishably small when cast to integers,
+    # apply log transformation (which spreads out small numbers):
+    log_probs = [np.log(p + 1e-12) for p in probs]
+
+    # We want larger weights for more confident sequences (i.e., higher original probability → higher weight), so we:
+    # Normalize to [0, 1]:
+    min_lp, max_lp = min(log_probs), max(log_probs)
+    norm_weights = [(lp - min_lp) / (max_lp - min_lp + 1e-12) for lp in log_probs]
+
+    # Inverting the log_probs will give higher weight to most uncertain seqs. Try it to see that we're getting
+    # out huge, crappy, overfitted SFAs...
+    # inv_log_probs = [-lp for lp in log_probs]
+    # min_lp, max_lp = min(inv_log_probs), max(inv_log_probs)
+
+    # scale the normalized soft weights into [1, max_unlabelled_weight]
+    int_weights = [int(w * max_unlabelled_weight) + 1 for w in norm_weights]
+
+    """
+    return {
+        seq.seq_id: weight
+        for seq, weight in zip(unlabelled_seqs, int_weights)
+    }, hard_weight
+    """
+
+    for s, w in zip(unlabelled_seqs, int_weights):
+        s.asp_weight = w
+
+    for s in fully_labelled_seqs:
+        s.asp_weight = hard_weight
 
 
 def get_probs_dict(nn_outputs: torch.Tensor, symbols: List[str]) -> Dict[str, torch.Tensor]:
@@ -335,7 +424,7 @@ def sequence_to_facts(sequence: TensorSequence):
     return ' '.join(facts)
 
 
-def induce_sfa_simple(args, asp_compilation_program, vars, data=None, existing_sfa=None):
+def induce_sfa_simple(args, asp_compilation_program, vars, data=None, existing_sfa=Automaton()):
     shuffle = False
     template = Template(args.states, args.tclass)
     train_data = get_train_data(args.train, str(args.tclass), args.batch_size, shuffle=shuffle)
@@ -355,7 +444,7 @@ def induce_sfa_simple(args, asp_compilation_program, vars, data=None, existing_s
     """
 
     asal = Asal(args, train_data, template, initialize_only=True)
-    models = asal.run(train_data)
+    models = asal.run(train_data, existing_sfa=existing_sfa)
     # sfa = asal.run(train_data)
     logger.info(f'Compiling guards into NNF for {len(models)} SFA...')
     from src.asal_nesy.neurasal.sfa import compile_sfa
@@ -464,14 +553,14 @@ def compute_elr_score(candidate_seq, model, cnn_output_size, train_loader,
     return current_loss - expected_loss
 
 
-def induce_sfa(symb_seqs, asal_args, asp_comp_program, class_attrs):
+def induce_sfa(symb_seqs, asal_args, asp_comp_program, class_attrs, existing_sfa=Automaton()):
     input_data = '\n'.join(symb_seqs)
     with tempfile.NamedTemporaryFile(mode='w', suffix='.lp', delete=False) as tmp_file:
         tmp_path = tmp_file.name
         tmp_file.write(input_data)
     try:
         asal_args.train = tmp_path
-        results = induce_sfa_simple(asal_args, asp_comp_program, class_attrs)
+        results = induce_sfa_simple(asal_args, asp_comp_program, class_attrs, existing_sfa=existing_sfa)
     finally:
         os.remove(tmp_path)  # Always delete the file
     return results
@@ -541,7 +630,7 @@ def al_expected_acceptance_loss(model, train_loader, test_loader, train_data, sf
 
         print([s.seq_id for s in fully_labelled_seqs])
 
-        symb_seqs = [s.get_symbolic_seq() for s in fully_labelled_seqs]
+        symb_seqs = [s.get_labelled_seq_asp() for s in fully_labelled_seqs]
         sfa_dnnf, sfa_asal = induce_sfa(symb_seqs, asal_args, asp_comp_program, class_attrs)[-1]
 
         stats, _ = nesy_train(model, train_loader, sfa_dnnf, cnn_output_size,
@@ -603,7 +692,7 @@ def al_random_sampling(train_data, train_loader, test_loader, init_cnn, al_queri
 
         print([s.seq_id for s in fully_labelled_seqs])
 
-        symb_seqs = [s.get_symbolic_seq() for s in fully_labelled_seqs]
+        symb_seqs = [s.get_labelled_seq_asp() for s in fully_labelled_seqs]
         sfa_dnnf, sfa_asal = induce_sfa(symb_seqs, asal_args, asp_comp_program, class_attrs)[-1]
 
         stats, _ = nesy_train(model, train_loader, sfa_dnnf, cnn_output_size,

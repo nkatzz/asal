@@ -30,6 +30,9 @@ class TensorSequence:
 
         self.acceptance_probability = 0.0
         self.elr_score = None
+        self.sequence_probability = None
+        self.asp_weight = None
+        self.predicted_symbolic_seq = None
 
     def set_image_label(self, t: int, d: int, label=None):
         """
@@ -91,7 +94,7 @@ class TensorSequence:
             for d in range(self.dimensionality):
                 self.set_image_label(t, d)
 
-    def get_symbolic_seq(self):
+    def get_labelled_seq_asp(self, with_custom_weights=False):
         grouped = [list(group) for group in zip(*self.image_labels)]
         result = [
             [
@@ -103,7 +106,24 @@ class TensorSequence:
         ]
         for x in result:
             x.append(f'class({self.seq_id},{self.seq_label}).')
+            if with_custom_weights:
+                x.append(f'weight({self.seq_id},{self.asp_weight}).')
         return '\n'.join(" ".join(seq) for seq in result)
+
+    def get_predicted_seq_asp(self, with_custom_weights=False):
+        labels_grouped = [list(group) for group in zip(*self.image_labels)]
+        attributes = sorted({k for g in labels_grouped for d in g for k in d})
+        predicted_symbols_grouped = [list(group) for group in zip(*self.predicted_symbolic_seq)]
+        seqs = [
+            [f'seq({self.seq_id},obs({attributes[j]},{d}),{i}).' for i, d in enumerate(g)] + [f'class({self.seq_id},{self.seq_label}).']
+            for j, g in enumerate(predicted_symbols_grouped)
+        ]
+
+        for s in seqs:
+            if with_custom_weights:
+                s.append(f'weight({self.seq_id},{self.asp_weight}).')
+
+        return '\n'.join(" ".join(seq) for seq in seqs)
 
     def sample_symbolic_sequence(self, model):
         model.eval()
@@ -226,11 +246,7 @@ if __name__ == "__main__":
     id = 123
     vars = ['d1', 'd2', 'd3']
 
-    #for j, g in enumerate(grouped):
-    #    seq = [f'seq({id},obs({vars[j]},{d}),{i}).' for i, d in enumerate(g)]
-    #    seqs.append(seq)
 
-    #print(seqs)
 
     seqs = [
         [f'seq({id},obs({vars[j]},{d}),{i}).' for i, d in enumerate(g)] + [f'class({id},1).']

@@ -22,24 +22,26 @@ import string
 
 # Parameters
 window_size = 500
-alphabet_size = 30
-num_segments = 30
+alphabet_size = 40
+num_segments = 20
 same_heading_threshold = 0.25
 gap_threshold = 100
 
 symbol_map = dict(enumerate(range(alphabet_size)))
 
-"""
-folder1 = Path("/media/nkatz/storage/EVENFLOW-DATA/DFKI/2_5_2025_deadlocks/output_robot1data")
-folder2 = Path("/media/nkatz/storage/EVENFLOW-DATA/DFKI/2_5_2025_deadlocks/output_robot2data")
-train_outfile = Path("/media/nkatz/storage/EVENFLOW-DATA/DFKI/2_5_2025_deadlocks/train.lp")
-test_outfile = Path("/media/nkatz/storage/EVENFLOW-DATA/DFKI/2_5_2025_deadlocks/test.lp")
-"""
+# """
+folder1 = Path("/media/nkatz/storage/EVENFLOW-DATA/DFKI/2_5_2025_deadlocks/deadlock_data_old_no_images/output_robot1data")
+folder2 = Path("/media/nkatz/storage/EVENFLOW-DATA/DFKI/2_5_2025_deadlocks/deadlock_data_old_no_images/output_robot2data")
+train_outfile = Path("/media/nkatz/storage/EVENFLOW-DATA/DFKI/2_5_2025_deadlocks/deadlock_data_old_no_images/train.lp")
+test_outfile = Path("/media/nkatz/storage/EVENFLOW-DATA/DFKI/2_5_2025_deadlocks/deadlock_data_old_no_images/test.lp")
+# """
 
+"""
 folder1 = Path("output_robot1data")
 folder2 = Path("output_robot2data")
 train_outfile = Path("train.lp")
 test_outfile = Path("test.lp")
+"""
 
 numerical_features = ['px', 'py', 'vx', 'vy', 'ox', 'oy', 'oz', 'ow']
 all_data, yaw_vals, dist_vals = [], [], []
@@ -110,31 +112,39 @@ def bin_count(indices, gap_threshold=100):
             bins[current_bin] = [idx]
     return bins
 
-def extract_window_features(r1, r2, dist, same_head, start, label, seq_id):
+def extract_window_features(r1, r2, dist, same_head, end, label, seq_id):
     lines = []
-    r1w, r2w = r1.iloc[start - window_size:start], r2.iloc[start - window_size:start]
-    distw = dist[start - window_size:start]
-    shw = same_head[start - window_size:start]
+    start = end - window_size if end - window_size > 0 else 0
+    r1w, r2w = r1.iloc[start:end], r2.iloc[start:end]
+    distw = dist[end - window_size:end]
+    shw = same_head[end - window_size:end]
     goal1 = r1w['goal_status'].fillna("none").str.strip().str.lower().str.replace(" ", "_")
     goal2 = r2w['goal_status'].fillna("none").str.strip().str.lower().str.replace(" ", "_")
 
     features = {
-        'px_1': sax(r1w['px'], global_means['px'], global_stds['px']),
-        'py_1': sax(r1w['py'], global_means['py'], global_stds['py']),
-        'vx_1': sax(r1w['vx'], global_means['vx'], global_stds['vx']),
-        'vy_1': sax(r1w['vy'], global_means['vy'], global_stds['vy']),
-        'yaw_1': sax(r1w['yaw'], global_yaw_mean, global_yaw_std),
-        'px_2': sax(r2w['px'], global_means['px'], global_stds['px']),
-        'py_2': sax(r2w['py'], global_means['py'], global_stds['py']),
-        'vx_2': sax(r2w['vx'], global_means['vx'], global_stds['vx']),
-        'vy_2': sax(r2w['vy'], global_means['vy'], global_stds['vy']),
-        'yaw_2': sax(r2w['yaw'], global_yaw_mean, global_yaw_std),
+        # 'px_1': sax(r1w['px'], global_means['px'], global_stds['px']),
+        # 'py_1': sax(r1w['py'], global_means['py'], global_stds['py']),
+        # 'vx_1': sax(r1w['vx'], global_means['vx'], global_stds['vx']),
+        # 'vy_1': sax(r1w['vy'], global_means['vy'], global_stds['vy']),
+        # 'yaw_1': sax(r1w['yaw'], global_yaw_mean, global_yaw_std),
+        # 'px_2': sax(r2w['px'], global_means['px'], global_stds['px']),
+        # 'py_2': sax(r2w['py'], global_means['py'], global_stds['py']),
+        # 'vx_2': sax(r2w['vx'], global_means['vx'], global_stds['vx']),
+        # 'vy_2': sax(r2w['vy'], global_means['vy'], global_stds['vy']),
+        # 'yaw_2': sax(r2w['yaw'], global_yaw_mean, global_yaw_std),
         'dist':  sax(distw, global_dist_mean, global_dist_std),
     }
 
+    # ASP
     for feat, seq in features.items():
         lines.append(" ".join([f"seq({seq_id},obs({feat},{s}),{t})." for t, s in enumerate(seq)]) + f" class({seq_id},{label}).")
 
+    # Symbolic seqs
+    # for feat, seq in features.items():
+    #     lines.append(" ".join([f"{s}" for s in seq]) + f" {label}")
+
+    # Uncomment this to have goal statuses & headings
+    """
     for t in range(num_segments):
         idx = t * (window_size // num_segments)
         g1 = goal1.iloc[idx]
@@ -143,7 +153,7 @@ def extract_window_features(r1, r2, dist, same_head, start, label, seq_id):
         lines.append(f"seq({seq_id},obs(goal_status_1,{g1}),{t}). class({seq_id},{label}).")
         lines.append(f"seq({seq_id},obs(goal_status_2,{g2}),{t}). class({seq_id},{label}).")
         lines.append(f"seq({seq_id},obs(same_heading,{sh}),{t}). class({seq_id},{label}).")
-
+    """
     lines.append("")
     return lines
 
@@ -157,6 +167,9 @@ for i in range(100):
     f2 = folder2 / f"out{i}.csv"
     if not f1.exists() or not f2.exists():
         continue
+
+    if i == 32:
+        stop = 'stop'
 
     r1 = pd.read_csv(f1)
     r2 = pd.read_csv(f2)
@@ -175,8 +188,9 @@ for i in range(100):
     for bin_id in binned:
         interval = binned[bin_id]
         end = interval[-1]
-        start = end - window_size
-        if start >= 0:
+        start = end - window_size if end - window_size > 0 else 0
+        # if start >= 0:
+        if True:
             print(f"Trajectory {i} POS start={start} end={end}")
             pos_windows.append((start, end))
             lines = extract_window_features(r1, r2, dist, sh, end, label=1, seq_id=seq_id)

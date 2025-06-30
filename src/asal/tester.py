@@ -223,7 +223,7 @@ class Tester:
         if self.path_scoring:
             self.ctl.solve(on_model=self.score_paths)
         else:
-            if self.args.eval_earliness is not None:
+            if 'eval_earliness' in self.args and self.args.eval_earliness is not None:
                 self.ctl.solve(on_model=self.count_stats_with_earliness)
             else:
                 self.ctl.solve(on_model=self.count_stats)

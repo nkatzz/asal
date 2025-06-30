@@ -129,5 +129,5 @@ if __name__ == "__main__":
     train_pairing = pair_seqs_ims(train, train_images, augment_transform)
     test_pairing = pair_seqs_ims(test, test_images, augment_transform)
 
-    torch.save(train_pairing, "/home/nkatz/dev/asal/data/mnist_nesy/mnist_train.pt")
-    torch.save(test_pairing, "/home/nkatz/dev/asal/data/mnist_nesy/mnist_test.pt")
+    torch.save(train_pairing, "/home/nkatz/dev/asal/data/mnist_nesy/double_digit/mnist_train.pt")
+    torch.save(test_pairing, "/home/nkatz/dev/asal/data/mnist_nesy/double_digit/mnist_test.pt")

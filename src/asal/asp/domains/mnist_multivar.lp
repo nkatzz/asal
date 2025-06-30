@@ -19,7 +19,8 @@ holds(equals(leq_4(D),1),SeqId,T) :- seq(SeqId,obs(D,X),T), X <= 4.
 holds(equals(gt_5(D),1),SeqId,T) :- seq(SeqId,obs(D,X),T), X > 5.
 holds(equals(leq_5(D),1),SeqId,T) :- seq(SeqId,obs(D,X),T), X <= 5.
 
-digit(d1; d2; d3).
+% digit(d1; d2; d3).
+digit(d1; d2).
 
 categorical(even(X)) :- digit(X).
 categorical(odd(X)) :- digit(X).
@@ -40,10 +41,10 @@ value(gt_6(X),1) :- digit(X).
 value(leq_6(X),1) :- digit(X).
 value(gt_3(X),1) :- digit(X).
 value(leq_3(X),1) :- digit(X).
-%value(gt_2(X),1) :- digit(X).
-%value(leq_2(X),1) :- digit(X).
-%value(gt_4(X),1) :- digit(X).
-%value(leq_4(X),1) :- digit(X).
+% value(gt_2(X),1) :- digit(X).
+% value(leq_2(X),1) :- digit(X).
+% value(gt_4(X),1) :- digit(X).
+% value(leq_4(X),1) :- digit(X).
 value(gt_5(X),1) :- digit(X).
 value(leq_5(X),1) :- digit(X).
 

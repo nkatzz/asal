@@ -68,10 +68,10 @@ holds(equals(in_front_v1_v2,true),SeqId,T) :-
      seq(SeqId, a2(ycoord(y2, Y2)), T),
      Y1 > Y2.
 
-attribute(same_lane ; same_direction ; behind_v1_v2 ; in_front_v1_v2).
-categorical(same_lane ; same_direction ; behind_v1_v2 ; in_front_v1_v2).
-value(same_lane,true). value(same_direction,true). value(behind_v1_v2,true). value(in_front_v1_v2,true).
-value(same_lane,false). value(same_direction,false).
+% attribute(same_lane ; same_direction ; behind_v1_v2 ; in_front_v1_v2).
+% categorical(same_lane ; same_direction ; behind_v1_v2 ; in_front_v1_v2).
+% value(same_lane,true). value(same_direction,true). value(behind_v1_v2,true). value(in_front_v1_v2,true).
+% value(same_lane,false). value(same_direction,false).
 numerical(none).
 
 
