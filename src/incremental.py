@@ -244,7 +244,7 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
 
     # incr_histories, baseline_histories, active_learn_histories, random_selection_histories = [], [], [], []
     for exp_num in range(N_runs):
-        logger.info(f'\n\nSTARTING EXPERIMENT {exp_num}\n\n')
+        logger.info(f'\n\nSTARTING EXPERIMENT {exp_num}\n')
         train_f1_target, train_f1_latent, test_f1_target, test_f1_latent = 0.0, 0.0, 0.0, 0.0
         # Get new loaders for each experiments to make sure the data gets shuffled.
         train_loader: DataLoader[SequenceDataset] = get_data_loader(train_data, nn_args.nn_batch_size, train=True)
@@ -343,7 +343,12 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
                 current_nesy_model.update_stats(test_stats, train_stats, len(train_loader))
             """
             logger.info(green(
-                f"""Best model:\n{current_nesy_model.sfa_asal.show(mode="simple")}\nLoss: {current_nesy_model.combined_loss} (target: {current_nesy_model.target_loss}), latent: {current_nesy_model.latent_loss}\nTest F1: target: {current_nesy_model.training_history['seq_f1'][-1]}, latent: {current_nesy_model.training_history['img_f1'][-1]}"""))
+                f"Best model:\n{current_nesy_model.sfa_asal.show(mode='simple')}\n"
+                f"Loss (combined|target|latent): {current_nesy_model.combined_loss:.3f}|{current_nesy_model.target_loss:.3f}|{current_nesy_model.latent_loss:.3f}\n"
+                f"Train F1 (target|latent): {current_nesy_model.train_f1:.3f}|{current_nesy_model.latent_f1:.3f}\n"
+                f"Test F1 (target|latent): {current_nesy_model.training_history['seq_f1'][-1]:.3f}|{current_nesy_model.training_history['img_f1'][-1]:.3f}"))
+
+
 
         # Train for a few more epochs in the end
         # nesy_train(model, train_loader, sfa_dnnf, cnn_output_size,

@@ -15,10 +15,10 @@ if __name__ == "__main__":
     # input_domain = list(range(0, 6))
     guards = [[8], [4, 6], [2, 0], [7, 9], [5], [1, 3]]
 
-    with_prior_model = True  # if True a fixed automaton is used, set by the utils.set_correct_model method.
+    with_prior_model = False  # if True a fixed automaton is used, set by the utils.set_correct_model method.
     show_transitions = False
-    nesy_mode = True  # if False the input consists of the symbolic (label) sequences, so it's not a NeSy setting
-    num_states, num_guards = 4, 6
+    nesy_mode = False  # if False the input consists of the symbolic (label) sequences, so it's not a NeSy setting
+    num_states, num_guards = 20, 6  # states are originally 4
     num_epochs = 100
     softmax_temp = 0.1  # 0.01
     temperature_discount = 0.99
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     if with_prior_model:
         set_correct_model(model)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)  # 0.01
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)  # 0.001
     criterion = nn.BCELoss()
 
     current_dir = os.path.dirname(__file__)
@@ -58,7 +58,8 @@ if __name__ == "__main__":
         for sequence, label, symbolic_sequence in train_loader:
             sequence = [tensor.to(device) for tensor in sequence]
             label = label.to(device)
-            symbolic_sequence = torch.tensor(symbolic_sequence).to(device)
+            # symbolic_sequence = torch.tensor(symbolic_sequence).to(device)
+            symbolic_sequence = symbolic_sequence.to(device)
 
             if batch_size == 1: optimizer.zero_grad()
 
@@ -67,9 +68,9 @@ if __name__ == "__main__":
             else:
                 cnn_predictions, guards_predictions, final_states_distribution = model(symbolic_sequence, softmax_temp)
 
-            if nesy_mode:
-                cnn_predictions = torch.stack([t.squeeze() for t in cnn_predictions])
-                accum_cnn_predictions = torch.cat((accum_cnn_predictions, cnn_predictions), dim=0)
+            # if nesy_mode:
+            #    cnn_predictions = torch.stack([t.squeeze() for t in cnn_predictions])
+            #    accum_cnn_predictions = torch.cat((accum_cnn_predictions, cnn_predictions), dim=0)
 
             acceptance_probability = final_states_distribution[-1].unsqueeze(0)
             acceptance_probability = torch.clamp(acceptance_probability, 0, 1)
@@ -96,10 +97,10 @@ if __name__ == "__main__":
             count += 1
 
         print(f'Epoch {epoch}, Loss: {sum(losses) / len(losses)}')
-        train_f1, tps, fps, fns = get_stats(predicted, actual)
+        _, train_f1, _, tps, fps, fns, _ = get_stats(predicted, actual)
         print(f'Train F1: {train_f1} ({tps}, {fps}, {fns})')
         test_model(model, num_states, test_loader, softmax_temp=softmax_temp, nesy_mode=nesy_mode)
-        torch.save(model, save_model_to)
+        # torch.save(model, save_model_to)
 
         if show_transitions:
             for i, matrix in enumerate(model.transition_matrices):

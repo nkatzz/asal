@@ -86,7 +86,8 @@ def test_model(model, num_states, test_loader, softmax_temp=0.1, nesy_mode=True)
         for sequence, label, symb_seq in test_loader:
             sequence = [tensor.to(device) for tensor in sequence]
             label = label.to(device)
-            symb_seq = torch.tensor(symb_seq).to(device)
+            # symb_seq = torch.tensor(symb_seq).to(device)
+            symb_seq = symb_seq.to(device)
 
             if nesy_mode:
                 cnn_prediction, guard_prediction, states_probs = model(sequence, softmax_temp)
@@ -103,8 +104,8 @@ def test_model(model, num_states, test_loader, softmax_temp=0.1, nesy_mode=True)
             actual.append(label.item())
             predicted.append(prediction)
 
-    f1_score, tp, fp, fn = get_stats(predicted, actual)
-    print(f'Test  F1: {f1_score} ({tp}, {fp}, {fn})')
+    _, train_f1, _, tps, fps, fns, _ = get_stats(predicted, actual)
+    print(f'Test  F1: {train_f1} ({tps}, {fps}, {fns})')
 
 
 def test_model_fixed_sfa(model, num_states, test_loader, where='Test'):

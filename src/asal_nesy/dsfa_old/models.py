@@ -178,6 +178,7 @@ class NeuralSFA(nn.Module):
         self.states_distribution = torch.zeros(self.num_states).to(self.device)
         self.states_distribution[0] = 1.0  # Initially we're in the start state with probability 1.0
         cnn_predictions, guards_predictions = [], []
+        sequence = sequence if self.nesy_mode else sequence.squeeze(0)
         for image in sequence:
             if self.nesy_mode:
                 # digit_distribution, _ = self.cnn(image)
