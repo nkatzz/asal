@@ -166,14 +166,6 @@ class NeuralSFA(nn.Module):
     def update_state_distribution(state_prob, effective_transition_matrix):
         return torch.matmul(state_prob, effective_transition_matrix)
 
-    def get_generalization_loss(self):
-        stacked_matrices = torch.stack([tm for tm in self.transition_matrices])
-        # Sum across the first dimension to get the sum of (i,j)-th entries
-        sums = torch.sum(stacked_matrices, dim=0)
-        n = stacked_matrices.shape[0]  # Number of matrices
-        normalized_sums = sums / n
-        return torch.sum(normalized_sums)
-
     def forward(self, sequence, softmax_temp=0.1):
         self.states_distribution = torch.zeros(self.num_states).to(self.device)
         self.states_distribution[0] = 1.0  # Initially we're in the start state with probability 1.0

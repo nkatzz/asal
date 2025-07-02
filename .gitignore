@@ -6,7 +6,7 @@ venv
 notepad.txt
 induction_data.lp
 induction_program.lp
-src/asal_nesy/mnist_data/
-src/data
+#src/asal_nesy/mnist_data/
+#src/data
 data/mnist_nesy/train_from_predictions.lp
-*.pt
+#*.pt
