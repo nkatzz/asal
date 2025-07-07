@@ -7,7 +7,7 @@ from mnist_seqs_new import get_data_loaders
 from src.asal_nesy.cirquits.build_sdds import SDDBuilder
 from src.asal_nesy.cirquits.asp_programs import mnist_even_odd
 import tracemalloc
-from src.asal_nesy.device import device
+from src.asal_nesy.globals import device
 
 
 if not torch.cuda.is_available():

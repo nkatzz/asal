@@ -33,6 +33,7 @@ class TensorSequence:
         self.sequence_probability = None
         self.asp_weight = None
         self.predicted_symbolic_seq = None
+        self.predicted_softmaxed_seq = None
 
     def set_image_label(self, t: int, d: int, label=None):
         """

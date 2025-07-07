@@ -1,10 +1,12 @@
 import random
+
+import numpy as np
 import torch
 from torch import nn as nn
 import torch.nn.functional as F
 import time
 import src.asal_nesy.deepfa.automaton
-from src.asal_nesy.device import device
+from src.asal_nesy.globals import device, weight_sequence_loss
 import nnf
 from itertools import chain
 from src.asal_nesy.neurasal.data_structs import TensorSequence, IndividualImageDataset, SequenceDataset
@@ -20,6 +22,18 @@ from collections import defaultdict
 from copy import deepcopy
 import tempfile
 from src.asal.structs import Automaton
+
+
+def timer(func):
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        end = time.time()
+        if func.__name__ == "train":
+            logger.info(yellow(f"NeSy {func.__name__} took {end - start:.4f} seconds"))
+        return result
+
+    return wrapper
 
 
 def create_labelling_function(weights: dict, sfa_symbols: list[str]):
@@ -94,6 +108,7 @@ def nesy_forward_pass(batch, model, sfa, cnn_output_size, with_decay=False):
     return acceptance_probabilities, latent_predictions, nn_outputs
 """
 
+
 def get_nn_predicted_seqs(batch, model, cnn_output_size):
     training_tensors = torch.stack([seq.images for seq in batch]).to(device)  # (bs, seqlen, dim, c, h, w)
     bs, seqlen, dim, c, w, h = training_tensors.shape
@@ -103,15 +118,22 @@ def get_nn_predicted_seqs(batch, model, cnn_output_size):
     with torch.no_grad():
         logits = model(training_tensors, apply_softmax=False)  # (BS * SeqLen * Dim, NumClasses)
         logits = logits.view(bs, seqlen, dim, cnn_output_size)  # (BS, SeqLen, Dim, NumClasses)
-        nn_probs = torch.softmax(logits, dim=-1)
+        nn_probs = torch.softmax(logits, dim=-1).cpu()
         latent_predictions = torch.argmax(nn_probs, dim=3).cpu()  # shape: (BS, SeqLen, Dim)
 
     predicted_symbolic_seqs = [
         latent_predictions[i].numpy()  # shape: (SeqLen, Dim)
         for i in range(bs)
     ]
+
+    predicted_softmwxed_seqs = [
+        nn_probs[i].numpy()
+        for i in range(bs)
+    ]
+
     model.train()
-    return predicted_symbolic_seqs
+    return predicted_symbolic_seqs, predicted_softmwxed_seqs
+
 
 def nesy_forward_pass(batch, model, sfa, cnn_output_size, with_decay=False, update_seqs_stats=True):
     training_tensors = torch.stack([seq.images for seq in batch]).to(device)  # (bs, seqlen, dim, c, h, w)
@@ -242,7 +264,8 @@ def get_probs_dict(nn_outputs: torch.Tensor, symbols: List[str]) -> Dict[str, to
 
 def get_latent_loss(batch, nn_outputs, nn_criterion, class_attributes):
     labeled_points_predictions, labeled_points_labels = [], []
-    latent_loss = torch.tensor(0.0)
+    # latent_loss = torch.tensor(0.0)
+    latent_loss = 0.0 * nn_outputs.sum()  # use this to avoid issues with points without requires_grad=True
     for i, seq in enumerate(batch):
         # seq.set_image_label(1, 2)
         labeled_indices = seq.get_labeled_indices()
@@ -300,13 +323,15 @@ def eval_model(ts: StatsCollector,
     train_f1, train_tps, train_fps, train_fns, train_latent_f1 = get_score(ts)
 
     # Evaluate on the test set:
+    model.eval()
     sc = StatsCollector()
-    for batch in test_loader:
-        acceptance_probabilities, latent_predictions, nn_outputs = (
-            nesy_forward_pass(batch, model, sfa_dnnf, cnn_output_size)
-        )
-        sequence_predictions = (acceptance_probabilities >= 0.5)
-        sc.update_stats(batch, latent_predictions, sequence_predictions, class_attributes)
+    with torch.no_grad():
+        for batch in test_loader:
+            acceptance_probabilities, latent_predictions, nn_outputs = (
+                nesy_forward_pass(batch, model, sfa_dnnf, cnn_output_size)
+            )
+            sequence_predictions = (acceptance_probabilities >= 0.5)
+            sc.update_stats(batch, latent_predictions, sequence_predictions, class_attributes)
 
     # Testing stats:
     test_f1, test_tps, test_fps, test_fns, test_latent_f1 = get_score(sc)
@@ -471,6 +496,8 @@ def set_all_labelled(batch: list[TensorSequence]):
 --------------------------------------------------------------------------------------------------
 """
 
+def get_query_points(seq: TensorSequence):
+    pass
 
 def initialize_fully_labeled_seqs(train_loader, n):
     pos_seqs = []
@@ -573,6 +600,7 @@ def nesy_train(model, train_loader, sfa_dnnf, cnn_output_size,
     model.train()
     optimizer.zero_grad()
     training_stats = []
+    sequence_loss_weight = 1.0
     for epoch in range(num_epochs):
         stats_collector = StatsCollector()
         for batch in train_loader:
@@ -583,9 +611,13 @@ def nesy_train(model, train_loader, sfa_dnnf, cnn_output_size,
             sequence_labels = torch.tensor([seq.seq_label for seq in batch]).to(device)  # (BS,)
             seq_loss = sequence_criterion(acceptance_probabilities, sequence_labels.float())
             latent_loss = get_latent_loss(batch, nn_outputs, nn_criterion, class_attrs)
-            total_loss = (seq_loss_weight * seq_loss) + (latent_loss * seq_loss_weight)
-            # total_loss = seq_loss
-            # total_loss = latent_loss
+
+            if weight_sequence_loss:
+                total_loss = (sequence_loss_weight * seq_loss) + latent_loss
+            else:
+                total_loss = seq_loss + latent_loss
+                # total_loss = latent_loss  # disable the sequence loss (for experiments only)
+
             total_loss.backward()
             optimizer.step()
             optimizer.zero_grad()
@@ -597,6 +629,11 @@ def nesy_train(model, train_loader, sfa_dnnf, cnn_output_size,
                                     cnn_output_size, class_attrs, epoch, show_log=show_log)
         test_stats['seq_f1'].append(seq_f1)
         test_stats['img_f1'].append(img_f1)
+
+        if weight_sequence_loss:
+            epoch_loss = training_stats[-1].target_loss / len(train_loader)
+            sequence_loss_weight = np.exp(-epoch_loss)
+
     return test_stats, training_stats[-1]  # get the stats for the last epoch
 
 

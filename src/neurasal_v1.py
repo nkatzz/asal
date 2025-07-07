@@ -10,7 +10,7 @@ from src.asal_nesy.dsfa_old.models import DigitCNN
 from src.asal_nesy.dsfa_old.mnist_seqs_new import get_data_loaders, get_data_loaders_OOD
 from src.asal_nesy.neurasal.utils import *
 from src.args_parser import parse_args
-from src.asal_nesy.device import device
+from src.asal_nesy.globals import device
 
 if __name__ == "__main__":
 

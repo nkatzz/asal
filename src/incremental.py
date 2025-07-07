@@ -19,15 +19,20 @@ from src.asal_nesy.dsfa_old.models import DigitCNN
 from src.args_parser import parse_args
 from src.logger import *
 from src.asal_nesy.cirquits.asp_programs import mnist_even_odd_learn
-from src.asal_nesy.device import device
+from src.asal_nesy.globals import device, sample_symb_seqs, num_top_k
 from src.asal.structs import Automaton
 from src.asal.tester import Tester
 from src.asal_nesy.neurasal.neurasal_functions import (nesy_forward_pass, pretrain_nn, induce_sfa, nesy_train,
                                                        initialize_fully_labeled_seqs, al_random_sampling,
                                                        al_expected_acceptance_loss, StatsCollector,
                                                        compute_expected_acceptance_losses, compute_seq_probs,
-                                                       set_asp_weights, get_sequence_stats, get_nn_predicted_seqs)
+                                                       set_asp_weights, get_sequence_stats, get_nn_predicted_seqs,
+                                                       timer)
 
+
+# Doesn't seem to improve things, but need to try it on a computer with actually many cores...
+# if not torch.cuda.is_available():
+#     torch.set_num_threads(1)
 
 class NeSyModel:
     def __init__(self, nn_model, sfa_model_asal, sfa_model_dnnf, lr):
@@ -64,6 +69,7 @@ class NeSyModel:
         self.latent_f1 = train_latent_f1
 
 
+@timer
 def train(args):
     sfa_asal, sfa_dnnf, current_nesy_model, train_loader, test_loader, cnn_output_size, \
         lr, nn_criterion, sequence_criterion, epochs, seq_loss_weight, class_attrs = args
@@ -112,15 +118,39 @@ def find_next_sfa(fully_labelled_seqs: list[TensorSequence],
         # 1. calculate the sequence probabilities for the unlabeled sequences
         for batch in train_loader:
             seq_probs = compute_seq_probs(current_nesy_model.nn_model, batch)
-            predicted_seqs = get_nn_predicted_seqs(batch, current_nesy_model.nn_model, cnn_output_size)
-            for seq, prob, pred_seq in zip(batch, seq_probs, predicted_seqs):
+            predicted_seqs, softmx_preds = get_nn_predicted_seqs(batch, current_nesy_model.nn_model, cnn_output_size)
+            for seq, prob, pred_seq, softmx_pred in zip(batch, seq_probs, predicted_seqs, softmx_preds):
                 seq.sequence_probability = prob.item()
                 seq.predicted_symbolic_seq = pred_seq
+                seq.predicted_softmaxed_seq = softmx_pred
+
+        #===============================================================================================================
+        # Try to implement the abductive query point selection here, factor it out into a method later,
+        # provide options ofr which version we are using (labelling entire sequences, or individual points across seqs).
+        all_seqs = [seq for batch in train_loader for seq in batch]
+
+        # First, get the misclassified - given the current SFA - sequences
+        misclassified_seqs = [
+            seq for seq in all_seqs
+            if (seq.seq_label == 1 & seq.acceptance_probability < 0.5)
+            or (seq.seq_label == 0 & seq.acceptance_probability >= 0.5)
+        ]
+
+        for seq in misclassified_seqs:
+            asp_atoms = []
+            labels_grouped = [list(group) for group in zip(*seq.image_labels)]
+            attributes = sorted({k for g in labels_grouped for d in g for k in d})
+            for t in range(seq.seq_length):
+                for d in range(seq.dimensionality):
+                    distribution = seq.predicted_softmaxed_seq[t][d]
+                    for i, prob in enumerate(distribution):
+                        atom = f'pred({seq.seq_id},{attributes[d],})'
+
+        # ==============================================================================================================
 
         # 2. Select the K-most probable sequences.
         all_unlabelled = [s for batch in train_loader for s in batch if s not in fully_labelled_seqs]
-
-        k = 50
+        k = num_top_k
         top_k = sorted(all_unlabelled, key=lambda s: s.sequence_probability, reverse=True)[:k]
         set_asp_weights(top_k, fully_labelled_seqs, max_unlabelled_weight=100)
         fully_labelled_symb_seqs = [s.get_labelled_seq_asp(with_custom_weights=True) for s in fully_labelled_seqs]
@@ -173,6 +203,11 @@ def get_labelled_seq(train_loader: DataLoader[SequenceDataset],
     unlabeled_candidates = [seq for seq in train_data if seq.seq_id not in labeled_ids]
     unlabeled_ids = set(seq.seq_id for seq in unlabeled_candidates)
 
+    is_misclassified = (
+        lambda seq: (seq.seq_label == 1 and seq.acceptance_probability < 0.5) or
+                    (seq.seq_label == 0 and seq.acceptance_probability >= 0.5)
+    )
+
     if not random_query:
         losses = compute_expected_acceptance_losses(current_nesy_model.nn_model,
                                                     train_loader, current_nesy_model.sfa_dnnf, cnn_output_size)
@@ -192,29 +227,39 @@ def get_labelled_seq(train_loader: DataLoader[SequenceDataset],
         best_seq_id = max(filtered_losses, key=filtered_losses.get)
         best_seq = next(seq for seq in unlabeled_candidates if seq.seq_id == best_seq_id)
 
-        sorted_losses = dict(sorted(filtered_losses.items(), key=lambda x: x[1], reverse=True))
-        num_samples = 10
-        current_sfa = current_nesy_model.sfa_asal.show(mode="reasoning")
         best_seq_unsat_samples = 0
-        for sid, loss in sorted_losses.items():
-            num_unsatisfied_samples = 0
-            seq = next(seq for seq in unlabeled_candidates if seq.seq_id == sid)
-            for i in range(num_samples):  # num of samples
-                symb_seq = seq.sample_symbolic_sequence(current_nesy_model.nn_model)
-                tester = Tester(symb_seq, args, current_sfa)
-                tester.test_model()
-                if len(tester.fp_seq_ids) == 1 | len(tester.fn_seq_ids) == 1:
-                    num_unsatisfied_samples += 1
-            # print(f'seq {sid}, loss: {loss}, num of unsat samples: {num_unsatisfied_samples}')
-            if num_unsatisfied_samples / num_samples >= 0.8:
-                best_seq_id = sid
-                best_seq_unsat_samples = num_unsatisfied_samples
-                best_seq = seq
-                break
+        if sample_symb_seqs:
+            sorted_losses = dict(sorted(filtered_losses.items(), key=lambda x: x[1], reverse=True))
+            num_samples = 10
+            current_sfa = current_nesy_model.sfa_asal.show(mode="reasoning")
 
-        logger.info(yellow(f'Selected: {best_seq.seq_id} | Acceptance probability: '
-                           f'{best_seq.acceptance_probability} | Label: {best_seq.seq_label} | '
-                           f'BCE loss: {filtered_losses[best_seq.seq_id]} | unsat samples: {best_seq_unsat_samples}'))
+            for sid, loss in sorted_losses.items():
+
+                num_unsatisfied_samples = 0
+                seq = next(seq for seq in unlabeled_candidates if seq.seq_id == sid)
+
+                if is_misclassified(seq):  # don't bother checking for seqs that are already OK.
+                    for i in range(num_samples):  # num of samples
+                        symb_seq = seq.sample_symbolic_sequence(current_nesy_model.nn_model)
+                        tester = Tester(symb_seq, args, current_sfa)
+                        tester.test_model()
+                        if len(tester.fp_seq_ids) == 1 | len(tester.fn_seq_ids) == 1:
+                            num_unsatisfied_samples += 1
+                    # print(f'seq {sid}, loss: {loss}, num of unsat samples: {num_unsatisfied_samples}')
+                    if num_unsatisfied_samples / num_samples >= 0.8:
+                        best_seq_id = sid
+                        best_seq_unsat_samples = num_unsatisfied_samples
+                        best_seq = seq
+                        break
+
+        if is_misclassified(best_seq):
+            extra_msg = f'| unsat samples: {best_seq_unsat_samples}' if sample_symb_seqs else ''
+
+            logger.info(yellow(f'Selected: {best_seq.seq_id} | Acceptance probability: '
+                               f'{best_seq.acceptance_probability:.3f} | Label: {best_seq.seq_label} | '
+                               f'BCE loss: {filtered_losses[best_seq.seq_id]:.3f} {extra_msg}'))
+        else:
+            logger.info('No incorrectly classified sequences!')
 
         """
         # Debugging to check if the sampled symbolic seqs from the CNN yields changes to the SFA,
@@ -235,13 +280,14 @@ def get_labelled_seq(train_loader: DataLoader[SequenceDataset],
         logger.info(yellow(f'Selected: {best_seq.seq_id} | Acceptance probability: '
                            f'{best_seq.acceptance_probability} | Label: {best_seq.seq_label}'))
 
+    best_seq = best_seq if is_misclassified(best_seq) else None
+
     return best_seq
 
 
 def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
                     pretrain_for, lr, num_init_fully_labelled, asp_comp_program,
                     cnn_output_size, class_attrs, asal_args, random_query=False, use_partially_labeled=True):
-
     # incr_histories, baseline_histories, active_learn_histories, random_selection_histories = [], [], [], []
     for exp_num in range(N_runs):
         logger.info(f'\n\nSTARTING EXPERIMENT {exp_num}\n')
@@ -256,8 +302,8 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
         nn_criterion = nn.CrossEntropyLoss()
 
         # Pick an initial set of fully labelled sequences
-        # fully_labeled_seq_ids = initialize_fully_labeled_seqs(train_loader, num_init_fully_labelled)
-        fully_labeled_seq_ids = [714, 515, 1151, 2002]
+        fully_labeled_seq_ids = initialize_fully_labeled_seqs(train_loader, num_init_fully_labelled)
+        # fully_labeled_seq_ids = [714, 515, 1151, 2002]
         # fully_labeled_seq_ids = [823, 1748, 1021, 276]  # This is a good seed
         # fully_labeled_seq_ids = [433, 746, 1590, 1344]  # This is a hard seed, no convergence even with 20 queries
 
@@ -282,11 +328,7 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
                                            asal_args, asp_comp_program, class_attrs, epochs, current_nesy_model,
                                            use_partially_labeled_seqs=use_partially_labeled)
 
-        logger.info(green(
-            f"""Current model:\n{current_nesy_model.sfa_asal.show(mode="simple")}\nLoss: {current_nesy_model.combined_loss} 
-        (target: {current_nesy_model.target_loss}), latent: {current_nesy_model.latent_loss}\n
-        Train F1: target: {current_nesy_model.train_f1}, latent: {current_nesy_model.latent_f1}, 
-        Test F1: target: {current_nesy_model.training_history['seq_f1'][-1]}, latent: {current_nesy_model.training_history['img_f1'][-1]}"""))
+        show_log_msg(current_nesy_model)
 
         # Fall back to this every time a different method is tried in the experiments.
         init_nesy_model = current_nesy_model
@@ -308,31 +350,44 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
             best_seq = get_labelled_seq(train_loader, fully_labelled_seqs,
                                         current_nesy_model, random_query=random_query)
 
-            best_seq.mark_seq_as_fully_labelled()
-            fully_labelled_seqs.append(best_seq)
-            logger.info(yellow(f'Selected sequence: {best_seq.seq_id}'))
-            logger.info(yellow(f'Fully labelled: {[s.seq_id for s in fully_labelled_seqs]}'))
+            if best_seq is not None:
 
-            new_nesy_model = find_next_sfa(fully_labelled_seqs, train_loader, test_loader,
-                                           cnn_output_size, nn_criterion, sequence_criterion,
-                                           asal_args, asp_comp_program, class_attrs, epochs,
-                                           current_nesy_model, use_partially_labeled_seqs=use_partially_labeled)
+                best_seq.mark_seq_as_fully_labelled()
+                fully_labelled_seqs.append(best_seq)
+                logger.info(yellow(f'Selected sequence: {best_seq.seq_id}'))
+                logger.info(yellow(f'Fully labelled: {[s.seq_id for s in fully_labelled_seqs]}'))
 
-            logger.info(yellow(f'min/current losses: {new_nesy_model.combined_loss}/{current_loss}'))
-            logger.info(yellow(f'min/current train F1s: {new_nesy_model.train_f1}/{current_f1}'))
+                new_nesy_model = find_next_sfa(fully_labelled_seqs, train_loader, test_loader,
+                                               cnn_output_size, nn_criterion, sequence_criterion,
+                                               asal_args, asp_comp_program, class_attrs, epochs,
+                                               current_nesy_model, use_partially_labeled_seqs=use_partially_labeled)
 
-            # if new_nesy_model.combined_loss < current_loss:
-            #     current_nesy_model = new_nesy_model
-            #     current_loss = current_nesy_model.combined_loss
+                logger.info(yellow(f'min/current losses: {new_nesy_model.combined_loss}/{current_loss}'))
+                logger.info(yellow(f'min/current train F1s: {new_nesy_model.train_f1}/{current_f1}'))
 
-            # if new_nesy_model.train_f1 > current_f1:
-            if True:
-                current_nesy_model = new_nesy_model
-                current_loss = current_nesy_model.combined_loss
-                current_f1 = new_nesy_model.train_f1
-            """
-            else:
-                # Train a bit more to change the landscape of sat/unsat seqs.
+                # if new_nesy_model.combined_loss < current_loss:
+                #     current_nesy_model = new_nesy_model
+                #     current_loss = current_nesy_model.combined_loss
+
+                # if new_nesy_model.train_f1 > current_f1:
+                if True:
+                    current_nesy_model = new_nesy_model
+                    current_loss = current_nesy_model.combined_loss
+                    current_f1 = new_nesy_model.train_f1
+                """
+                else:
+                    # Train a bit more to change the landscape of sat/unsat seqs.
+                    logger.info(yellow(f'Current model has not changed, training for additional {epochs} epochs...'))
+                    test_stats, train_stats = nesy_train(current_nesy_model.nn_model, train_loader,
+                                                         current_nesy_model.sfa_dnnf, cnn_output_size,
+                                                         nn_criterion, sequence_criterion, current_nesy_model.optimizer,
+                                                         epochs, current_nesy_model.seq_loss_weight, class_attrs,
+                                                         test_loader, update_seqs_stats=True, show_log=False)
+    
+                    current_nesy_model.update_stats(test_stats, train_stats, len(train_loader))
+                """
+
+            else:  # No misclassified seqs
                 logger.info(yellow(f'Current model has not changed, training for additional {epochs} epochs...'))
                 test_stats, train_stats = nesy_train(current_nesy_model.nn_model, train_loader,
                                                      current_nesy_model.sfa_dnnf, cnn_output_size,
@@ -340,20 +395,20 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
                                                      epochs, current_nesy_model.seq_loss_weight, class_attrs,
                                                      test_loader, update_seqs_stats=True, show_log=False)
 
-                current_nesy_model.update_stats(test_stats, train_stats, len(train_loader))
-            """
-            logger.info(green(
-                f"Best model:\n{current_nesy_model.sfa_asal.show(mode='simple')}\n"
-                f"Loss (combined|target|latent): {current_nesy_model.combined_loss:.3f}|{current_nesy_model.target_loss:.3f}|{current_nesy_model.latent_loss:.3f}\n"
-                f"Train F1 (target|latent): {current_nesy_model.train_f1:.3f}|{current_nesy_model.latent_f1:.3f}\n"
-                f"Test F1 (target|latent): {current_nesy_model.training_history['seq_f1'][-1]:.3f}|{current_nesy_model.training_history['img_f1'][-1]:.3f}"))
-
-
+            show_log_msg(current_nesy_model)
 
         # Train for a few more epochs in the end
         # nesy_train(model, train_loader, sfa_dnnf, cnn_output_size,
         #            nn_criterion, sequence_criterion, optimizer,
         #            num_epochs, seq_loss_weight, class_attrs, test_loader, show_log=show_stats)
+
+
+def show_log_msg(current_nesy_model):
+    logger.info(green(
+        f"Best model:\n{current_nesy_model.sfa_asal.show(mode='simple')}\n"
+        f"Loss (combined|target|latent): {current_nesy_model.combined_loss:.3f}|{current_nesy_model.target_loss:.3f}|{current_nesy_model.latent_loss:.3f}\n"
+        f"Train F1 (target|latent): {current_nesy_model.train_f1:.3f}|{current_nesy_model.latent_f1:.3f}\n"
+        f"Test F1 (target|latent): {current_nesy_model.training_history['seq_f1'][-1]:.3f}|{current_nesy_model.training_history['img_f1'][-1]:.3f}"))
 
 
 if __name__ == "__main__":
@@ -399,7 +454,8 @@ if __name__ == "__main__":
                                    min_attrs=False,
                                    warns_off=False,
                                    revise=False,
-                                   max_rule_length=100)
+                                   max_rule_length=100,
+                                   with_reject_states=False)  # this might need to be changed.
 
     """"---------------"""
     args = asal_args
@@ -419,7 +475,7 @@ if __name__ == "__main__":
                                  pre_training_size=10,  # num of fully labeled seed sequences.
                                  pre_train_num_epochs=100, learn_seed_sfa_from_pretrained=False, )
 
-    num_init_fully_labelled = 4  # Number of initial fully labelled sequences
+    num_init_fully_labelled = 2  # Number of initial fully labelled sequences
     num_queries = 10  # Total number of active learning queries
     num_epochs = 20  # 20  # Number of epochs to train after each active learning update
     cnn_output_size = 10  # for MNIST
@@ -427,9 +483,18 @@ if __name__ == "__main__":
     nn_batch_size = 50
     lr = 0.01  # 0.01 initially
     N_samples = 5  # Number of samples/unlabeled sequence for ELR
+
+    """
+        BE CAREFUL: When you change from single-variate to two-variate and so on, these need to change:
+        1. class_attrs below.
+        2. src.asal.asp.mnist_even_odd_learn (comment/uncomment 1 {value(d2,0..9)} 1.)
+        3. The domain, e.g. mnist_multivar (comment/uncomment digit(d1; d2). ect)
+    """
+
     # class_attrs = ['d1', 'd2', 'd3']
     class_attrs = ['d1']  # single-digit
     # class_attrs = ['d1', 'd2']  # double-digit
+
     asp_comp_program = mnist_even_odd_learn
     num_runs = 5  # Number of experiments to run
     random_query = False

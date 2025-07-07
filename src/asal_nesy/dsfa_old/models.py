@@ -5,7 +5,7 @@ from src.asal_nesy.dsfa_old.utils import digit_probs_to_rule_probs, digit_probs_
 from functools import reduce
 import operator
 import time
-from src.asal_nesy.device import device
+from src.asal_nesy.globals import device
 
 '''
 import importlib.util

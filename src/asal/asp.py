@@ -1,3 +1,5 @@
+from Cython.Shadow import no_gc
+
 from src.asal.template import Template
 import clingo
 from clingo.script import enable_python
@@ -57,6 +59,10 @@ def get_induction_program(args, t: Template, existing_model=None):
         program.append(f"""\n% Existing model:\n{existing}""")
 
     program.append('\n\n% Redundancy constraints:\n' + base_constraints)
+
+    if not args.with_reject_states:
+        program.append('\n\n% Forbid explicit reject state constraints:\n' + no_reject_state_constraints)
+
     if "at_most" in args.predicates or "at_least" in args.predicates:
         program.append(extra_constraints)
     program.append(induce_show)
@@ -303,21 +309,6 @@ base_constraints = """\
 :- body(I,J,_), J != 1, #count{J1: body(I,J1,_), J1 < J} = 0.
 
 %---------------------------------------------------------------------------------------------
-% Prune automata with paths that do not end to the accepting state.
-%---------------------------------------------------------------------------------------------
-% Update (4/6/2025): these forbid explicit reject states, which are often necessary.  
-% reachable_from(X,Y) :- transition(X,_,Y).
-% reachable_from(X,Z) :- reachable_from(X,Y), reachable_from(Y,Z).
-% stranded_state(X) :- reachable_from(1,X), not reachable_from(X,S), accepting(S).
-% :- stranded_state(X), state(X).
-
-%---------------------------------------------------------------------------------------------
-% Prune useless states that are not reachable from the start state.
-%---------------------------------------------------------------------------------------------
-% Update (4/6/2025): same as above.
-% :- not reachable_from(1,S), state(S).
-
-%---------------------------------------------------------------------------------------------
 % Prune automata with unreachable states.
 %---------------------------------------------------------------------------------------------
 unreachable_state(S) :- state(S), not start(S), #count{S1: S1 != S, transition(S1,_,S)} = 0.
@@ -327,6 +318,26 @@ unreachable_state(S) :- state(S), not start(S), #count{S1: S1 != S, transition(S
 :- inState(Seq,S,T), inState(Seq,S1,T), S != S1.
 
 :- body(I,J,equals(A,V1)), body(I,J,equals(A,V2)), V1 != V2.
+"""
+
+no_reject_state_constraints = """\
+%---------------------------------------------------------------------------------------------
+% Prune automata with paths that do not end to the accepting state.
+%---------------------------------------------------------------------------------------------
+% Update (4/6/2025): these forbid explicit reject states, which are often necessary.  
+% On the other hand, they can speed things up if explicit reject states are not necessary.
+% Their inclusion tho the induction program is controlled via a cmd argument.
+
+reachable_from(X,Y) :- transition(X,_,Y).
+reachable_from(X,Z) :- reachable_from(X,Y), reachable_from(Y,Z).
+stranded_state(X) :- reachable_from(1,X), not reachable_from(X,S), accepting(S).
+:- stranded_state(X), state(X).
+
+%---------------------------------------------------------------------------------------------
+% Prune useless states that are not reachable from the start state.
+%---------------------------------------------------------------------------------------------
+% Update (4/6/2025): same as above.
+:- not reachable_from(1,S), state(S).
 """
 
 extra_constraints = """\

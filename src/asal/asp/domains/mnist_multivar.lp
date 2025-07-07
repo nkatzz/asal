@@ -20,7 +20,8 @@ holds(equals(gt_5(D),1),SeqId,T) :- seq(SeqId,obs(D,X),T), X > 5.
 holds(equals(leq_5(D),1),SeqId,T) :- seq(SeqId,obs(D,X),T), X <= 5.
 
 % digit(d1; d2; d3).
-digit(d1; d2).
+% digit(d1; d2).
+digit(d1).
 
 categorical(even(X)) :- digit(X).
 categorical(odd(X)) :- digit(X).

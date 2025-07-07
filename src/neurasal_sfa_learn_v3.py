@@ -16,7 +16,7 @@ from src.asal_nesy.dsfa_old.models import DigitCNN
 from src.args_parser import parse_args
 from src.logger import logger
 from src.asal_nesy.cirquits.asp_programs import mnist_even_odd_learn
-from src.asal_nesy.device import device
+from src.asal_nesy.globals import device
 from src.asal_nesy.neurasal.neurasal_functions import (nesy_forward_pass, get_latent_loss,
                                                        pretrain_nn, StatsCollector, eval_model, nn_forward_pass,
                                                        sequence_to_facts, induce_sfa_simple, set_all_labelled)
