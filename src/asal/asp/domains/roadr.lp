@@ -49,7 +49,7 @@ value(location_2,V) :- seq(_,a2(location(V)),_), allowed_locations(V).
 value(location_1,other) :- seq(_,obs(location_1,other),_).
 value(location_2,other) :- seq(_,obs(location_2,other),_).
 
-holds(equals(same_lane,true),SeqId,T) :- seq(SeqId,obs(location_1,X),T), seq(SeqId,obs(location_2,X),T).
+holds(equals(same_lane,true),SeqId,T) :- seq(SeqId,obs(location_1,X),T), seq(SeqId,obs(location_2,X),T), X != jun.
 holds(equals(same_lane,false),SeqId,T) :- seq(SeqId,obs(location_1,X),T), seq(SeqId,obs(location_2,Y),T), X != Y.
 holds(equals(same_direction,true),SeqId,T) :- seq(SeqId,obs(action_1,movtow),T), seq(SeqId,obs(action_2,movtow),T).
 holds(equals(same_direction,true),SeqId,T) :- seq(SeqId,obs(action_1,movaway),T), seq(SeqId,obs(action_2,movaway),T).
@@ -68,10 +68,19 @@ holds(equals(in_front_v1_v2,true),SeqId,T) :-
      seq(SeqId, a2(ycoord(y2, Y2)), T),
      Y1 > Y2.
 
+% guard_length(I,J,N) :- rule(I), conjunction(J), #count{F: body(I,J,F)} = N.
+% :- guard_length(I,J,N), N > 1.
+
 % attribute(same_lane ; same_direction ; behind_v1_v2 ; in_front_v1_v2).
 % categorical(same_lane ; same_direction ; behind_v1_v2 ; in_front_v1_v2).
 % value(same_lane,true). value(same_direction,true). value(behind_v1_v2,true). value(in_front_v1_v2,true).
 % value(same_lane,false). value(same_direction,false).
+
+attribute(same_lane ; same_direction).
+categorical(same_lane ; same_direction).
+value(same_lane,true). value(same_direction,true).
+value(same_lane,false). value(same_direction,false).
+
 numerical(none).
 
 

@@ -46,11 +46,15 @@ program = \
 inState(1,T) :- seqStart(T).
 inState(S2,T+1) :- inState(S1,T), transition(S1,f(S1,S2),S2), holds(f(S1,S2),T).
 accepted :- inState(S,T), accepting(S), seqEnd(T).
+reach_accept_at(T) :- inState(S,T), accepting(S); #false: inState(S,T1), T1 < T.
 
 seqStart(1).
 seqEnd(T+1) :- time(T), not time(T+1).
-time(1..10).  % increase the end point to get longer seqs
+% time(1..10).  % increase the end point to get longer seqs
+time(1..50).
 digit(0..9).
+
+% :- reach_accept_at(T), not seqEnd(T).  % reach acceptance only at the end of the sequence
 
 % Automaton
 %*
@@ -69,7 +73,7 @@ holds(f(4,4),T) :- time(T).
 holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
 *%
 
-%*
+
 accepting(4).
 transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2). 
 transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4). 
@@ -80,10 +84,14 @@ holds(f(2,3),T) :- holds(equals(d1,odd),T), holds(equals(d1,leq_6),T).
 holds(f(3,4),T) :- holds(equals(d1,leq_3),T).
 holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
 holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
-holds(f(4,4),T) :- time(T).
 holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
-*%
 
+holds(f(4,4),T) :- time(T).  % No over-general self loop to avoid having acceptance prob. increase indefinitely in the experiments.
+% holds(f(4,4),T) :- holds(equals(d1,leq_3),T).
+% holds(f(4,1),T) :- time(T), not holds(f(4,4),T).
+
+
+%*
 accepting(4).
 transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2). 
 transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4). 
@@ -100,6 +108,7 @@ holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
 holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
 holds(f(4,4),T) :- time(T).
 holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
+*%
 
 % Predicate definitions
 holds(equals(D,even),T) :- seq(obs(D,X),T), X \ 2 = 0.
@@ -111,7 +120,7 @@ holds(equals(D,leq_3),T) :- seq(obs(D,X),T), X <= 3.
 holds(equals(D,gt_5),T) :- seq(obs(D,X),T), X > 5.
 
 1 {seq(obs(d1,X),T): digit(X)} 1 :- time(T).
-1 {seq(obs(d2,X),T): digit(X)} 1 :- time(T).
+% 1 {seq(obs(d2,X),T): digit(X)} 1 :- time(T).
 % 1 {seq(obs(d3,X),T): digit(X)} 1 :- time(T).
 
 #show.

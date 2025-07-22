@@ -5,9 +5,6 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from copy import deepcopy
 import random
-import json
-import matplotlib.pyplot as plt
-import numpy as np
 import argparse
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
@@ -16,18 +13,17 @@ sys.path.insert(0, project_root)
 from src.asal_nesy.neurasal.data_structs import get_data, get_data_loader, SequenceDataset, TensorSequence
 # from src.asal_nesy.neurasal.sfa import *
 from src.asal_nesy.dsfa_old.models import DigitCNN
-from src.args_parser import parse_args
 from src.logger import *
 from src.asal_nesy.cirquits.asp_programs import mnist_even_odd_learn
-from src.asal_nesy.globals import device, sample_symb_seqs, num_top_k
+from src.globals import device, sample_symb_seqs, num_top_k, show_log_during_training
 from src.asal.structs import Automaton
 from src.asal.tester import Tester
-from src.asal_nesy.neurasal.neurasal_functions import (nesy_forward_pass, pretrain_nn, induce_sfa, nesy_train,
-                                                       initialize_fully_labeled_seqs, al_random_sampling,
-                                                       al_expected_acceptance_loss, StatsCollector,
+from src.asal_nesy.cirquits.build_sdds import SDDBuilder
+from src.asal_nesy.neurasal.neurasal_functions import (pretrain_nn, induce_sfa, nesy_train,
+                                                       initialize_fully_labeled_seqs, StatsCollector,
                                                        compute_expected_acceptance_losses, compute_seq_probs,
                                                        set_asp_weights, get_sequence_stats, get_nn_predicted_seqs,
-                                                       timer)
+                                                       timer, get_query_points_by_edit_cost)
 
 
 # Doesn't seem to improve things, but need to try it on a computer with actually many cores...
@@ -82,7 +78,7 @@ def train(args):
     test_stats, train_stats = nesy_train(model_copy, train_loader, sfa_dnnf, cnn_output_size,
                                          nn_criterion, sequence_criterion, nesy_model.optimizer,
                                          epochs, seq_loss_weight, class_attrs, test_loader,
-                                         update_seqs_stats=True, show_log=False)
+                                         update_seqs_stats=True, show_log=show_log_during_training)
 
     nesy_model.update_stats(test_stats, train_stats, len(train_loader))
     logger.info(yellow(f'Loss: {nesy_model.combined_loss:.3f}'))
@@ -123,30 +119,6 @@ def find_next_sfa(fully_labelled_seqs: list[TensorSequence],
                 seq.sequence_probability = prob.item()
                 seq.predicted_symbolic_seq = pred_seq
                 seq.predicted_softmaxed_seq = softmx_pred
-
-        #===============================================================================================================
-        # Try to implement the abductive query point selection here, factor it out into a method later,
-        # provide options ofr which version we are using (labelling entire sequences, or individual points across seqs).
-        all_seqs = [seq for batch in train_loader for seq in batch]
-
-        # First, get the misclassified - given the current SFA - sequences
-        misclassified_seqs = [
-            seq for seq in all_seqs
-            if (seq.seq_label == 1 & seq.acceptance_probability < 0.5)
-            or (seq.seq_label == 0 & seq.acceptance_probability >= 0.5)
-        ]
-
-        for seq in misclassified_seqs:
-            asp_atoms = []
-            labels_grouped = [list(group) for group in zip(*seq.image_labels)]
-            attributes = sorted({k for g in labels_grouped for d in g for k in d})
-            for t in range(seq.seq_length):
-                for d in range(seq.dimensionality):
-                    distribution = seq.predicted_softmaxed_seq[t][d]
-                    for i, prob in enumerate(distribution):
-                        atom = f'pred({seq.seq_id},{attributes[d],})'
-
-        # ==============================================================================================================
 
         # 2. Select the K-most probable sequences.
         all_unlabelled = [s for batch in train_loader for s in batch if s not in fully_labelled_seqs]
@@ -199,6 +171,7 @@ def get_labelled_seq(train_loader: DataLoader[SequenceDataset],
                      fully_labelled_seqs: list[TensorSequence],
                      current_nesy_model: NeSyModel,
                      random_query=False):
+
     labeled_ids = set(seq.seq_id for seq in fully_labelled_seqs)
     unlabeled_candidates = [seq for seq in train_data if seq.seq_id not in labeled_ids]
     unlabeled_ids = set(seq.seq_id for seq in unlabeled_candidates)
@@ -288,6 +261,9 @@ def get_labelled_seq(train_loader: DataLoader[SequenceDataset],
 def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
                     pretrain_for, lr, num_init_fully_labelled, asp_comp_program,
                     cnn_output_size, class_attrs, asal_args, random_query=False, use_partially_labeled=True):
+
+    from src.globals import pick_by_edit_cost
+
     # incr_histories, baseline_histories, active_learn_histories, random_selection_histories = [], [], [], []
     for exp_num in range(N_runs):
         logger.info(f'\n\nSTARTING EXPERIMENT {exp_num}\n')
@@ -318,6 +294,22 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
         pretrain_nn(SequenceDataset(fully_labelled_seqs), test_data, 0,
                     base_model, optimizer, class_attrs, with_fully_labelled_seqs=True, num_epochs=pretrain_for)
 
+        """----------------------------------------DEBUG-----------------------------------------------"""
+        """
+        from src.asal_nesy.neurasal.mnist.compile_train_fixed_signle_var import get_sfa
+        sfa_dnnf = get_sfa()
+        current_nesy_model = NeSyModel(base_model, Automaton(), sfa_dnnf, lr)
+
+        test_stats, train_stats = nesy_train(current_nesy_model.nn_model, train_loader,
+                                             current_nesy_model.sfa_dnnf, cnn_output_size,
+                                             nn_criterion, sequence_criterion, current_nesy_model.optimizer,
+                                             epochs, current_nesy_model.seq_loss_weight, class_attrs,
+                                             test_loader, update_seqs_stats=True, show_log=True)
+
+        sys.exit(-1)
+        """
+        """----------------------------------------DEBUG-----------------------------------------------"""
+
         current_nesy_model = NeSyModel(base_model, Automaton(), None, lr)
 
         logger.info("Inducing initial SFA from fully labelled sequences...")
@@ -347,8 +339,18 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
 
         # Active learning step
         for query in range(query_budget):
-            best_seq = get_labelled_seq(train_loader, fully_labelled_seqs,
-                                        current_nesy_model, random_query=random_query)
+
+            if not pick_by_edit_cost:
+                best_seq = get_labelled_seq(train_loader, fully_labelled_seqs,
+                                            current_nesy_model, random_query=random_query)
+            else:
+                # We need this to compute the BCE for each sequence, to combine it with edit point scores in the
+                # AL query heuristic
+                compute_expected_acceptance_losses(current_nesy_model.nn_model,
+                                                   train_loader, current_nesy_model.sfa_dnnf, cnn_output_size)
+
+                best_seq = get_query_points_by_edit_cost(train_loader, fully_labelled_seqs,
+                                                         current_nesy_model, asal_args)
 
             if best_seq is not None:
 
@@ -455,7 +457,7 @@ if __name__ == "__main__":
                                    warns_off=False,
                                    revise=False,
                                    max_rule_length=100,
-                                   with_reject_states=False)  # this might need to be changed.
+                                   with_reject_states=True)  # this might need to be changed. Set to true for no absorbing accept state.
 
     """"---------------"""
     args = asal_args
@@ -475,9 +477,9 @@ if __name__ == "__main__":
                                  pre_training_size=10,  # num of fully labeled seed sequences.
                                  pre_train_num_epochs=100, learn_seed_sfa_from_pretrained=False, )
 
-    num_init_fully_labelled = 2  # Number of initial fully labelled sequences
+    num_init_fully_labelled = 4  # 1000  # Number of initial fully labelled sequences
     num_queries = 10  # Total number of active learning queries
-    num_epochs = 20  # 20  # Number of epochs to train after each active learning update
+    num_epochs = 5  # 20  # Number of epochs to train after each active learning update
     cnn_output_size = 10  # for MNIST
     pre_train_for = 100  # 10  # 100
     nn_batch_size = 50
@@ -499,15 +501,51 @@ if __name__ == "__main__":
     num_runs = 5  # Number of experiments to run
     random_query = False
 
-    #"""
+
+
+    # Single-digit, train length = 10, test length = 10
+    """
     train_data, test_data = get_data('/home/nkatz/dev/asal/data/mnist_nesy/single_digit/mnist_train.pt',
                                      '/home/nkatz/dev/asal/data/mnist_nesy/single_digit/mnist_test.pt')
+    """
+
+    # Single-digit, train length = 10, test length = 50
     #"""
+    train_data, test_data = get_data('/home/nkatz/dev/asal_data/mnist_nesy/single_digit_10/mnist_train.pt',
+                                     '/home/nkatz/dev/asal_data/mnist_nesy/single_digit_50/mnist_test.pt')
+    #"""
+
+    # Single-digit, train length = 10, test length = 20
+    """
+    train_data, test_data = get_data('/home/nkatz/dev/asal_data/mnist_nesy/single_digit_10/mnist_train.pt',
+                                     '/home/nkatz/dev/asal_data/mnist_nesy/single_digit_20/mnist_test.pt')
+    """
+
+    # Single-digit, train length = 50, test length = 50
+    """
+    train_data, test_data = get_data('/home/nkatz/dev/asal_data/mnist_nesy/single_digit_50/mnist_test.pt',
+                                     '/home/nkatz/dev/asal_data/mnist_nesy/single_digit_50/mnist_test.pt')
+    """
 
     """
     train_data, test_data = get_data('/home/nkatz/dev/asal/data/mnist_nesy/double_digit/mnist_train.pt',
                                      '/home/nkatz/dev/asal/data/mnist_nesy/double_digit/mnist_test.pt')
     """
+
+    # This is necessary for getting a class predictions dictionary (consistent with the variables order used by
+    # the circuits). These are used for getting the argmax predictions, generating the corresponding symbolic seqs etc.
+    sdd_builder = SDDBuilder(asp_comp_program + '\n#show value/2.',
+                             vars_names=class_attrs,
+                             categorical_vars=class_attrs,
+                             clear_fields=False)
+    sdd_builder.build_nnfs()
+    predicted_class_dict = sdd_builder.grouped_sdd_vars
+    # Set the dict as a var in the tensor sequences so that we can access it from each seq.
+    for s in train_data:
+        s.class_prediction_dict = predicted_class_dict
+    for s in test_data:
+        s.class_prediction_dict = predicted_class_dict
+
 
     run_experiments(train_data, test_data, num_runs,
                     num_queries, num_epochs, pre_train_for, lr,

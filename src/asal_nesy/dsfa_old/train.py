@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 from models import NeuralSFA, softmax_with_temperature
 import os
-from utils import (get_stats, test_model, show_debug_stms, set_correct_model)
+from utils import (get_stats, test_model, set_correct_model)
 from mnist_seqs_new import get_data_loaders
-from src.asal_nesy.globals import device
+from src.globals import device
 
 if not torch.cuda.is_available():
     torch.set_num_threads(1)

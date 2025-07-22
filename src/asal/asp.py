@@ -1,4 +1,4 @@
-from Cython.Shadow import no_gc
+#from Cython.Shadow import no_gc
 
 from src.asal.template import Template
 import clingo
@@ -127,6 +127,9 @@ state(S) :- transition(S,_,_).
 state(S) :- transition(_,_,S).
 state(S) :- rule(f(S,_)).
 state(S) :- rule(f(_,S)).
+
+state(S) :- start(S).
+state(S) :- accepting(S).
 """
 
 pos_neg_defs = """\
@@ -206,7 +209,11 @@ generate_decrease = lambda lim: f"0 {{body(I,J,decrease(A)) : rule(I), conjuncti
 cost_lt = "cost(lt(A1,A2),1) :- attribute(A1), attribute(A2)."
 cost_at_most = "cost(at_most(A,V),1) :- value(A,V)."
 cost_at_least = "cost(at_least(A,V),1) :- value(A,V)."
-cost_equals = "cost(equals(A,V),10) :- value(A,V)."
+
+#===================================================
+cost_equals = "cost(equals(A,V),20) :- value(A,V)."
+#===================================================
+
 cost_neg = "cost(neg(A,V),1) :- value(A,V)."
 cost_increase = "cost(increase(A),1) :- numerical(A)."
 cost_decrease = "cost(decrease(A),1) :- numerical(A)."
@@ -326,7 +333,7 @@ no_reject_state_constraints = """\
 %---------------------------------------------------------------------------------------------
 % Update (4/6/2025): these forbid explicit reject states, which are often necessary.  
 % On the other hand, they can speed things up if explicit reject states are not necessary.
-% Their inclusion tho the induction program is controlled via a cmd argument.
+% Their inclusion to the induction program is controlled via a cmd argument.
 
 reachable_from(X,Y) :- transition(X,_,Y).
 reachable_from(X,Z) :- reachable_from(X,Y), reachable_from(Y,Z).

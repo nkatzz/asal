@@ -28,12 +28,27 @@ class TensorSequence:
             for t in range(seq_length)
         ]
 
+        # This is a dictionary with the class prediction order per attribute. For instance, for 2-variate MNIST this is:
+        # {
+        #     'd1': ['d1_0', 'd1_1', 'd1_2', 'd1_3', 'd1_4', 'd1_5', 'd1_6', 'd1_7', 'd1_8', 'd1_9'],
+        #     'd2': ['d2_0', 'd2_1', 'd2_2', 'd2_3', 'd2_4', 'd2_5', 'd2_6', 'd2_7', 'd2_8', 'd2_9']
+        # }
+        #
+        # From this dictionary we can get the actual class per attribute that corresponds to argmax predictions, in
+        # order to form symbolic sequences for ASAL.
+        self.class_prediction_dict = {}
+
         self.acceptance_probability = 0.0
         self.elr_score = None
         self.sequence_probability = None
         self.asp_weight = None
         self.predicted_symbolic_seq = None
         self.predicted_softmaxed_seq = None
+        self.bce_loss = None
+
+        self.edit_points = None
+        self.edit_cost = None
+        self.edit_score = None
 
     def set_image_label(self, t: int, d: int, label=None):
         """
@@ -149,6 +164,66 @@ class TensorSequence:
                 for j, g in enumerate(zip(*symbolic_seq))
             ]
             return '\n'.join(' '.join(x) for x in seqs)
+
+    def generate_asp_prediction_facts(self, max_unlabelled_weight=100):
+        """
+        For this TensorSequence:
+        - Convert softmax predictions to integer weights (log + normalized).
+        - For each image:
+           * emit prediction(...) facts for non-argmax symbols.
+           * emit argmax_prediction(...) fact for the argmax.
+        Returns:
+            List[str] of ASP facts.
+        """
+        import numpy as np
+
+        softmax_preds = self.predicted_softmaxed_seq  # shape: (SeqLen, Dim, NumClasses)
+        seqlen, dim, num_classes = softmax_preds.shape
+        facts = []
+
+        # Flatten all probs to compute log-prob normalization
+        all_probs = softmax_preds.flatten()
+        log_probs = np.log(all_probs + 1e-12)
+        min_lp, max_lp = np.min(log_probs), np.max(log_probs)
+        norm_weights = (log_probs - min_lp) / (max_lp - min_lp + 1e-12)
+        int_weights = (norm_weights * max_unlabelled_weight).astype(int) + 1  # ensure non-zero
+
+        # Reshape back to (NumClasses, Dim, SeqLen)
+        int_weights = int_weights.reshape(seqlen, dim,  num_classes)
+
+        # For attribute names in dimension order:
+        attr_list = list(self.class_prediction_dict.keys())  # e.g. ['d1', 'd2'] for 2 digits in 2-variate MNIST
+
+        # Iterate over sequence points
+        for t in range(seqlen):
+            for d in range(dim):
+                attr_name = attr_list[d]
+                class_names = self.class_prediction_dict[attr_name]  # list of class names
+
+                # probs = softmax_preds[:, d, t]  # shape: (NumClasses,)
+                # weights = int_weights[:, d, t]  # shape: (NumClasses,)
+
+                probs = softmax_preds[t][d]
+                weights = int_weights[t][d]
+
+                argmax_idx = np.argmax(probs)
+                argmax_symbol = class_names[argmax_idx].split('_')[1]
+                argmax_weight = weights[argmax_idx]
+
+                # ASP fact for argmax
+                facts.append(f"argmax_prediction({self.seq_id},obs({attr_name},{argmax_symbol}),{t}).")
+                facts.append(f'argmax_weight({self.seq_id},obs({attr_name},{argmax_symbol},{t}),{argmax_weight}).')
+
+                # ASP facts for all other symbols
+                for c in range(num_classes):
+                    if c == argmax_idx:
+                        continue
+                    pred_symbol = class_names[c].split('_')[1]
+                    pred_weight = weights[c]
+                    facts.append(f"prediction({self.seq_id},obs({attr_name},{pred_symbol}),{t}).")
+                    facts.append(f'prediction_weight({self.seq_id},obs({attr_name},{pred_symbol},{t}),{pred_weight}).')
+
+        return ' '.join(facts)
 
 
 class SequenceDataset(Dataset):

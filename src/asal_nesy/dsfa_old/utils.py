@@ -1,9 +1,8 @@
 import torch
-import torch.nn.functional as F
 # from mnist_seqs_new import get_data_loaders
 from torch.utils.data import DataLoader
 from sklearn.metrics import f1_score
-from src.asal_nesy.globals import device
+from src.globals import device
 
 
 def see_gradients(model):

@@ -8,8 +8,7 @@ from src.asal_nesy.cirquits.build_sdds import SDDBuilder
 from src.asal_nesy.cirquits.asp_programs import mnist_even_odd
 import multiprocessing as mp
 import functools
-import torch.distributed as dist
-from src.asal_nesy.globals import device
+
 
 def process_sequence_multiproc(data, model_state_dict, model_init_params, criterion):
     sequence, label, symbolic_sequence = data[0], data[1], data[2]

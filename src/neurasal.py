@@ -18,7 +18,7 @@ from src.asal_nesy.dsfa_old.models import DigitCNN
 from src.asal_nesy.neurasal.dev_version.mnist_seqs import get_data_loaders
 from src.asal_nesy.neurasal.dev_version.utils import *
 from src.args_parser import parse_args
-from src.asal_nesy.globals import device
+from src.globals import device
 
 
 # Custom collate function to prevent img_ids transposing

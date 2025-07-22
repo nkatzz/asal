@@ -72,7 +72,7 @@ over constraints that minimize model size.""")
     parser.add_argument("--revise", action="store_true",
                         help="""Revise existing models instead of inducing from scratch on new data.""")
 
-    parser.add_argument("--with_reject_states", action="store_true", default=True,
+    parser.add_argument("--with_reject_states", action="store_true", default=False,
                         help="""Allow explicit reject states in the SFA, i.e. states that do not belong to a path to an accepting state.""")
 
     parser.add_argument("--eval", metavar="<path>",

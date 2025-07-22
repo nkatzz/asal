@@ -5,7 +5,7 @@ import torch.nn as nn
 from sklearn.metrics import f1_score
 from src.logger import *
 import nnf
-from src.asal_nesy.globals import device
+from src.globals import device
 
 
 class ImageDataset(Dataset):

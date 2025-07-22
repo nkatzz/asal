@@ -19,7 +19,7 @@ asp_program = \
 1 {value(l1,incomlane) ; value(l1,jun) ; value(l1,vehlane) ; value(l1,other)} 1.
 1 {value(l2,incomlane) ; value(l2,jun) ; value(l2,vehlane) ; value(l2,other)} 1.
 
-equals(same_lane,true) :- value(l1,X), value(l2,X), X != other.
+equals(same_lane,true) :- value(l1,X), value(l2,X), X != other, X != jun.
 equals(same_lane,false) :- value(l1,X), value(l2,Y), X != Y.
 
 equals(action_1,A) :- value(a1,A).

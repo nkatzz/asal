@@ -1,5 +1,6 @@
 import itertools
 import os
+from src.globals import is_accepting_absorbing
 
 
 class Template:
@@ -22,10 +23,9 @@ class Template:
         if i != j:
             self.__rules_choices.append(f'f({i},{j})')
 
-        """
-        if True:
-            self.__rules_choices.append(f'f({i},{j})')
-        """
+        # if True:
+        #     self.__rules_choices.append(f'f({i},{j})')
+
         self.__transition_choices.append(transition)
 
     @staticmethod
@@ -58,10 +58,20 @@ class Template:
             self.mutex_map[f] = f_nots
             self.__guard_definitions.append(rule)
         self.mutex_map[f'f({self.max_states},{self.max_states})'] = []
+
         m = self.max_states
-        self.__guard_definitions.append(f'holds(f({m},{m}),S,T) :- sequence(S), time(T).')
-        self.__update_transitions(f'f({m},{m})', m, m)
-        self.__self_loop_ids.append(f'f({m},{m})')
+        if is_accepting_absorbing:
+            self.__guard_definitions.append(f'holds(f({m},{m}),S,T) :- sequence(S), time(T).')
+            self.__update_transitions(f'f({m},{m})', m, m)
+            self.__self_loop_ids.append(f'f({m},{m})')
+        else:
+            # allow to learn a constrained self loop, e.g. f(4,4) :- Digit <= 3 in MNIST.
+            # This is for avoid learning over-general self loops on the accepting state, which
+            # will increase acceptance probability in a NeSy setting.
+            self.__guard_definitions.append(f'holds(f({m},{m}),S,T) :- holds(body(f({m},{m}),J),S,T).')
+            self.__guard_definitions.append('{' + f'rule(f({m},{m}))' + '}.')
+            self.__guard_definitions.append('{' + f'transition({m},f({m},{m}),{m})' + '}.')
+
         self.__rules_choices = '{rule(' + ';'.join(self.__rules_choices) + ')}.'
         self.__assemble_template()
 

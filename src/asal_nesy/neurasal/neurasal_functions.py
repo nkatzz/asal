@@ -6,7 +6,7 @@ from torch import nn as nn
 import torch.nn.functional as F
 import time
 import src.asal_nesy.deepfa.automaton
-from src.asal_nesy.globals import device, weight_sequence_loss
+from src.globals import device, weight_sequence_loss
 import nnf
 from itertools import chain
 from src.asal_nesy.neurasal.data_structs import TensorSequence, IndividualImageDataset, SequenceDataset
@@ -16,12 +16,15 @@ from src.asal.template import Template
 from src.logger import *
 from src.asal.asal import Asal
 from src.asal.auxils import get_train_data
-from src.asal.asp import get_induction_program
+from src.asal.asp import get_induction_program, get_interpreter, get_domain
 from typing import Dict, List
 from collections import defaultdict
 from copy import deepcopy
 import tempfile
 from src.asal.structs import Automaton
+import clingo
+from clingo.script import enable_python
+import multiprocessing
 
 
 def timer(func):
@@ -108,8 +111,10 @@ def nesy_forward_pass(batch, model, sfa, cnn_output_size, with_decay=False):
     return acceptance_probabilities, latent_predictions, nn_outputs
 """
 
-
+"""
 def get_nn_predicted_seqs(batch, model, cnn_output_size):
+    # This uses the argmax indexes as the predicted classes, only works for MNIST...
+    predictions_dict = batch[0].class_prediction_dict  # same for all seqs
     training_tensors = torch.stack([seq.images for seq in batch]).to(device)  # (bs, seqlen, dim, c, h, w)
     bs, seqlen, dim, c, w, h = training_tensors.shape
     training_tensors = training_tensors.view(-1, c, w, h)  # Flatten for CNN into (BS * SeqLen * dim, C, W, H)
@@ -133,9 +138,66 @@ def get_nn_predicted_seqs(batch, model, cnn_output_size):
 
     model.train()
     return predicted_symbolic_seqs, predicted_softmwxed_seqs
+"""
 
+#"""
+def get_nn_predicted_seqs(batch, model, cnn_output_size):
 
-def nesy_forward_pass(batch, model, sfa, cnn_output_size, with_decay=False, update_seqs_stats=True):
+    """This uses a fixed class prediction order (consistent between the circuits and the NN) to match the
+    argmax indexes with actual class labels."""
+
+    predictions_dict = batch[0].class_prediction_dict  # same for whole batch
+
+    training_tensors = torch.stack([seq.images for seq in batch]).to(device)  # (BS, SeqLen, Dim, C, H, W)
+    bs, seqlen, dim, c, w, h = training_tensors.shape
+    training_tensors = training_tensors.view(-1, c, w, h)  # (BS * SeqLen * Dim, C, W, H)
+
+    model.eval()
+    with torch.no_grad():
+        logits = model(training_tensors, apply_softmax=False)  # (BS * SeqLen * Dim, NumClasses)
+        logits = logits.view(bs, seqlen, dim, cnn_output_size)
+        nn_probs = torch.softmax(logits, dim=-1).cpu()
+        latent_predictions = torch.argmax(nn_probs, dim=3).cpu()  # (BS, SeqLen, Dim)
+
+    predicted_symbolic_seqs = []
+    for i in range(bs):
+        seq_preds = []
+        for t in range(seqlen):
+            point_preds = {}
+            for d in range(dim):
+                # Determine the attribute name for this dimension
+                attr = list(predictions_dict.keys())[d]
+                class_order = predictions_dict[attr]
+
+                # Get the argmax index
+                idx = latent_predictions[i, t, d].item()
+
+                # Map to the class name, split and extract actual symbol
+                class_name = class_order[idx]  # e.g., 'd1_7'
+                symbol = class_name.split('_')[1]  # e.g., '7'
+
+                point_preds[attr] = int(symbol)
+            seq_preds.append(point_preds)
+        predicted_symbolic_seqs.append(seq_preds)
+
+    predicted_symbolic_seqs = [
+        [
+            [point[attr] for attr in list(seq_points[0].keys())]
+            for point in seq_points
+        ]
+        for seq_points in predicted_symbolic_seqs
+    ]
+
+    predicted_softmaxed_seqs = [
+        nn_probs[i].numpy()
+        for i in range(bs)
+    ]
+
+    model.train()
+    return predicted_symbolic_seqs, predicted_softmaxed_seqs
+#"""
+
+def nesy_forward_pass(batch, model, sfa, cnn_output_size, with_decay=False, update_seqs_stats=True, max_propagation=False):
     training_tensors = torch.stack([seq.images for seq in batch]).to(device)  # (bs, seqlen, dim, c, h, w)
     bs, seqlen, dim, c, w, h = training_tensors.shape
     training_tensors = training_tensors.view(-1, c, w, h)  # Flatten for CNN into (BS * SeqLen * dim, C, W, H)
@@ -145,20 +207,28 @@ def nesy_forward_pass(batch, model, sfa, cnn_output_size, with_decay=False, upda
     # dim=-1 refers to the last dimension of the tensor, more generic and robust than explicitly
     # giving the dimension, especially if tensor shapes slightly change at some point. This will
     # work as long as the class predictions are the last dimension.
-    nn_probs = torch.softmax(logits, dim=-1)
+    nn_probs = torch.softmax(logits/5, dim=-1)
 
     probabilities = get_probs_dict(nn_probs, sfa.symbols)
     labelling_function = create_labelling_function(probabilities, sfa.symbols)
-    acceptance_probabilities = torch.clamp(sfa.forward(labelling_function), 0, 1)
 
-    """
+    if not max_propagation:
+        acceptance_probabilities = torch.clamp(sfa.forward(labelling_function), 0, 1)
+    else:
+        acceptance_probabilities = torch.clamp(
+            sfa.forward(labelling_function, max_propagation=True, return_accepting=True), 0, 1)
+
+
+    #"""
     if with_decay:
-        decay_factor = 0.989
+        decay_factor = 0.978
         seq_lengths = torch.full((bs,), seqlen, dtype=torch.float32)
         # Apply decay to acceptance probabilities based on sequence length
         decay_weights = torch.pow(decay_factor, seq_lengths).to(device)
         acceptance_probabilities = acceptance_probabilities * decay_weights
+    #"""
 
+    """
     # Entropy Calculation
     eps = 1e-10  # Avoid log(0) issues
     entropy_per_img = -torch.sum(nn_outputs * torch.log(nn_outputs + eps), dim=2)  # (BS, SeqLen)
@@ -303,6 +373,72 @@ class StatsCollector:
         self.latent_loss += latent_loss
 
 
+def test_model_max_prop(ts: StatsCollector,
+                        train_loader: DataLoader[SequenceDataset],
+                        test_loader: DataLoader[SequenceDataset],
+                        model: torch.nn.Module,
+                        sfa: src.asal_nesy.deepfa.automaton.DeepFA,
+                        cnn_output_size,
+                        class_attributes,
+                        epoch_num=None,
+                        show_log=True):
+
+    def get_score(ts: StatsCollector):
+        latent_f1_macro = f1_score(ts.latent_actual, ts.latent_predicted, average="macro")
+        f1, tps, fps, fns = get_sequence_stats(ts.seq_predicted, ts.seq_actual)
+        return f1, tps, fps, fns, latent_f1_macro
+
+    end_time = time.time()
+
+    # Training stats:
+    train_f1, train_tps, train_fps, train_fns, train_latent_f1 = get_score(ts)
+
+    # Evaluate on the test set:
+    model.eval()
+    sc = StatsCollector()
+    with torch.no_grad():
+        for batch in test_loader:
+            testing_tensors = torch.stack([seq.images for seq in batch]).to(device)  # (bs, seqlen, dim, c, h, w)
+            bs, seqlen, dim, c, w, h = testing_tensors.shape
+            testing_tensors = testing_tensors.view(-1, c, w, h)  # Flatten for CNN into (BS * SeqLen * dim, C, W, H)
+            logits = model(testing_tensors, apply_softmax=False)  # (BS * SeqLen * Dim, NumClasses)
+            logits = logits.view(bs, seqlen, dim, cnn_output_size)  # (BS, SeqLen, Dim, NumClasses)
+
+            nn_probs = torch.softmax(logits, dim=-1)
+
+            probabilities = get_probs_dict(nn_probs, sfa.symbols)
+            labelling_function = create_labelling_function(probabilities, sfa.symbols)
+
+            acceptance_probabilities = torch.clamp(
+                sfa.forward(labelling_function, max_propagation=True, return_accepting=True), 0, 1)
+
+            rejection_probabilities = torch.clamp(
+                sfa.forward(labelling_function, max_propagation=True, return_accepting=False), 0, 1)
+
+            sequence_predictions = (acceptance_probabilities - rejection_probabilities > 0.0)
+
+            latent_predictions = torch.argmax(nn_probs, dim=3).flatten().cpu()  # (BS * SeqLen * Dim,)
+            sc.update_stats(batch, latent_predictions, sequence_predictions, class_attributes)
+
+    # Testing stats:
+    test_f1, test_tps, test_fps, test_fns, test_latent_f1 = get_score(sc)
+
+    epoch = f'Epoch {epoch_num}' if epoch_num is not None else ''
+    seq_loss = ts.target_loss / len(train_loader)
+    latent_loss = ts.latent_loss / len(train_loader)
+
+    if show_log:
+        loss_msg = f'{(seq_loss + latent_loss):.3f} (seq: {seq_loss:.3f} | latent: {latent_loss:.3f})' if latent_loss > 0 else f'{seq_loss:.3f}'
+        logger.info(
+            f'{epoch}\nLoss: {loss_msg}, Time: {end_time - ts.start_time:.3f} secs\n'
+            f'Train F1: {train_f1:.3f} ({train_tps}, {train_fps}, {train_fns}) | latent: {train_latent_f1:.3f}\n'
+            f'Test F1: {test_f1:.3f} ({test_tps}, {test_fps}, {test_fns}) | latent: {test_latent_f1:.3f}')
+        # f'Labeled images so far: {len(labeled_images)}')
+
+    model.train()
+    return test_f1, test_latent_f1
+
+
 def eval_model(ts: StatsCollector,
                train_loader: DataLoader[SequenceDataset],
                test_loader: DataLoader[SequenceDataset],
@@ -328,10 +464,15 @@ def eval_model(ts: StatsCollector,
     with torch.no_grad():
         for batch in test_loader:
             acceptance_probabilities, latent_predictions, nn_outputs = (
-                nesy_forward_pass(batch, model, sfa_dnnf, cnn_output_size)
+                nesy_forward_pass(batch, model, sfa_dnnf, cnn_output_size, update_seqs_stats=False, with_decay=False)  # Set this to False in needed!
             )
-            sequence_predictions = (acceptance_probabilities >= 0.5)
+            sequence_predictions = (acceptance_probabilities >= 0.99)
             sc.update_stats(batch, latent_predictions, sequence_predictions, class_attributes)
+
+            # for seq, p in zip(batch, acceptance_probabilities):
+            #     print('\n')
+            #     print(p, seq.seq_label)
+            #     print('\n')
 
     # Testing stats:
     test_f1, test_tps, test_fps, test_fns, test_latent_f1 = get_score(sc)
@@ -496,8 +637,130 @@ def set_all_labelled(batch: list[TensorSequence]):
 --------------------------------------------------------------------------------------------------
 """
 
-def get_query_points(seq: TensorSequence):
-    pass
+
+class EditPoint:
+    def __init__(self, attribute, value, time_point):
+        self.edit_attribute = attribute
+        self.value = value
+        self.time_point = time_point
+
+class CounterFact:
+    def __init__(self, asp_program):
+        self.edit_points = []
+        self.cost = 0
+        cores_num = multiprocessing.cpu_count()
+        self.cores = f'-t{cores_num if cores_num <= 64 else 64}'  # 64 threads is the limit for Clingo
+        self.asp_program = asp_program
+        self.num_edits = 0
+        self.ctl = clingo.Control([self.cores])
+        self.found_model = False
+
+    def on_model(self, model: clingo.solving.Model):
+        # print(model)
+        self.found_model = True
+        atoms = [atom for atom in model.symbols(shown=True)]
+        edit_points = []
+        for atom in atoms:
+            if atom.match("edit", 4):
+                att = str(atom.arguments[1])
+                val = str(atom.arguments[2])
+                time = str(atom.arguments[3])
+                edit_points.append(EditPoint(att, val, time))  # we only dee the last one
+            elif atom.match("edit_count", 1):
+                self.num_edits = int(str(atom.arguments[0]))
+
+        self.edit_points = edit_points
+        self.cost = model.cost[0]
+
+    def solve(self):
+        enable_python()
+        self.ctl.configuration.solve.models = '0'  # all models
+        self.ctl.add("base", [], self.asp_program)
+        self.ctl.ground([("base", [])])
+        self.ctl.solve(on_model=self.on_model)
+
+
+
+def get_query_points_by_edit_cost(train_loader, fully_labelled_seqs, current_nesy_model, asal_args):
+    if not current_nesy_model.sfa_asal.is_empty:
+
+        labeled_ids = set(seq.seq_id for seq in fully_labelled_seqs)
+        all_seqs = [seq for batch in train_loader for seq in batch]
+        unlabeled_candidates = [seq for seq in all_seqs if seq.seq_id not in labeled_ids]
+
+        # Get the misclassified - given the current SFA - sequences (these are misclassified based on acceptance prob.)
+        misclassified_seqs = [
+            seq for seq in unlabeled_candidates
+            if (seq.seq_label == 1 and seq.acceptance_probability < 0.5)
+               or (seq.seq_label == 0 and seq.acceptance_probability >= 0.5)
+        ]
+
+        counterfactuals_rules = """\n
+        seqId(S) :- argmax_prediction(S,_,_).
+        attribute(A) :- argmax_prediction(_,obs(A,_),_).
+        attribute(A) :- prediction(_,obs(A,_),_).
+        val(V) :- argmax_prediction(_,obs(_,V),_).
+        val(V) :- prediction(_,obs(_,V),_).
+        timeStep(T) :- argmax_prediction(_,obs(_,_),T).
+        timeStep(T) :- prediction(_,obs(_,_),T).
+
+        seq(S,obs(A,V),T) :- not_edit(S,A,V,T).
+        seq(S,obs(A,V),T) :- edit(S,A,V,T). 
+
+        {edit(S,A,V,T) : prediction(S,obs(A,V),T)}.
+        {not_edit(S,A,V,T) : argmax_prediction(S,obs(A,V),T)}.
+
+        :- edit(S,A,V,T), not_edit(S,A,V,T).
+        :- edit(S,A,V1,T), edit(S,A,V2,T), V1 != V2.
+        :- not seq(_,obs(A,_),T), timeStep(T), attribute(A).
+
+        edit_count(X) :- X = #count{T,Att,Val: edit(SeqId,Att,Val,T)}.
+
+        #minimize{W2 - W1@1: edit(SeqId,Att,Val,T), prediction_weight(SeqId,obs(Att,Val,T),W1), argmax_weight(SeqId,obs(Att,Val_1,T),W2)}.
+
+        #show edit/4.
+        #show edit_count/1.
+        """
+
+        for seq in misclassified_seqs:
+            asp_facts = seq.generate_asp_prediction_facts()
+            acceptance_constraint = f':- not accepted({seq.seq_id}).' if (seq.seq_label == 1 and seq.acceptance_probability < 0.5) else f':- accepted({seq.seq_id}).'
+            program  = (current_nesy_model.sfa_asal.show('reasoning') + '\n' +
+                        get_interpreter(asal_args) + '\n' +
+                        get_domain(asal_args.domain) + '\n' +
+                        acceptance_constraint + '\n' +
+                        counterfactuals_rules + '\n' + asp_facts)
+
+            counterfact_instance = CounterFact(program)
+            counterfact_instance.solve()
+
+            found_model = counterfact_instance.found_model
+
+            if not found_model:
+                logger.error(f'UNSATISFIABLE program during counterfactuals generation for sequence {seq.seq_id}. The ASP program is:\n\n{program}')
+                sys.exit(1)
+
+            seq.edit_points = counterfact_instance.edit_points
+            seq.edit_cost = counterfact_instance.cost
+
+            # This might not be very reasonable...
+            seq.edit_score = seq.bce_loss * len(seq.edit_points) / (1 + seq.edit_cost) if len(seq.edit_points) > 0 else 0
+
+            if True:  # seq.edit_points:
+                print(f'Seq: {seq.seq_id} | edit points: {len(seq.edit_points)}, '
+                      f'edit cost: {seq.edit_cost}, edit score: {seq.edit_score}, '
+                      f'accept. prob: {seq.acceptance_probability}, label: {seq.seq_label}, BCE loss: {seq.bce_loss}')
+
+        best_seq = max(misclassified_seqs, key=lambda x: x.edit_score)
+        # best_seq = max(misclassified_seqs, key=lambda x: len(x.edit_points))
+        # best_seq = max(misclassified_seqs, key=lambda x: x.edit_cost)
+
+        logger.info(yellow(f'Best sequence: {best_seq.seq_id}, edit points: {len(best_seq.edit_points)}, '
+                           f'edit cost: {best_seq.edit_cost}, edit score: {best_seq.edit_score:.3f}, '
+                           f'accept. prob.: {best_seq.acceptance_probability:.3f}, label: {best_seq.seq_label}, '
+                           f'BCE loss: {best_seq.bce_loss}\nedit points: {len(best_seq.edit_points)}'))
+
+        return best_seq
 
 def initialize_fully_labeled_seqs(train_loader, n):
     pos_seqs = []
@@ -543,7 +806,10 @@ def compute_expected_acceptance_losses(model, data_loader, sfa_dnnf, cnn_output_
             sequence_labels = torch.tensor([seq.seq_label for seq in batch]).to(device)
             losses = nn.functional.binary_cross_entropy(acceptance_probs, sequence_labels.float(), reduction='none')
             for seq, loss in zip(batch, losses):
-                loss_dict[seq.seq_id] = loss.item()
+                l = loss.item()
+                loss_dict[seq.seq_id] = l
+                seq.bce_loss = l
+    model.train()
     return loss_dict
 
 
@@ -624,9 +890,18 @@ def nesy_train(model, train_loader, sfa_dnnf, cnn_output_size,
             sequence_predictions = (acceptance_probabilities >= 0.5)
             stats_collector.update_stats(batch, latent_predictions, sequence_predictions,
                                          class_attrs, seq_loss.item(), latent_loss.item())
+
         training_stats.append(stats_collector)
+
+        #"""
         seq_f1, img_f1 = eval_model(stats_collector, train_loader, test_loader, model, sfa_dnnf,
                                     cnn_output_size, class_attrs, epoch, show_log=show_log)
+        #"""
+
+
+        # seq_f1, img_f1 = test_model_max_prop(stats_collector, train_loader, test_loader, model,
+        #                                     sfa_dnnf, cnn_output_size, class_attrs, epoch, show_log=show_log)
+
         test_stats['seq_f1'].append(seq_f1)
         test_stats['img_f1'].append(img_f1)
 

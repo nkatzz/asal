@@ -4,22 +4,19 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-import src.asal_nesy.neurasal.mnist.compile_multivar_nnf
-from src.asal_nesy.neurasal.mnist.compile_multivar_nnf import get_sfa
-
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 sys.path.insert(0, project_root)
 
-from src.asal_nesy.neurasal.data_structs import get_data, get_data_loader, SequenceDataset, TensorSequence
+from src.asal_nesy.neurasal.data_structs import get_data, get_data_loader, SequenceDataset
 from src.asal_nesy.neurasal.sfa import *
 from src.asal_nesy.dsfa_old.models import DigitCNN
 from src.args_parser import parse_args
 from src.logger import logger
 from src.asal_nesy.cirquits.asp_programs import mnist_even_odd_learn
-from src.asal_nesy.globals import device
+from src.globals import device
 from src.asal_nesy.neurasal.neurasal_functions import (nesy_forward_pass, get_latent_loss,
                                                        pretrain_nn, StatsCollector, eval_model, nn_forward_pass,
-                                                       sequence_to_facts, induce_sfa_simple, set_all_labelled)
+                                                       sequence_to_facts, induce_sfa_simple)
 
 nn_args = argparse.Namespace(
     app_name='mnist',

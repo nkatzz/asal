@@ -12,13 +12,13 @@ import argparse
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 sys.path.insert(0, project_root)
 
-from src.asal_nesy.neurasal.data_structs import get_data, get_data_loader, SequenceDataset, TensorSequence
+from src.asal_nesy.neurasal.data_structs import get_data, get_data_loader, SequenceDataset
 # from src.asal_nesy.neurasal.sfa import *
 from src.asal_nesy.dsfa_old.models import DigitCNN
 from src.args_parser import parse_args
 from src.logger import *
 from src.asal_nesy.cirquits.asp_programs import mnist_even_odd_learn
-from src.asal_nesy.globals import device
+from src.globals import device
 from src.asal_nesy.neurasal.neurasal_functions import (nesy_forward_pass, pretrain_nn, induce_sfa, nesy_train,
                                                        initialize_fully_labeled_seqs, al_random_sampling,
                                                        al_expected_acceptance_loss)

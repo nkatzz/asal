@@ -42,7 +42,7 @@ class CNN_LSTM(nn.Module):
 
 if __name__ == "__main__":
     seq_length, train_num, test_num = 10, 1000, 300
-    OOD = False
+    OOD = True
     train_loader, test_loader = get_data_loaders_OOD(batch_size=50) if OOD else get_data_loaders(batch_size=50)
 
     # Initialize CNN + LSTM model
