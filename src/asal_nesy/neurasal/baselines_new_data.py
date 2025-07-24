@@ -71,7 +71,7 @@ class CNN_LSTM(nn.Module):
                 hidden_size=self.lstm_hidden_size,
                 num_layers=self.lstm_num_layers,
                 batch_first=True,
-            )
+            ).to(device)
 
         lstm_out, _ = self.lstm(cnn_out)  # (bs, seqlen, lstm_hidden_size)
         final_out = self.fc(lstm_out[:, -1, :])  # (bs, output_size)
@@ -89,6 +89,11 @@ if __name__ == "__main__":
     torch.manual_seed(seed)
     random.seed(seed)
     np.random.seed(seed)
+
+    # os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
+    # torch.use_deterministic_algorithms(True)
+    # torch.backends.cudnn.deterministic = True
+    # torch.backends.cudnn.benchmark = False
 
     """
     seq_length, train_num, test_num = 10, 1000, 300
@@ -112,13 +117,13 @@ if __name__ == "__main__":
     # Just for debugging when testing on the training set, make sure that the data are the same.
     # assert all(seq1.seq_id == seq2.seq_id for seq1, seq2 in zip(train_data, test_data))
 
-    train_loader: DataLoader[SequenceDataset] = get_data_loader(train_data, batch_size=50, train=True)
-    test_loader: DataLoader[SequenceDataset] = get_data_loader(test_data, batch_size, train=False)
+    train_loader: DataLoader[SequenceDataset] = get_data_loader(train_data, batch_size=batch_size, train=True)
+    test_loader: DataLoader[SequenceDataset] = get_data_loader(test_data, batch_size=batch_size, train=False)
 
     # Initialize CNN + LSTM model
     cnn_model = DigitCNN(out_features=10)  # CNN outputs 10 features (one for each digit label)
     lstm_hidden_size = 128  # Define LSTM hidden state size
-    lstm_num_layers = 2  # Number of LSTM layers
+    lstm_num_layers = 1  # Number of LSTM layers
 
     model = CNN_LSTM(cnn_model, lstm_hidden_size, lstm_num_layers).to(device)
 
@@ -169,13 +174,13 @@ if __name__ == "__main__":
                 actual.extend(labels.cpu().numpy())
                 predicted.extend(predictions.cpu().numpy())
 
-                pred_probs = outputs.view(-1)
-                true_labels = labels.float()
-                loss_eval = nn.BCELoss(reduction='sum')(pred_probs, true_labels).item()
-                total_loss_1 += loss_eval
+                # pred_probs = outputs.view(-1)
+                # true_labels = labels.float()
+                # loss_eval = nn.BCELoss(reduction='sum')(pred_probs, true_labels).item()
+                # total_loss_1 += loss_eval
 
         test_f1 = f1_score(actual, predicted, average='binary', zero_division=0)
-        print("Eval BCE Loss:", total_loss_1 / len(test_data))
+        # print("Eval BCE Loss:", total_loss_1 / len(test_data))
 
         print(f"Epoch {epoch + 1}, Loss: {total_loss / len(train_loader):.3f}, "
               f"Test F1: {test_f1:.3f}, Time: {time.time() - start_time:.3f} secs")
