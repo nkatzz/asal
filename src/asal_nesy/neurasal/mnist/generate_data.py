@@ -101,6 +101,20 @@ def pair_seqs_ims(sequences: list[MNISTImageSequence], dataset: Dataset, transfo
 
 
 if __name__ == "__main__":
+
+    from generate_data_asp_definitions import sfa_1, sfa_2, pattern_names
+    seq_length = 10
+    dimensionality = 1
+
+    # pattern = sfa_1
+    pattern = sfa_1
+
+    folder = f'len_{seq_length}_dim_{dimensionality}_pattern_{pattern_names[pattern]}'
+    save_to_folder = f'/home/nkatz/dev/asal_data/mnist_nesy/{folder}'
+
+    if not os.path.exists(save_to_folder):
+        os.makedirs(save_to_folder)
+
     train_images = MNIST(
         os.path.join(os.path.expanduser("~/.cache"), "mnist_raw"),
         download=True,
@@ -116,7 +130,7 @@ if __name__ == "__main__":
         transform=None
     )
 
-    train, test = generate_seqs()
+    train, test = generate_seqs(seq_length, dimensionality, pattern, save_to_folder)
 
     # Augmentation transform
     augment_transform = transforms.Compose([
@@ -129,14 +143,6 @@ if __name__ == "__main__":
     train_pairing = pair_seqs_ims(train, train_images, augment_transform)
     test_pairing = pair_seqs_ims(test, test_images, augment_transform)
 
-    # torch.save(train_pairing, "/home/nkatz/dev/asal/data/mnist_nesy/double_digit/mnist_train.pt")
-    # torch.save(test_pairing, "/home/nkatz/dev/asal/data/mnist_nesy/double_digit/mnist_test.pt")
+    torch.save(train_pairing, f"{save_to_folder}/mnist_train.pt")
+    torch.save(test_pairing, f"{save_to_folder}/mnist_test.pt")
 
-    torch.save(train_pairing, "/home/nkatz/dev/asal_data/mnist_nesy/single_digit_50/mnist_train.pt")
-    torch.save(test_pairing, "/home/nkatz/dev/asal_data/mnist_nesy/single_digit_50/mnist_test.pt")
-
-    # torch.save(train_pairing, "/home/nkatz/dev/asal_data/mnist_nesy/single_digit_20/mnist_train.pt")
-    # torch.save(test_pairing, "/home/nkatz/dev/asal_data/mnist_nesy/single_digit_20/mnist_test.pt")
-
-    # torch.save(train_pairing, "/home/nkatz/dev/asal_data/mnist_nesy/single_digit_10/mnist_train.pt")
-    # torch.save(test_pairing, "/home/nkatz/dev/asal_data/mnist_nesy/single_digit_10/mnist_test.pt")

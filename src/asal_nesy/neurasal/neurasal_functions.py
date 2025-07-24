@@ -466,7 +466,7 @@ def eval_model(ts: StatsCollector,
             acceptance_probabilities, latent_predictions, nn_outputs = (
                 nesy_forward_pass(batch, model, sfa_dnnf, cnn_output_size, update_seqs_stats=False, with_decay=False)  # Set this to False in needed!
             )
-            sequence_predictions = (acceptance_probabilities >= 0.99)
+            sequence_predictions = (acceptance_probabilities >= 0.5)  # 0.99
             sc.update_stats(batch, latent_predictions, sequence_predictions, class_attributes)
 
             # for seq, p in zip(batch, acceptance_probabilities):

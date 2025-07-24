@@ -10,122 +10,7 @@ from collections import defaultdict
 from sklearn.model_selection import train_test_split
 import os
 from collections import Counter
-
-diverse_models_meta_encoding = \
-    """
-model(1..m).
-
-conjunction(B,M) :- model(M), literal_tuple(B),
-        hold(L,M) : literal_tuple(B, L), L > 0;
-    not hold(L,M) : literal_tuple(B,-L), L > 0.
-
-body(normal(B),M) :- rule(_,normal(B)), conjunction(B,M).
-body(sum(B,G),M)  :- model(M), rule(_,sum(B,G)),
-    #sum { W,L :     hold(L,M), weighted_literal_tuple(B, L,W), L > 0 ;
-           W,L : not hold(L,M), weighted_literal_tuple(B,-L,W), L > 0 } >= G.
-
-  hold(A,M) : atom_tuple(H,A)   :- rule(disjunction(H),B), body(B,M).
-{ hold(A,M) : atom_tuple(H,A) } :- rule(     choice(H),B), body(B,M).
-
-show(T,M) :- output(T,B), conjunction(B,M).
-#show.
-#show (T,M) : show(T,M).
-
-#const k=1.
-
-:- model(M), model(N), M<N, option = 1,
-    #sum{ 1,T: show(T,M), not show(T,N) ;
-          1,T: not show(T,M), show(T,N) } < k.
-
-#maximize{ 1,T,M,N: show(T,M), not show(T,N), model(N), option = 2 }.
-"""
-
-program = \
-    """
-% Automata interpreter
-inState(1,T) :- seqStart(T).
-inState(S2,T+1) :- inState(S1,T), transition(S1,f(S1,S2),S2), holds(f(S1,S2),T).
-accepted :- inState(S,T), accepting(S), seqEnd(T).
-reach_accept_at(T) :- inState(S,T), accepting(S); #false: inState(S,T1), T1 < T.
-
-seqStart(1).
-seqEnd(T+1) :- time(T), not time(T+1).
-% time(1..10).  % increase the end point to get longer seqs
-time(1..50).
-digit(0..9).
-
-% :- reach_accept_at(T), not seqEnd(T).  % reach acceptance only at the end of the sequence
-
-% Automaton
-%*
-accepting(4).
-transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2). 
-transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4). 
-transition(4,f(4,4),4).
-
-holds(f(1,2),T) :- holds(equals(d1,even),T), holds(equals(d2,gt_6),T).
-holds(f(2,3),T) :- holds(equals(d2,odd),T), holds(equals(d1,leq_6),T).
-holds(f(3,4),T) :- holds(equals(d1,leq_3),T), holds(equals(d2,gt_5),T).
-holds(f(3,4),T) :- holds(equals(d3,leq_3),T).
-holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
-holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
-holds(f(4,4),T) :- time(T).
-holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
-*%
-
-
-accepting(4).
-transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2). 
-transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4). 
-transition(4,f(4,4),4).
-
-holds(f(1,2),T) :- holds(equals(d1,even),T), holds(equals(d1,gt_6),T).
-holds(f(2,3),T) :- holds(equals(d1,odd),T), holds(equals(d1,leq_6),T).
-holds(f(3,4),T) :- holds(equals(d1,leq_3),T).
-holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
-holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
-holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
-
-holds(f(4,4),T) :- time(T).  % No over-general self loop to avoid having acceptance prob. increase indefinitely in the experiments.
-% holds(f(4,4),T) :- holds(equals(d1,leq_3),T).
-% holds(f(4,1),T) :- time(T), not holds(f(4,4),T).
-
-
-%*
-accepting(4).
-transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2). 
-transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4). 
-transition(3,f(3,1),1). transition(2,f(2,1),1). 
-transition(4,f(4,4),4).
-
-holds(f(1,2),T) :- holds(equals(d1,even),T), holds(equals(d2,gt_6),T).
-holds(f(2,3),T) :- holds(equals(d2,odd),T), holds(equals(d1,leq_6),T).
-holds(f(3,4),T) :- holds(equals(d1,leq_3),T), holds(equals(d2,gt_5),T).
-holds(f(3,4),T) :- holds(equals(d2,odd),T).
-holds(f(3,1),T) :- holds(equals(d1,odd),T), holds(equals(d2,even),T).
-holds(f(2,1),T) :- holds(equals(d1,odd),T), holds(equals(d2,even),T).
-holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
-holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
-holds(f(4,4),T) :- time(T).
-holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
-*%
-
-% Predicate definitions
-holds(equals(D,even),T) :- seq(obs(D,X),T), X \ 2 = 0.
-holds(equals(D,odd),T) :- seq(obs(D,X),T), X \ 2 != 0.
-holds(equals(D,gt_6),T) :- seq(obs(D,X),T), X > 6.
-holds(equals(D,leq_6),T) :- seq(obs(D,X),T), X <= 6.
-holds(equals(D,gt_3),T) :- seq(obs(D,X),T), X > 3.
-holds(equals(D,leq_3),T) :- seq(obs(D,X),T), X <= 3.
-holds(equals(D,gt_5),T) :- seq(obs(D,X),T), X > 5.
-
-1 {seq(obs(d1,X),T): digit(X)} 1 :- time(T).
-% 1 {seq(obs(d2,X),T): digit(X)} 1 :- time(T).
-% 1 {seq(obs(d3,X),T): digit(X)} 1 :- time(T).
-
-#show.
-#show seq/2.
-"""
+from generate_data_asp_definitions import *
 
 positive_constraint = ":- not accepted."
 negative_constraint = ":- accepted."
@@ -179,6 +64,48 @@ def hamming(seq1: DigitSequence, seq2: DigitSequence):
     return sum(x != y for x, y in zip(seq1.get_sequence(), seq2.get_sequence()))
 
 
+def is_sequence_balanced(seq: DigitSequence, digit_counts, total_allowed_per_digit):
+    # print(seq.get_sequence())
+    temp_counts = digit_counts.copy()
+    seqs = [list(x) for x in zip(*seq.get_sequence())] if len(seq.seq_attributes) > 1 else [seq.get_sequence()]
+    for s in seqs:
+        for digit in s:
+            temp_counts[digit] += 1
+            if temp_counts[digit] > total_allowed_per_digit:
+                return False
+    return True
+
+
+def has_excessive_repeats(sequence: DigitSequence, max_run_length=4, max_freq_ratio=0.7):
+    # Check for repeated digits in a row
+    # print(sequence.get_sequence())
+    seqs = [list(x) for x in zip(*sequence.get_sequence())] if len(sequence.seq_attributes) > 1 else [sequence.get_sequence()]
+    # print(seqs)
+    checks = []
+    for seq in seqs:
+        check = False
+        current_digit = seq[0]
+        run_length = 1
+        for digit in seq[1:]:
+            if digit == current_digit:
+                run_length += 1
+                if run_length >= max_run_length:
+                    check = True
+            else:
+                current_digit = digit
+                run_length = 1
+
+        # Check for one digit dominating the sequence
+        counts = Counter(seq)
+        most_common_digit, count = counts.most_common(1)[0]
+        if count / len(seq) >= max_freq_ratio:
+            check = True
+
+        checks.append(check)
+
+    return all(checks)
+
+
 class MNISTSeqGenerator:
     def __init__(self, args):
         self.seq_count = args.sequence_counter
@@ -193,6 +120,13 @@ class MNISTSeqGenerator:
         self.seq_target_num = args.seq_num
         self.generated_sequences = []
         self.handle = None
+
+        self.seq_length = args.seq_length
+        self.dimensionality = args.dimensionality
+
+        self.digit_counts = defaultdict(int)
+        self.total_digits = self.seq_target_num * self.seq_length * self.dimensionality
+        self.total_allowed_per_digit = self.total_digits // 10
 
     @staticmethod
     def group_seq_atoms(seq_atoms):
@@ -242,19 +176,53 @@ class MNISTSeqGenerator:
 
         if not self.generated_sequences:
             for s in sequences:
-                self.keep_sequence(s)
+                """The is_sequence_balanced check does not work unless the blocks below that update the digit_counts
+                   dict are uncommented. But this does not generate an even distribution of digits, need a different  
+                   method for that. So currently the is_sequence_balanced check is inactive."""
+
+                # if True:
+                if (is_sequence_balanced(s, self.digit_counts, self.total_allowed_per_digit) and
+                       not has_excessive_repeats(s, max_run_length=5, max_freq_ratio=0.7)):
+                    self.keep_sequence(s)
+
+                    # Need to update the digit_counts dict to ensure an even distribution of digits in the seqs
+                    """
+                    seqs = [list(x) for x in zip(*s.get_sequence())]
+                    for ss in seqs:
+                        for digit in ss:
+                            self.digit_counts[digit] += 1
+                    """
+                else:
+                    print(f'Sequence {s.get_sequence()} discarded.')
         else:
             for seq in sequences:
-                mean_hamming = sum(hamming(seq, s) for s in self.generated_sequences) / len(self.generated_sequences)
-                # if mean_hamming > seq.length() - (1 / 5 * seq.length()):
-                if True:
-                    self.keep_sequence(seq)
-                    if self.show != 'no':
-                        if self.show != "asp":
-                            print(f'Sequence {seq.seq_id}: '
-                                  f'{seq.to_string()} Avg Hamming: {mean_hamming:.3f}')
-                        else:
-                            print(f'Sequence:\n{seq.to_asp()} Avg Hamming: {mean_hamming:.3f}')
+                """The is_sequence_balanced check does not work unless the blocks below that update the digit_counts
+                   dict are uncommented. But this does not generate an even distribution of digits, need a different  
+                   method for that. So currently the is_sequence_balanced check is inactive."""
+
+                # if True:
+                if (is_sequence_balanced(seq, self.digit_counts, self.total_allowed_per_digit) and
+                        not has_excessive_repeats(seq, max_run_length=5, max_freq_ratio=0.7)):
+                    mean_hamming = sum(hamming(seq, s) for s in self.generated_sequences) / len(self.generated_sequences)
+                    # if mean_hamming > seq.length() - (1 / 5 * seq.length()):
+                    if True:
+                        self.keep_sequence(seq)
+                        if self.show != 'no':
+                            if self.show != "asp":
+                                print(f'Sequence {seq.seq_id}: '
+                                      f'{seq.to_string()} Avg Hamming: {mean_hamming:.3f}')
+                            else:
+                                print(f'Sequence:\n{seq.to_asp()} Avg Hamming: {mean_hamming:.3f}')
+
+                        # Need to update the digit_counts dict to ensure an even distribution of digits in the seqs
+                        """
+                        seqs = [list(x) for x in zip(*seq.get_sequence())]
+                        for ss in seqs:
+                            for digit in ss:
+                                self.digit_counts[digit] += 1
+                        """
+                else:
+                    print(f'Sequence {seq.get_sequence()} discarded.')
 
     def on_model(self, model: clingo.solving.Model):
         atoms = [atom for atom in model.symbols(shown=True)]
@@ -304,6 +272,7 @@ def count_digit_frequencies_per_label(digit_sequences):
 
     return counters
 
+
 def print_label_counters(counts):
     for label in ['positive', 'negative']:
         print(f"\n{label.capitalize()} counts:")
@@ -311,7 +280,7 @@ def print_label_counters(counts):
             print(f"Digit {digit}: {counts[label][digit]}")
 
 
-def generate_seqs():
+def generate_seqs(seq_length, dimensionality, sfa_pattern, save_to_folder):
     """
     To generate multivariate versions: Just add extra generate directives in the program, i.e.
     1 {seq(obs(d1,X),T): digit(X)} 1 :- time(T).
@@ -350,6 +319,9 @@ def generate_seqs():
     holds(f(4,4),SeqId,T) :- sequence(SeqId), time(T).
     holds(f(3,3),SeqId,T) :- sequence(SeqId), time(T), not holds(f(3,4),SeqId,T).
     """
+
+    program = get_program(seq_length, dimensionality, sfa_pattern)
+
     args = argparse.Namespace(
         sequence_counter=0,
         asp_program=program,
@@ -357,6 +329,8 @@ def generate_seqs():
         seq_num=1000,  # How many sequences to generate
         show='no',  # The format to print the generated sequences in (options: no, asp, lists)
         async_wait=10,  # increase this for intensive tasks, e.g. large hamming distance
+        seq_length=seq_length,
+        dimensionality=dimensionality,
     )
     print('Generating positives')
     generator = MNISTSeqGenerator(args)
@@ -396,10 +370,10 @@ def generate_seqs():
     print(counts_per_label_pos)
     print(counts_per_label_neg)
 
-    train_file = '../../../../data/mnist_nesy/double_digit/clingo_generated_train.lp'
-    test_file = '../../../../data/mnist_nesy/double_digit/clingo_generated_test.lp'
-    train_csv_file = '../../../../data/mnist_nesy/double_digit/clingo_generated_train.csv'
-    test_csv_file = '../../../../data/mnist_nesy/double_digit/clingo_generated_test.csv'
+    train_file = f'{save_to_folder}/clingo_generated_train.lp'
+    test_file = f'{save_to_folder}/clingo_generated_test.lp'
+    train_csv_file = f'{save_to_folder}/clingo_generated_train.csv'
+    test_csv_file = f'{save_to_folder}/clingo_generated_test.csv'
 
     with open(train_file, 'w') as f1:
         for seq in train:
@@ -425,6 +399,4 @@ def generate_seqs():
 
 
 if __name__ == '__main__':
-    generate_seqs()
-
-
+    generate_seqs('give a path')

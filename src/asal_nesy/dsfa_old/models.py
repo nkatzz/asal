@@ -37,12 +37,16 @@ class DigitCNN(nn.Module):
             self.softmax = nn.Softmax(dim=1)
         self.last_logits = None
 
-    def forward(self, input_image, apply_softmax=True, store_output=False):
+    def forward(self, input_image, apply_softmax=True, store_output=False, return_features=False):
         x = self.avg_pool(self.relu(self.conv1(input_image)))
         x = self.avg_pool(self.relu(self.conv2(x)))
         x = self.avg_pool(self.relu(self.conv3(x)))
 
         x = torch.flatten(x, 1)
+
+        if return_features:
+            return x  # return raw features before classification
+
         logits = self.dense(x)
 
         if store_output:

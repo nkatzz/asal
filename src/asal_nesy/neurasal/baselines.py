@@ -25,11 +25,13 @@ class CNN_LSTM(nn.Module):
         """
         x: Tensor of shape (batch_size, seq_len, channels, height, width)
         """
-        batch_size, seq_len, channels, height, width = x.size()
+        # batch_size, seq_len, channels, height, width = x.size()
+        batch_size, seq_len, channels, height, width = x.shape
+
         # Reshape to process each element in the sequence through CNN
         x = x.view(-1, channels, height, width)  # Shape: (batch_size * seq_len, channels, height, width)
         # No softmax here!
-        cnn_out = self.cnn(x, apply_softmax=False)  # Shape: (batch_size * seq_len, cnn_out_features)
+        cnn_out = self.cnn(x, apply_softmax=False, return_features=True)  # Shape: (batch_size * seq_len, cnn_out_features)
         cnn_out = cnn_out.view(batch_size, seq_len, -1)  # Shape: (batch_size, seq_len, cnn_out_features)
 
         # Pass the sequence of CNN outputs into the LSTM
@@ -42,13 +44,13 @@ class CNN_LSTM(nn.Module):
 
 if __name__ == "__main__":
     seq_length, train_num, test_num = 10, 1000, 300
-    OOD = True
+    OOD = False
     train_loader, test_loader = get_data_loaders_OOD(batch_size=50) if OOD else get_data_loaders(batch_size=50)
 
     # Initialize CNN + LSTM model
     cnn_model = DigitCNN(out_features=10)  # CNN outputs 10 features (one for each digit label)
     lstm_hidden_size = 128  # Define LSTM hidden state size
-    lstm_num_layers = 1  # Number of LSTM layers
+    lstm_num_layers = 2  # Number of LSTM layers
 
     model = CNN_LSTM(cnn_model, lstm_hidden_size, lstm_num_layers).to(device)
 
@@ -72,7 +74,7 @@ if __name__ == "__main__":
 
             # Forward pass
             outputs = model(tensors)  # Shape: (batch_size, 1)
-            loss = criterion(outputs.squeeze(), labels.float())  # Compute binary cross-entropy loss
+            loss = criterion(outputs.squeeze(), labels.float())
 
             # Backward pass
             optimizer.zero_grad()
