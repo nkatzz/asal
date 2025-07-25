@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import numpy as np
+from sklearn.metrics import confusion_matrix
 
 sys.path.insert(0, os.path.normpath(os.getcwd() + os.sep + os.pardir))
 
@@ -9,15 +10,13 @@ from src.asal_nesy.dsfa_old.models import DigitCNN
 from src.asal_nesy.neurasal.utils import *
 from src.asal_nesy.neurasal.data_structs import get_data, get_data_loader, SequenceDataset, TensorSequence
 
-# so the pytorch can load data from pickled objects generated via ASP
-sys.path.append('/home/nkatz/dev/asal/src/asal_nesy/neurasal/mnist')
-
 import torch
 import torch.nn as nn
 
 
 class CNN_LSTM(nn.Module):
-    def __init__(self, cnn_model, lstm_hidden_size, lstm_num_layers, output_size=1, aggregation='concat'):
+    def __init__(self, cnn_model, lstm_hidden_size, lstm_num_layers,
+                 output_size=1, cnn_return_features=True, with_cnn_dropout=False, aggregation='concat'):
         """
         aggregation: one of ['concat', 'mean']
 
@@ -31,6 +30,8 @@ class CNN_LSTM(nn.Module):
         super(CNN_LSTM, self).__init__()
         self.cnn = cnn_model  # CNN model that outputs cnn_model.out_features per image
         self.aggregation = aggregation
+        self.return_features = cnn_return_features
+        self.cnn_dropout = with_cnn_dropout
 
         if aggregation == 'concat':
             self.input_per_timestep = None  # Set later dynamically in forward
@@ -52,8 +53,8 @@ class CNN_LSTM(nn.Module):
         bs, seqlen, dim, c, h, w = x.shape
         x = x.view(bs * seqlen * dim, c, h, w)  # (bs * seqlen * dim, c, h, w)
 
-        # cnn_out = self.cnn(x, apply_softmax=False)  # (bs * seqlen * dim, cnn_out_features)
-        cnn_out = self.cnn(x, apply_softmax=False, return_features=True)
+        # cnn_out = self.cnn(x, apply_softmax=False)  # (bs * seqlefn * dim, cnn_out_features)
+        cnn_out = self.cnn(x, apply_softmax=False, return_features=self.return_features, with_dropout=self.cnn_dropout)  # Returning logits (not features) works better!
         cnn_out = cnn_out.view(bs, seqlen, dim, -1)  # (bs, seqlen, dim, cnn_out_features)
 
         if self.aggregation == 'concat':
@@ -77,10 +78,45 @@ class CNN_LSTM(nn.Module):
         final_out = self.fc(lstm_out[:, -1, :])  # (bs, output_size)
 
         # print("CNN out mean/std:", round(cnn_out.mean().item(), 3), round(cnn_out.std().item(), 3))
-
         # print(torch.sigmoid(final_out).mean().item())
 
         return torch.sigmoid(final_out)
+
+
+def test_model(model, data_loader: DataLoader[SequenceDataset], probability_threshold=0.5):
+    model.eval()
+    with torch.no_grad():
+        actual, predicted = [], []
+        total_loss_1 = 0.0
+        for batch in data_loader:
+            tensors = torch.stack([seq.images for seq in batch]).to(device)  # (bs, seqlen, dim, c, h, w)
+            labels = torch.tensor([seq.seq_label for seq in batch]).to(device)  # (BS,)
+            # labels = labels.view(-1)
+
+            outputs = model(tensors)
+            # predictions = (outputs.squeeze() >= 0.5).long()
+            predictions = (outputs >= probability_threshold).long().view(-1)
+
+            actual.extend(labels.cpu().numpy())
+            predicted.extend(predictions.cpu().numpy())
+
+            # pred_probs = outputs.view(-1)
+            # true_labels = labels.float()
+            # loss_eval = nn.BCELoss(reduction='sum')(pred_probs, true_labels).item()
+            # total_loss_1 += loss_eval
+
+    f1 = f1_score(actual, predicted, average='binary', zero_division=0)
+    # print("Eval BCE Loss:", total_loss_1 / len(test_data))
+    tn, fp, fn, tp = confusion_matrix(actual, predicted).ravel()
+    return f1, tp, fp, fn, tn
+
+def get_symbolic_seqs(dataset: SequenceDataset, write_seqs_to):
+    for seq in dataset:
+        labels = torch.tensor([seq.seq_label for seq in batch]).to(device)
+        with open(write_seqs_to, "w") as f:
+            for seq in labels:
+                f.write(seq.item())
+        f.close()
 
 
 if __name__ == "__main__":
@@ -95,13 +131,16 @@ if __name__ == "__main__":
     # torch.backends.cudnn.deterministic = True
     # torch.backends.cudnn.benchmark = False
 
-    """
-    seq_length, train_num, test_num = 10, 1000, 300
-    OOD = True
-    train_loader, test_loader = get_data_loaders_OOD(batch_size=50) if OOD else get_data_loaders(batch_size=50)
-    """
+    # seq_length, train_num, test_num = 10, 1000, 300
+    # OOD = True
+    # train_loader, test_loader = get_data_loaders_OOD(batch_size=50) if OOD else get_data_loaders(batch_size=50)
 
     batch_size = 50
+    num_epochs = 200
+    pre_train_cnn_for = 0  # num of epochs, set to 0 for no pre-training
+    lr =  0.0001  # 0.005
+    cnn_return_features = True
+    cnn_dropout = False
 
     train_data, test_data = get_data('/home/nkatz/dev/asal_data/mnist_nesy/len_10_dim_1_pattern_sfa_1/mnist_train.pt',
                                      '/home/nkatz/dev/asal_data/mnist_nesy/len_10_dim_1_pattern_sfa_1/mnist_test.pt')
@@ -125,13 +164,20 @@ if __name__ == "__main__":
     lstm_hidden_size = 128  # Define LSTM hidden state size
     lstm_num_layers = 1  # Number of LSTM layers
 
-    model = CNN_LSTM(cnn_model, lstm_hidden_size, lstm_num_layers).to(device)
+    model = CNN_LSTM(cnn_model, lstm_hidden_size, lstm_num_layers,
+                     cnn_return_features=cnn_return_features, with_cnn_dropout=cnn_dropout).to(device)
 
     # extremely sensitive to the lr, loss does not improve for lr=0.0001, or lr=0.01
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)  # 0.001
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.005)  # 0.001  0.005
     criterion = nn.BCELoss()  # Binary cross-entropy loss for binary classification
 
-    num_epochs = 200
+    if pre_train_cnn_for > 0:
+        from src.asal_nesy.neurasal.neurasal_functions import pretrain_nn
+        class_attrs = ['d1']
+        print(f'Pretraining CNN for {pre_train_cnn_for} epochs')
+        pretrain_nn(train_data, test_data, 0,
+                    cnn_model, optimizer, class_attrs, with_fully_labelled_seqs=True, num_epochs=pre_train_cnn_for)
+
 
     print("Training CNN + LSTM baseline...")
 
@@ -157,30 +203,20 @@ if __name__ == "__main__":
 
             total_loss += loss.item()
 
-        # Evaluate on the test set
-        model.eval()
-        with torch.no_grad():
-            actual, predicted = [], []
-            total_loss_1 = 0.0
-            for batch in test_loader:
-                tensors = torch.stack([seq.images for seq in batch]).to(device)  # (bs, seqlen, dim, c, h, w)
-                labels = torch.tensor([seq.seq_label for seq in batch]).to(device)  # (BS,)
-                # labels = labels.view(-1)
+        train_f1, train_tps, train_fps, train_fns, train_tns = test_model(model, train_loader, probability_threshold=0.5)
+        test_f1, test_tps, test_fps, test_fns, test_tns = test_model(model, test_loader, probability_threshold=0.5)
 
-                outputs = model(tensors)
-                # predictions = (outputs.squeeze() >= 0.5).long()
-                predictions = (outputs >= 0.5).long().view(-1)
+        print(f"Epoch: {epoch + 1}, Loss: {total_loss / len(train_loader):.3f}, Time: {time.time() - start_time:.3f} secs\n"
+              f"Train (F1, tps, fps, fns, tns): ({train_f1:.3f}, {train_tps}, {train_fps}, {train_fns}, {train_tns})\n"
+              f"Test  (F1, tps, fps, fns, tns): ({test_f1:.3f}, {test_tps}, {test_fps}, {test_fns}, {test_tns})")
 
-                actual.extend(labels.cpu().numpy())
-                predicted.extend(predictions.cpu().numpy())
+        """
+        print('')
+        for p in [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.99]:
+            test_f1, test_tps, test_fps, test_fns, test_tns = test_model(model, test_loader, probability_threshold=p)
+            print (p, test_f1, test_tps, test_fps, test_fns)
+        """
 
-                # pred_probs = outputs.view(-1)
-                # true_labels = labels.float()
-                # loss_eval = nn.BCELoss(reduction='sum')(pred_probs, true_labels).item()
-                # total_loss_1 += loss_eval
 
-        test_f1 = f1_score(actual, predicted, average='binary', zero_division=0)
-        # print("Eval BCE Loss:", total_loss_1 / len(test_data))
 
-        print(f"Epoch {epoch + 1}, Loss: {total_loss / len(train_loader):.3f}, "
-              f"Test F1: {test_f1:.3f}, Time: {time.time() - start_time:.3f} secs")
+

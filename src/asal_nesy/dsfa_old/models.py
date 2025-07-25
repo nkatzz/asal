@@ -21,12 +21,13 @@ spec.loader.exec_module(road_r)
 
 
 class DigitCNN(nn.Module):
-    def __init__(self, dropout_rate=0.4, out_features=10, log_softmax: bool = False):
+    def __init__(self, dropout_rate=0.3, out_features=10, log_softmax: bool = False):
         super().__init__()
         self.out_features = out_features
         self.conv1 = nn.Conv2d(1, 8, (3, 3))
         self.conv2 = nn.Conv2d(8, 16, (3, 3))
         self.conv3 = nn.Conv2d(16, 32, (3, 3))
+
         self.relu = nn.ReLU()
         self.avg_pool = nn.AvgPool2d(2, 2)
         self.dense = nn.Linear(in_features=32, out_features=out_features)
@@ -37,10 +38,17 @@ class DigitCNN(nn.Module):
             self.softmax = nn.Softmax(dim=1)
         self.last_logits = None
 
-    def forward(self, input_image, apply_softmax=True, store_output=False, return_features=False):
+        self.dropout = nn.Dropout(p=dropout_rate)  # Drop dropout_rate % of neurons
+
+    def forward(self, input_image, apply_softmax=True,
+                store_output=False, return_features=False, with_dropout=False):
+
         x = self.avg_pool(self.relu(self.conv1(input_image)))
         x = self.avg_pool(self.relu(self.conv2(x)))
         x = self.avg_pool(self.relu(self.conv3(x)))
+
+        if with_dropout:
+            x = self.dropout(x)
 
         x = torch.flatten(x, 1)
 

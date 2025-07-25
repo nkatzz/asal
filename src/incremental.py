@@ -25,10 +25,6 @@ from src.asal_nesy.neurasal.neurasal_functions import (pretrain_nn, induce_sfa, 
                                                        set_asp_weights, get_sequence_stats, get_nn_predicted_seqs,
                                                        timer, get_query_points_by_edit_cost)
 
-# so the pytorch can load data from pickled objects generated via ASP
-sys.path.append('/home/nkatz/dev/asal/src/asal_nesy/neurasal/mnist')
-
-
 # Doesn't seem to improve things, but need to try it on a computer with actually many cores...
 # if not torch.cuda.is_available():
 #     torch.set_num_threads(1)
@@ -480,9 +476,9 @@ if __name__ == "__main__":
                                  pre_training_size=10,  # num of fully labeled seed sequences.
                                  pre_train_num_epochs=100, learn_seed_sfa_from_pretrained=False, )
 
-    num_init_fully_labelled = 400  # 1000  # Number of initial fully labelled sequences
+    num_init_fully_labelled = 4  # 1000  # Number of initial fully labelled sequences
     num_queries = 10  # Total number of active learning queries
-    num_epochs = 5  # 20  # Number of epochs to train after each active learning update
+    num_epochs = 20  # 20  # Number of epochs to train after each active learning update
     cnn_output_size = 10  # for MNIST
     pre_train_for = 100  # 10  # 100
     nn_batch_size = 50
@@ -519,7 +515,7 @@ if __name__ == "__main__":
     """
 
     train_data, test_data = get_data('/home/nkatz/dev/asal_data/mnist_nesy/len_10_dim_1_pattern_sfa_1/mnist_train.pt',
-                                     '/home/nkatz/dev/asal_data/mnist_nesy/len_10_dim_1_pattern_sfa_2/mnist_test.pt')
+                                     '/home/nkatz/dev/asal_data/mnist_nesy/len_10_dim_1_pattern_sfa_1/mnist_test.pt')
 
 
     # Single-digit, train length = 50, test length = 50

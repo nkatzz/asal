@@ -138,7 +138,7 @@ if __name__ == "__main__":
              
             You can run a purely neural baseline (that uses an LSTM instead of the automaton) in
             
-            src.asal_nesy.neurasal.baselines.py
+            src.asal_nesy.neurasal.cnn_lstm_old.py
             """
 
             acceptance_probabilities, act_latent, pred_latent = process_batch(batch, model, sfa, cnn_output_size)

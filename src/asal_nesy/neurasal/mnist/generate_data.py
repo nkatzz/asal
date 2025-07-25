@@ -102,8 +102,8 @@ def pair_seqs_ims(sequences: list[MNISTImageSequence], dataset: Dataset, transfo
 
 if __name__ == "__main__":
 
-    from generate_data_asp_definitions import sfa_1, sfa_2, pattern_names
-    seq_length = 10
+    from generate_diverse_seqs import sfa_1, sfa_2, pattern_names
+    seq_length = 50
     dimensionality = 1
 
     # pattern = sfa_1

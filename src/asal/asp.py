@@ -211,7 +211,7 @@ cost_at_most = "cost(at_most(A,V),1) :- value(A,V)."
 cost_at_least = "cost(at_least(A,V),1) :- value(A,V)."
 
 #===================================================
-cost_equals = "cost(equals(A,V),20) :- value(A,V)."
+cost_equals = "cost(equals(A,V),50) :- value(A,V)."
 #===================================================
 
 cost_neg = "cost(neg(A,V),1) :- value(A,V)."
