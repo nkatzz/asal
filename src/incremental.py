@@ -15,7 +15,7 @@ from src.asal_nesy.neurasal.data_structs import get_data, get_data_loader, Seque
 from src.asal_nesy.dsfa_old.models import DigitCNN
 from src.logger import *
 from src.asal_nesy.cirquits.asp_programs import mnist_even_odd_learn
-from src.globals import device, sample_symb_seqs, num_top_k, show_log_during_training
+from src.globals import device, sample_symb_seqs, num_top_k, show_log_during_training, fix_seed
 from src.asal.structs import Automaton
 from src.asal.tester import Tester
 from src.asal_nesy.cirquits.build_sdds import SDDBuilder
@@ -121,8 +121,18 @@ def find_next_sfa(fully_labelled_seqs: list[TensorSequence],
 
         # 2. Select the K-most probable sequences.
         all_unlabelled = [s for batch in train_loader for s in batch if s not in fully_labelled_seqs]
+
+        positive = [seq for seq in all_unlabelled if seq.seq_label == 1]
+        negative = [seq for seq in all_unlabelled if seq.seq_label == 0]
+
         k = num_top_k
-        top_k = sorted(all_unlabelled, key=lambda s: s.sequence_probability, reverse=True)[:k]
+
+        topk_pos = sorted(positive, key=lambda s: s.sequence_probability, reverse=True)[:int(k / 2)] if len(positive) > int(k / 2) else positive
+        topk_neg = sorted(negative, key=lambda s: s.sequence_probability, reverse=True)[:int(k / 2)] if len(negative) > int(k / 2) else negative
+
+        # top_k = sorted(all_unlabelled, key=lambda s: s.sequence_probability, reverse=True)[:k]
+        top_k = topk_pos + topk_neg
+
         set_asp_weights(top_k, fully_labelled_seqs, max_unlabelled_weight=100)
         fully_labelled_symb_seqs = [s.get_labelled_seq_asp(with_custom_weights=True) for s in fully_labelled_seqs]
         predicted_symb_seqs = [s.get_predicted_seq_asp(with_custom_weights=True) for s in top_k]
@@ -262,10 +272,13 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
                     cnn_output_size, class_attrs, asal_args, random_query=False, use_partially_labeled=True):
 
     from src.globals import pick_by_edit_cost
-
+    seeds = [1, 2, 3, 4, 5]
     # incr_histories, baseline_histories, active_learn_histories, random_selection_histories = [], [], [], []
-    for exp_num in range(N_runs):
-        logger.info(f'\n\nSTARTING EXPERIMENT {exp_num}\n')
+    for exp_num, seed in zip(range(N_runs), seeds):
+        logger.info(f'\n\nSTARTING EXPERIMENT {exp_num} with seed: {seed}\n')
+
+        fix_seed(seed)
+
         train_f1_target, train_f1_latent, test_f1_target, test_f1_latent = 0.0, 0.0, 0.0, 0.0
         # Get new loaders for each experiments to make sure the data gets shuffled.
         train_loader: DataLoader[SequenceDataset] = get_data_loader(train_data, nn_args.nn_batch_size, train=True)
@@ -282,9 +295,11 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
         # fully_labeled_seq_ids = [823, 1748, 1021, 276]  # This is a good seed
         # fully_labeled_seq_ids = [433, 746, 1590, 1344]  # This is a hard seed, no convergence even with 20 queries
 
-        logger.info(yellow(f'Fully labelled: {[s for s in fully_labeled_seq_ids]}'))
-
         fully_labelled_seqs = list(filter(lambda seq: seq.seq_id in fully_labeled_seq_ids, train_data))
+        logger.info(
+            yellow(f'Fully labelled: {[f"{s.seq_id}:{s.seq_label}" for s in fully_labelled_seqs]}')
+        )
+
         for seq in fully_labelled_seqs:
             # Mark them all as fully labelled
             seq.mark_seq_as_fully_labelled()
@@ -326,7 +341,9 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
         current_loss = current_nesy_model.combined_loss
         current_f1 = current_nesy_model.train_f1
 
-        logger.info(yellow(f'Fully labelled: {[s.seq_id for s in fully_labelled_seqs]}'))
+        logger.info(
+            yellow(f'Fully labelled: {[f"{s.seq_id}:{s.seq_label}" for s in fully_labelled_seqs]}')
+        )
 
         msg = (
             f"Active learning with EAL for {query_budget} queries..."
@@ -356,7 +373,9 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
                 best_seq.mark_seq_as_fully_labelled()
                 fully_labelled_seqs.append(best_seq)
                 logger.info(yellow(f'Selected sequence: {best_seq.seq_id}'))
-                logger.info(yellow(f'Fully labelled: {[s.seq_id for s in fully_labelled_seqs]}'))
+                logger.info(
+                    yellow(f'Fully labelled: {[f"{s.seq_id}:{s.seq_label}" for s in fully_labelled_seqs]}')
+                )
 
                 new_nesy_model = find_next_sfa(fully_labelled_seqs, train_loader, test_loader,
                                                cnn_output_size, nn_criterion, sequence_criterion,
@@ -444,7 +463,7 @@ if __name__ == "__main__":
                                    predicates="equals",
                                    mcts_iters=10,
                                    all_opt=False,  # Get multiple optimal models!
-                                   tlim=120,
+                                   tlim=30,  # 120
                                    states=4,
                                    exp_rate=0.005,
                                    mcts_children=1,
@@ -454,9 +473,9 @@ if __name__ == "__main__":
                                    coverage_first=False,  # args.coverage_first,
                                    min_attrs=False,
                                    warns_off=False,
-                                   revise=False,
+                                   revise=False,  # <<---
                                    max_rule_length=100,
-                                   with_reject_states=True)  # this might need to be changed. Set to true for no absorbing accept state.
+                                   with_reject_states=False)  # this might need to be changed. Set to true for no absorbing accept state.
 
     """"---------------"""
     args = asal_args
@@ -476,7 +495,7 @@ if __name__ == "__main__":
                                  pre_training_size=10,  # num of fully labeled seed sequences.
                                  pre_train_num_epochs=100, learn_seed_sfa_from_pretrained=False, )
 
-    num_init_fully_labelled = 4  # 1000  # Number of initial fully labelled sequences
+    num_init_fully_labelled = 15  # 1000  # Number of initial fully labelled sequences
     num_queries = 10  # Total number of active learning queries
     num_epochs = 20  # 20  # Number of epochs to train after each active learning update
     cnn_output_size = 10  # for MNIST

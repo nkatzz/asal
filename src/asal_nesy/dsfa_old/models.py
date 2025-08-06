@@ -183,6 +183,31 @@ class NeuralSFA(nn.Module):
         self.states_distribution[0] = 1.0  # Initially we're in the start state with probability 1.0
         cnn_predictions, guards_predictions = [], []
         sequence = sequence if self.nesy_mode else sequence.squeeze(0)
+
+        if self.nesy_mode:
+            sequence_as_batch = sequence[0]
+            digit_distributions = self.cnn(sequence_as_batch, apply_softmax=True)
+            for distribution in digit_distributions:
+                distribution = distribution.unsqueeze(0)  # it's of size (SeqLen,) make it (1, SeqLen) (batchsize = 1)
+                guards_distribution = digit_probs_to_rule_probs(self.num_rules, distribution)
+                cnn_predictions.append(distribution)
+                guards_predictions.append(guards_distribution)
+                effective_trans_matrix = self.get_effective_transition_matrix(guards_distribution, softmax_temp)
+                self.states_distribution = self.update_state_distribution(self.states_distribution,
+                                                                          effective_trans_matrix)
+        else:
+            for image in sequence:
+                digit = image.item()
+                # Create an one-hot vector with 1.0 in the position of the digit
+                # one_hot_vector = torch.zeros(10)
+                # one_hot_vector[digit] = 1.0
+
+                one_hot_vector = digit_probs_to_rule_probs_no_nesy(digit)
+                effective_trans_matrix = self.get_effective_transition_matrix(one_hot_vector, softmax_temp)
+                self.states_distribution = self.update_state_distribution(self.states_distribution,
+                                                                          effective_trans_matrix)
+
+        """
         for image in sequence:
             if self.nesy_mode:
                 # digit_distribution, _ = self.cnn(image)
@@ -203,6 +228,7 @@ class NeuralSFA(nn.Module):
                 effective_trans_matrix = self.get_effective_transition_matrix(one_hot_vector, softmax_temp)
                 self.states_distribution = self.update_state_distribution(self.states_distribution,
                                                                           effective_trans_matrix)
+        """
         return cnn_predictions, guards_predictions, self.states_distribution
 
 

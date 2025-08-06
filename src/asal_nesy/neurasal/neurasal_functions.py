@@ -289,15 +289,24 @@ def set_asp_weights(unlabelled_seqs, fully_labelled_seqs, max_unlabelled_weight=
     # We want larger weights for more confident sequences (i.e., higher original probability → higher weight), so we:
     # Normalize to [0, 1]:
     min_lp, max_lp = min(log_probs), max(log_probs)
-    norm_weights = [(lp - min_lp) / (max_lp - min_lp + 1e-12) for lp in log_probs]
 
     # Inverting the log_probs will give higher weight to most uncertain seqs. Try it to see that we're getting
     # out huge, crappy, overfitted SFAs...
     # inv_log_probs = [-lp for lp in log_probs]
     # min_lp, max_lp = min(inv_log_probs), max(inv_log_probs)
 
-    # scale the normalized soft weights into [1, max_unlabelled_weight]
-    int_weights = [int(w * max_unlabelled_weight) + 1 for w in norm_weights]
+    if np.isclose(min_lp, max_lp):
+        # All sequences have same log-prob --> assign max weight to all.
+        # This happens when a nearly correct SFA has been learnt and the CNN, trained
+        # with this SFA makes extremely confident (and correct) latent point predictions
+        # for the most probable sequences selected for the next SFA induction step.
+        int_weights = [max_unlabelled_weight] * len(unlabelled_seqs)
+    else:
+        norm_weights = [(lp - min_lp) / (max_lp - min_lp + 1e-12) for lp in log_probs]
+        # scale the normalized soft weights into [1, max_unlabelled_weight]
+        int_weights = [int(w * max_unlabelled_weight) + 1 for w in norm_weights]
+
+    logger.info(blue(f'Num of unlabelled seqs: {len(unlabelled_seqs)}, total weights: {sum(int_weights)}'))
 
     """
     return {
@@ -746,7 +755,7 @@ def get_query_points_by_edit_cost(train_loader, fully_labelled_seqs, current_nes
             # This might not be very reasonable...
             seq.edit_score = seq.bce_loss * len(seq.edit_points) / (1 + seq.edit_cost) if len(seq.edit_points) > 0 else 0
 
-            if True:  # seq.edit_points:
+            if False:  # True  # seq.edit_points:
                 print(f'Seq: {seq.seq_id} | edit points: {len(seq.edit_points)}, '
                       f'edit cost: {seq.edit_cost}, edit score: {seq.edit_score}, '
                       f'accept. prob: {seq.acceptance_probability}, label: {seq.seq_label}, BCE loss: {seq.bce_loss}')

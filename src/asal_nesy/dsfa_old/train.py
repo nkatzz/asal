@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     with_prior_model = False  # if True a fixed automaton is used, set by the utils.set_correct_model method.
     show_transitions = False
-    nesy_mode = False  # if False the input consists of the symbolic (label) sequences, so it's not a NeSy setting
+    nesy_mode = True  # if False the input consists of the symbolic (label) sequences, so it's not a NeSy setting
     num_states, num_guards = 50, 6  # states are originally 4
     num_epochs = 100
     softmax_temp = 0.1  # 0.01
@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     train_loader, test_loader = get_data_loaders()
 
-    batch_size = 64
+    batch_size = 10
 
     for epoch in range(num_epochs):
         if discount_temp:
