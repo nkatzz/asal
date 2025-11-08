@@ -102,12 +102,22 @@ def pair_seqs_ims(sequences: list[MNISTImageSequence], dataset: Dataset, transfo
 
 if __name__ == "__main__":
 
-    from generate_diverse_seqs import sfa_1, sfa_2, pattern_names
-    seq_length = 50
-    dimensionality = 1
+    from generate_diverse_seqs import (pattern_names, sfa_1, sfa_2, sfa_3,
+                                       sfa_4, sfa_5, sfa_5_simple,
+                                       sfa_6, sfa_6_simple, sfa_1_simple, sfa_7_simple,
+                                       sfa_1_simple_mvar)
+    seq_length = 10
+    dimensionality = 3
 
     # pattern = sfa_1
-    pattern = sfa_1
+    #pattern = sfa_4
+    pattern = sfa_5
+    # pattern = sfa_6
+    # pattern = sfa_5_simple
+    # pattern = sfa_6_simple
+    # pattern = sfa_1_simple
+    # pattern = sfa_7_simple
+    # pattern = sfa_1_simple_mvar
 
     folder = f'len_{seq_length}_dim_{dimensionality}_pattern_{pattern_names[pattern]}'
     save_to_folder = f'/home/nkatz/dev/asal_data/mnist_nesy/{folder}'

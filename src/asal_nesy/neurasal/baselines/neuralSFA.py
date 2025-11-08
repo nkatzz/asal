@@ -208,7 +208,7 @@ class NeuralSFA(nn.Module):
                 all_cnn_preds.append(digit_probs)
                 all_guard_preds.append(guard_probs)
 
-                # 🧠 Parallelized automaton step
+                # Parallelized automaton step
                 A_batch = self.get_effective_transition_matrix_batch(guard_probs, softmax_temp)  # (B, S, S)
                 state_dists = torch.bmm(state_dists.unsqueeze(1), A_batch).squeeze(1)  # (B, S)
 
@@ -245,7 +245,7 @@ if __name__ == "__main__":
     fix_seed(seed)
 
     batch_size = 32
-    states = 50
+    states = 30
 
     #-----------------------------------
     learn_sfa = False
@@ -255,13 +255,13 @@ if __name__ == "__main__":
     lr = 0.001
     num_epochs = 100
     pretrain_cnn_for = 100
-    num_fully_labelled_seqs = 2000
+    num_fully_labelled_seqs = 10 # 2000
     class_attrs = ['d1']
 
     # Load data
     train_data, test_data = get_data(
-        '/home/nkatz/dev/asal_data/mnist_nesy/len_10_dim_1_pattern_sfa_1/mnist_train.pt',
-        '/home/nkatz/dev/asal_data/mnist_nesy/len_10_dim_1_pattern_sfa_1/mnist_test.pt'
+        '/home/nkatz/dev/asal_data/mnist_nesy/len_50_dim_1_pattern_sfa_1/mnist_train.pt',
+        '/home/nkatz/dev/asal_data/mnist_nesy/len_50_dim_1_pattern_sfa_1/mnist_test.pt'
     )
     train_loader = get_data_loader(train_data, batch_size=batch_size, train=True)
     test_loader = get_data_loader(test_data, batch_size=batch_size, train=False)
@@ -326,22 +326,27 @@ if __name__ == "__main__":
             cnn_outputs = torch.stack(cnn_preds).view(T, D, B, -1).permute(2, 0, 1, 3)  # (B, T, D, 10)
 
             latent_loss = 0.0 * cnn_outputs.sum()
-            labeled_preds, labeled_labels = [], []
+
+            labeled_preds, labels = [], []
 
             for i, seq in enumerate(batch):
                 for (t, d) in seq.get_labeled_indices():
-                    pred = cnn_outputs[i, t, d]
+                    pred = cnn_outputs[i, t, d]  # (10,)
                     label_dict = seq.get_image_label(t, d, class_attrs)
 
-                    # print(f"Label dict: {label_dict}")
-
-                    label = torch.tensor(label_dict[0]).long().to(device)  ### <-- This is what I change
+                    # Extract the class index as a Python int
+                    if isinstance(label_dict, dict):
+                        y = next(iter(label_dict.values()))
+                    elif isinstance(label_dict, (list, tuple)):
+                        y = label_dict[0]
+                    else:
+                        y = label_dict
+                    labels.append(int(y))
                     labeled_preds.append(pred)
-                    labeled_labels.append(label)
 
-            if labeled_preds:
-                labeled_preds_tensor = torch.stack(labeled_preds)  # (N, 10)
-                labeled_labels_tensor = torch.cat(labeled_labels)  # (N,)
+            if labels:
+                labeled_preds_tensor = torch.stack(labeled_preds, dim=0)  # (N, 10)
+                labeled_labels_tensor = torch.tensor(labels, dtype=torch.long, device=device)  # (N,)
                 latent_loss = nn_criterion(labeled_preds_tensor, labeled_labels_tensor)
 
             # Combine losses
@@ -373,6 +378,68 @@ if __name__ == "__main__":
         avg_latent_loss = latent_loss_sum / num_batches
         avg_total_loss = total_loss_sum / num_batches
 
+        #========================================================
+
+        # ---- EVALUATION ON TEST SET FOR LATENT CONCEPT F1 ----
+        model.cnn.eval()
+        all_preds, all_labels = [], []
+
+
+        def _extract_label(label_obj):
+            # Robustly turn get_image_label(...) return into an int class index
+            if label_obj is None:
+                return None
+            if isinstance(label_obj, dict):
+                try:
+                    return int(next(iter(label_obj.values())))
+                except StopIteration:
+                    return None
+            if isinstance(label_obj, (list, tuple)):
+                return int(label_obj[0])
+            return int(label_obj)
+
+
+        with torch.no_grad():
+            for batch in test_loader:
+                # x: (B, T, D, C, H, W)
+                x, _ = tensor_sequences_to_tensor(batch)
+                x = x.to(device)
+
+                B, T, D, C, H, W = x.shape
+                x_flat = x.view(B * T * D, C, H, W)  # (B*T*D, C, H, W)
+                logits_flat = model.cnn(x_flat)  # (B*T*D, num_classes)
+                logits = logits_flat.view(B, T, D, -1)  # (B, T, D, num_classes)
+
+                # Collect preds/labels for any positions that have a label
+                for i, seq in enumerate(batch):
+                    # Try to use all positions; skip those without a label
+                    for t in range(T):
+                        for d in range(D):
+                            try:
+                                y_obj = seq.get_image_label(t, d, class_attrs)
+                            except Exception:
+                                # If your API raises when unlabeled, just skip
+                                continue
+                            y = _extract_label(y_obj)
+                            if y is None:
+                                continue
+                            pred = int(logits[i, t, d].argmax(dim=-1).item())
+                            all_preds.append(pred)
+                            all_labels.append(y)
+
+        if len(all_labels) == 0:
+            latent_f1 = float("nan")
+        else:
+            from sklearn.metrics import f1_score
+
+            latent_f1 = f1_score(all_labels, all_preds, average="macro", zero_division=0)
+
+        #print(f"Epoch {epoch + 1}/{num_epochs}, "
+        #      f"Loss: {total_loss / len(train_loader):.4f}, "
+        #      f"Test F1 (sequence): {test_f1:.4f}, "
+        #      f"Latent F1 (CNN concepts): {latent_f1:.4f}")
+        #========================================================
+
         print(f"Epoch {epoch} | Total: {avg_total_loss:.4f} | Seq: {avg_seq_loss:.4f} | Latent: {avg_latent_loss:.4f} "
-              f"| Train F1: {train_f1:.4f} | Test F1: {test_f1:.4f}")
+              f"| Train F1: {train_f1:.4f} | Test F1: {test_f1:.4f} | Latent F1: {latent_f1:.4f}")
 

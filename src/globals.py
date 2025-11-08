@@ -18,9 +18,11 @@ weight_sequence_loss = False  # Based on the SFA's performance on the training s
 
 sample_symb_seqs = True  # Sample symbolic seqs from the NN and test them against the (crisp) SFA for deciding AL query
 
-num_top_k = 50  # 50  # Number of top-k highest probability examples to use in neurasal induction.
+num_top_k = 100  # 100  # 50  # Number of top-k highest probability examples to use in neurasal induction.
 
-pick_by_edit_cost = True  # pick sequence to label for active learning by edit cost.
+pick_by_edit_cost = False # pick sequence to label for active learning by edit cost.
+
+train_cnn_after_query = True
 
 show_log_during_training = False  # Show train/test performance after each epoch.
 

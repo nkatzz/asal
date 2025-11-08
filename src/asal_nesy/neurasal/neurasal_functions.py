@@ -207,7 +207,9 @@ def nesy_forward_pass(batch, model, sfa, cnn_output_size, with_decay=False, upda
     # dim=-1 refers to the last dimension of the tensor, more generic and robust than explicitly
     # giving the dimension, especially if tensor shapes slightly change at some point. This will
     # work as long as the class predictions are the last dimension.
-    nn_probs = torch.softmax(logits/5, dim=-1)
+
+    # nn_probs = torch.softmax(logits / 5, dim=-1)  ## I don't remember when and why we scaled with the temperature (logits/5)
+    nn_probs = torch.softmax(logits, dim=-1)
 
     probabilities = get_probs_dict(nn_probs, sfa.symbols)
     labelling_function = create_labelling_function(probabilities, sfa.symbols)

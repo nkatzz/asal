@@ -15,7 +15,7 @@ from src.asal_nesy.neurasal.data_structs import get_data, get_data_loader, Seque
 from src.asal_nesy.dsfa_old.models import DigitCNN
 from src.logger import *
 from src.asal_nesy.cirquits.asp_programs import mnist_even_odd_learn
-from src.globals import device, sample_symb_seqs, num_top_k, show_log_during_training, fix_seed
+from src.globals import device, sample_symb_seqs, num_top_k, show_log_during_training, fix_seed, train_cnn_after_query
 from src.asal.structs import Automaton
 from src.asal.tester import Tester
 from src.asal_nesy.cirquits.build_sdds import SDDBuilder
@@ -266,15 +266,49 @@ def get_labelled_seq(train_loader: DataLoader[SequenceDataset],
 
     return best_seq
 
+class ExperimentsStats:
+    def __init__(self):
+        # Store lists of F1-scores across experimental runs
+        self.test_target_f1s_whole = []
+        self.test_latent_f1s_whole = []
+        self.train_target_f1s_whole = []
+        self.train_latent_f1s_whole = []
+        # store F1-scores for a single run
+        self.test_target_f1s = []
+        self.test_latent_f1s = []
+        self.train_target_f1s = []
+        self.train_latent_f1s = []
+
+    def update_run_stats(self, model: NeSyModel):
+        self.test_target_f1s.append(round(model.training_history['seq_f1'][-1], 3))
+        self.test_latent_f1s.append(round(model.training_history['img_f1'][-1], 3))
+        self.train_target_f1s.append(round(model.train_f1, 3))
+        self.train_latent_f1s.append(round(model.latent_f1, 3))
+
+    def initialize_experiment(self):
+        self.test_target_f1s = []
+        self.test_latent_f1s = []
+        self.train_target_f1s = []
+        self.train_latent_f1s = []
+
+    def finalize_experiment(self):
+        self.test_target_f1s_whole.append(self.test_target_f1s)
+        self.test_latent_f1s_whole.append(self.test_latent_f1s)
+        self.train_target_f1s_whole.append(self.train_target_f1s)
+        self.train_latent_f1s_whole.append(self.train_latent_f1s)
 
 def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
                     pretrain_for, lr, num_init_fully_labelled, asp_comp_program,
                     cnn_output_size, class_attrs, asal_args, random_query=False, use_partially_labeled=True):
 
     from src.globals import pick_by_edit_cost
-    seeds = [1, 2, 3, 4, 5]
+    stats = ExperimentsStats()
+    seeds = [1]
+    # seeds = [1, 2, 3, 4, 5]
+    # seeds = [2, 2, 3, 4, 5]
     # incr_histories, baseline_histories, active_learn_histories, random_selection_histories = [], [], [], []
     for exp_num, seed in zip(range(N_runs), seeds):
+        stats.initialize_experiment()
         logger.info(f'\n\nSTARTING EXPERIMENT {exp_num} with seed: {seed}\n')
 
         fix_seed(seed)
@@ -335,6 +369,9 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
                                            use_partially_labeled_seqs=use_partially_labeled)
 
         show_log_msg(current_nesy_model)
+        stats.update_run_stats(current_nesy_model)
+        print('Target test F1s:', stats.test_target_f1s)
+        print('Latent test F1s:', stats.test_latent_f1s)
 
         # Fall back to this every time a different method is tried in the experiments.
         init_nesy_model = current_nesy_model
@@ -377,6 +414,14 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
                     yellow(f'Fully labelled: {[f"{s.seq_id}:{s.seq_label}" for s in fully_labelled_seqs]}')
                 )
 
+                # train the CNN alone on the updated labeled data for a few epochs, to see if it changes anything...
+                if train_cnn_after_query:
+                    logger.info(f"Re-training CNN on updated labels...")
+                    pretrain_nn(SequenceDataset(fully_labelled_seqs), test_data, 0,
+                                current_nesy_model.nn_model, current_nesy_model.optimizer, class_attrs,
+                                with_fully_labelled_seqs=True, num_epochs=50)
+
+
                 new_nesy_model = find_next_sfa(fully_labelled_seqs, train_loader, test_loader,
                                                cnn_output_size, nn_criterion, sequence_criterion,
                                                asal_args, asp_comp_program, class_attrs, epochs,
@@ -416,11 +461,18 @@ def run_experiments(train_data, test_data, N_runs, query_budget, epochs,
                                                      test_loader, update_seqs_stats=True, show_log=False)
 
             show_log_msg(current_nesy_model)
+            stats.update_run_stats(current_nesy_model)
+            print('Target test F1s:', stats.test_target_f1s)
+            print('Latent test F1s:', stats.test_latent_f1s)
 
         # Train for a few more epochs in the end
         # nesy_train(model, train_loader, sfa_dnnf, cnn_output_size,
         #            nn_criterion, sequence_criterion, optimizer,
         #            num_epochs, seq_loss_weight, class_attrs, test_loader, show_log=show_stats)
+
+        stats.finalize_experiment()
+        print(f'Target test F1s (all runs so far):\n{stats.test_target_f1s_whole}')
+        print(f'Latent test F1s (all runs so far):\n{stats.test_latent_f1s_whole}')
 
 
 def show_log_msg(current_nesy_model):
@@ -463,7 +515,7 @@ if __name__ == "__main__":
                                    predicates="equals",
                                    mcts_iters=10,
                                    all_opt=False,  # Get multiple optimal models!
-                                   tlim=30,  # 120
+                                   tlim=30,  # 120  # 300 (great results with 300, 200 unlabeled per round - see globals and 200 MDL cost -- see asp.py)
                                    states=4,
                                    exp_rate=0.005,
                                    mcts_children=1,
@@ -495,7 +547,7 @@ if __name__ == "__main__":
                                  pre_training_size=10,  # num of fully labeled seed sequences.
                                  pre_train_num_epochs=100, learn_seed_sfa_from_pretrained=False, )
 
-    num_init_fully_labelled = 15  # 1000  # Number of initial fully labelled sequences
+    num_init_fully_labelled = 4  # 1000  # Number of initial fully labelled sequences
     num_queries = 10  # Total number of active learning queries
     num_epochs = 20  # 20  # Number of epochs to train after each active learning update
     cnn_output_size = 10  # for MNIST
@@ -536,6 +588,9 @@ if __name__ == "__main__":
     train_data, test_data = get_data('/home/nkatz/dev/asal_data/mnist_nesy/len_10_dim_1_pattern_sfa_1/mnist_train.pt',
                                      '/home/nkatz/dev/asal_data/mnist_nesy/len_10_dim_1_pattern_sfa_1/mnist_test.pt')
 
+    # Old len-50 sequences, for debugging (turns out they are OK)
+    # train_data, test_data = get_data('/home/nkatz/dev/asal_data/mnist_nesy/len_50_dim_1_fa_1_debug/mnist_train.pt',
+    #                                  '/home/nkatz/dev/asal_data/mnist_nesy/len_50_dim_1_fa_1_debug/mnist_test.pt')
 
     # Single-digit, train length = 50, test length = 50
     """

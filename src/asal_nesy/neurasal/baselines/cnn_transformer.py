@@ -174,7 +174,7 @@ if __name__ == "__main__":
     # ------------ data ------------
     train_data, test_data = get_data(
         "/home/nkatz/dev/asal_data/mnist_nesy/len_10_dim_1_pattern_sfa_1/mnist_train.pt",
-        "/home/nkatz/dev/asal_data/mnist_nesy/len_10_dim_1_pattern_sfa_1/mnist_test.pt"
+        "/home/nkatz/dev/asal_data/mnist_nesy/len_50_dim_1_pattern_sfa_1/mnist_test.pt"
     )
 
     print("Label distribution in train data:", Counter(seq.seq_label for seq in train_data))

@@ -85,6 +85,46 @@ holds(f(4,4),T) :- time(T).  % No over-general self loop to avoid having accepta
 % holds(f(4,1),T) :- time(T), not holds(f(4,4),T).
 """
 
+sfa_1_simple = \
+"""
+% Automaton Definition.
+accepting(4).
+transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2). 
+transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4). 
+transition(4,f(4,4),4).
+
+holds(f(1,2),T) :- holds(equals(d1,even),T).
+holds(f(2,3),T) :- holds(equals(d1,odd),T).
+holds(f(3,4),T) :- holds(equals(d1,even),T).
+holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
+holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
+holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
+
+holds(f(4,4),T) :- time(T).  % No over-general self loop to avoid having acceptance prob. increase indefinitely in the experiments.
+% holds(f(4,4),T) :- holds(equals(d1,leq_3),T).
+% holds(f(4,1),T) :- time(T), not holds(f(4,4),T).
+"""
+
+sfa_1_simple_mvar = \
+"""
+% Automaton Definition.
+accepting(4).
+transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2). 
+transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4). 
+transition(4,f(4,4),4).
+
+holds(f(1,2),T) :- holds(equals(d1,even),T).
+holds(f(2,3),T) :- holds(equals(d2,odd),T).
+holds(f(3,4),T) :- holds(equals(d3,even),T).
+holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
+holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
+holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
+
+holds(f(4,4),T) :- time(T).  % No over-general self loop to avoid having acceptance prob. increase indefinitely in the experiments.
+% holds(f(4,4),T) :- holds(equals(d1,leq_3),T).
+% holds(f(4,1),T) :- time(T), not holds(f(4,4),T).
+"""
+
 sfa_2 = \
 """
 % Automaton Definition.
@@ -105,19 +145,195 @@ holds(f(4,4),T) :- time(T).  % No over-general self loop to avoid having accepta
 % holds(f(4,1),T) :- time(T), not holds(f(4,4),T).
 """
 
+sfa_3 = \
+"""
+accepting(8).
+transition(1,f(1,1),1). transition(1,f(1,2),2). 
+transition(2,f(2,2),2). transition(2,f(2,3),3). 
+transition(3,f(3,3),3). transition(3,f(3,4),4). 
+transition(4,f(4,4),4). transition(4,f(4,5),5).
+transition(5,f(5,5),5). transition(5,f(5,6),6).
+transition(6,f(6,6),6). transition(6,f(6,7),7).
+transition(7,f(7,7),7). transition(7,f(7,8),8).
+transition(8,f(8,8),8).
+
+holds(f(1,2),T) :- holds(equals(d1,odd),T), holds(equals(d1,gt_6),T).
+holds(f(2,3),T) :- holds(equals(d1,even),T), holds(equals(d1,leq_6),T).
+holds(f(3,4),T) :- holds(equals(d1,odd),T), holds(equals(d1,leq_3),T).
+holds(f(4,5),T) :- holds(equals(d1,even),T), holds(equals(d1,gt_3),T).
+holds(f(5,6),T) :- holds(equals(d1,odd),T), holds(equals(d1,leq_6),T).
+holds(f(6,7),T) :- holds(equals(d1,even),T), holds(equals(d1,gt_6),T).
+holds(f(7,8),T) :- holds(equals(d1,gt_5),T).
+
+holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
+holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
+holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
+holds(f(4,4),T) :- time(T), not holds(f(4,5),T).
+holds(f(5,5),T) :- time(T), not holds(f(5,6),T).
+holds(f(6,6),T) :- time(T), not holds(f(6,7),T).
+holds(f(7,7),T) :- time(T), not holds(f(7,8),T).
+holds(f(8,8),T) :- time(T). 
+"""
+
+sfa_4 = \
+"""
+accepting(8).
+transition(1,f(1,1),1). transition(1,f(1,2),2). 
+transition(2,f(2,2),2). transition(2,f(2,3),3). 
+transition(3,f(3,3),3). transition(3,f(3,4),4). 
+transition(4,f(4,4),4). transition(4,f(4,5),5).
+transition(5,f(5,5),5). transition(5,f(5,6),6).
+transition(6,f(6,6),6). transition(6,f(6,7),7).
+transition(7,f(7,7),7). transition(7,f(7,8),8).
+transition(8,f(8,8),8).
+
+holds(f(1,2),T) :- holds(equals(d1,odd),T), holds(equals(d1,gt_6),T).
+holds(f(2,3),T) :- holds(equals(d1,even),T), holds(equals(d1,leq_6),T).
+holds(f(3,4),T) :- holds(equals(d1,odd),T), holds(equals(d1,gt_3),T).
+holds(f(4,5),T) :- holds(equals(d1,even),T), holds(equals(d1,leq_3),T).
+holds(f(5,6),T) :- holds(equals(d1,odd),T), holds(equals(d1,leq_5),T).
+holds(f(6,7),T) :- holds(equals(d1,even),T), holds(equals(d1,gt_5),T).
+holds(f(7,8),T) :- holds(equals(d1,gt_7),T).
+
+holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
+holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
+holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
+holds(f(4,4),T) :- time(T), not holds(f(4,5),T).
+holds(f(5,5),T) :- time(T), not holds(f(5,6),T).
+holds(f(6,6),T) :- time(T), not holds(f(6,7),T).
+holds(f(7,7),T) :- time(T), not holds(f(7,8),T).
+holds(f(8,8),T) :- time(T). 
+"""
+
+sfa_5 = \
+"""
+% Automaton Definition.
+accepting(4).
+transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2). 
+transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4). 
+transition(4,f(4,4),4).
+
+holds(f(1,2),T) :- holds(equals(d1,even),T), holds(equals(d2,odd),T).
+holds(f(2,3),T) :- holds(equals(d3,odd),T), holds(equals(d2,even),T).
+holds(f(3,4),T) :- holds(equals(d2,odd),T).    %, holds(equals(d1,gt_6),T).
+holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
+holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
+holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
+
+holds(f(4,4),T) :- time(T).  % No over-general self loop to avoid having acceptance prob. increase indefinitely in the experiments.
+% holds(f(4,4),T) :- holds(equals(d1,leq_3),T).
+% holds(f(4,1),T) :- time(T), not holds(f(4,4),T).
+"""
+
+sfa_5_simple = \
+"""
+% Automaton Definition.
+accepting(4).
+transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2). 
+transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4). 
+transition(4,f(4,4),4).
+
+holds(f(1,2),T) :- holds(equals(d1,even),T).
+holds(f(2,3),T) :- holds(equals(d2,odd),T).
+holds(f(3,4),T) :- holds(equals(d2,even),T).
+holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
+holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
+holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
+
+holds(f(4,4),T) :- time(T).  % No over-general self loop to avoid having acceptance prob. increase indefinitely in the experiments.
+% holds(f(4,4),T) :- holds(equals(d1,leq_3),T).
+% holds(f(4,1),T) :- time(T), not holds(f(4,4),T).
+"""
+
+sfa_6 = \
+"""
+% Automaton Definition.
+accepting(4).
+transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2). 
+transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4). 
+transition(4,f(4,4),4).
+
+% holds(f(1,2),T) :- holds(equals(d1,even),T), holds(equals(d2,odd),T), holds(equals(d3,odd),T).
+% holds(f(2,3),T) :- holds(equals(d1,odd),T), holds(equals(d2,leq_6),T), holds(equals(d3,leq_6),T).
+% holds(f(3,4),T) :- holds(equals(d2,odd),T), holds(equals(d1,gt_6),T), holds(equals(d3,even),T).
+
+holds(f(1,2),T) :- holds(equals(d1,even),T), holds(equals(d2,odd),T).
+holds(f(2,3),T) :- holds(equals(d1,odd),T), holds(equals(d3,leq_6),T), holds(equals(d2,even),T).
+holds(f(3,4),T) :- holds(equals(d3,even),T).
+
+holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
+holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
+holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
+
+holds(f(4,4),T) :- time(T).  % No over-general self loop to avoid having acceptance prob. increase indefinitely in the experiments.
+% holds(f(4,4),T) :- holds(equals(d1,leq_3),T).
+% holds(f(4,1),T) :- time(T), not holds(f(4,4),T).
+"""
+
+sfa_6_simple = \
+"""
+% Automaton Definition.
+accepting(4).
+transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2). 
+transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4). 
+transition(4,f(4,4),4).
+
+holds(f(1,2),T) :- holds(equals(d1,even),T), holds(equals(d2,odd),T).
+holds(f(2,3),T) :- holds(equals(d2,even),T), holds(equals(d3,odd),T).
+holds(f(3,4),T) :- holds(equals(d3,even),T).
+holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
+holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
+holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
+
+holds(f(4,4),T) :- time(T).  % No over-general self loop to avoid having acceptance prob. increase indefinitely in the experiments.
+% holds(f(4,4),T) :- holds(equals(d1,leq_3),T).
+% holds(f(4,1),T) :- time(T), not holds(f(4,4),T).
+"""
+
+sfa_7_simple = \
+"""
+% Automaton Definition.
+accepting(4).
+transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2). 
+transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4). 
+transition(4,f(4,4),4).
+
+holds(f(1,2),T) :- holds(equals(d1,even),T).
+holds(f(2,3),T) :- holds(equals(d2,even),T).
+holds(f(3,4),T) :- holds(equals(d3,even),T).
+holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
+holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
+holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
+
+holds(f(4,4),T) :- time(T).  % No over-general self loop to avoid having acceptance prob. increase indefinitely in the experiments.
+% holds(f(4,4),T) :- holds(equals(d1,leq_3),T).
+% holds(f(4,1),T) :- time(T), not holds(f(4,4),T).
+"""
+
 # For each new pattern defined a 'name' deeds to be added here.
-pattern_names = {sfa_1: 'sfa_1', sfa_2: 'sfa_2'}
+pattern_names = {sfa_1: 'sfa_1', sfa_2: 'sfa_2', sfa_3: 'sfa_3', sfa_4: 'sfa_4', sfa_5: 'sfa_5', sfa_6: 'sfa_6',
+                 sfa_5_simple: 'sfa_5_simple', sfa_6_simple: 'sfa_6_simple', sfa_1_simple: 'sfa_1_simple',
+                 sfa_7_simple: 'sfa_7_simple', sfa_1_simple_mvar: 'sfa_1_simple_mvar',}
 
 predicate_defs = \
 """
 % Predicate definitions
 holds(equals(D,even),T) :- seq(obs(D,X),T), X \ 2 = 0.
 holds(equals(D,odd),T) :- seq(obs(D,X),T), X \ 2 != 0.
-holds(equals(D,gt_6),T) :- seq(obs(D,X),T), X > 6.
+holds(equals(D,gt_6),T) :- seq(obs(D,X),T), X > 6.      % CHECK: remove the = from >=
 holds(equals(D,leq_6),T) :- seq(obs(D,X),T), X <= 6.
-holds(equals(D,gt_3),T) :- seq(obs(D,X),T), X > 3.
+holds(equals(D,gt_3),T) :- seq(obs(D,X),T), X > 3.      % CHECK: remove the = from >=
 holds(equals(D,leq_3),T) :- seq(obs(D,X),T), X <= 3.
-holds(equals(D,gt_5),T) :- seq(obs(D,X),T), X > 5.
+holds(equals(D,gt_5),T) :- seq(obs(D,X),T), X > 5.      % CHECK: remove the = from >= 
+holds(equals(D,leq_5),T) :- seq(obs(D,X),T), X <= 5.
+holds(equals(D,gt_2),T) :- seq(obs(D,X),T), X > 2.      % CHECK: remove the = from >= 
+holds(equals(D,leq_2),T) :- seq(obs(D,X),T), X <= 2.
+holds(equals(D,gt_4),T) :- seq(obs(D,X),T), X > 4.      % CHECK: remove the = from >= 
+holds(equals(D,leq_4),T) :- seq(obs(D,X),T), X <= 4.
+holds(equals(D,gt_7),T) :- seq(obs(D,X),T), X > 7.      % CHECK: remove the = from >= 
+holds(equals(D,leq_7),T) :- seq(obs(D,X),T), X <= 7.
+holds(equals(D,gt_8),T) :- seq(obs(D,X),T), X > 8.      % CHECK: remove the = from >= 
+holds(equals(D,leq_8),T) :- seq(obs(D,X),T), X <= 8.
 """
 
 def get_seq_generation_choices(seq_dim):
@@ -415,13 +631,24 @@ def generate_seqs(seq_length, dimensionality, sfa_pattern, save_to_folder):
     with time(1..50). in the ASP program, sequences of length 50 will be generated.
 
     To verify the results, write the automaton used to generate the data in a file and run ASAL with --eval file
-    and --test clingo_generated_train.lp, or --test clingo_generated_test.lp. These should return an F1-score of 1.0.
+    and --test clingo_generated_train.lp, or --test clingo_generated_test.lp, --tclass 1,
+    --domain asal/src/asal/asp/domains/multivar_mnist. These should return an F1-score of 1.0:
+
+    python asal.py --tclass 1 \
+    --test /home/nkatz/dev/asal_data/mnist_nesy/len_10_dim_1_pattern_sfa_1/clingo_generated_train.lp \
+    --eval /home/nkatz/dev/asal_data/mnist_nesy/len_10_dim_1_pattern_sfa_1/sfa.lp  \
+    --domain /home/nkatz/dev/asal/src/asal/asp/domains/mnist_multivar.lp  \
+    --predicates equals
 
     NOTE: The automaton needs to be written in the format that ASAL expects. For example, this is how the two SFAs
     that exists in the ASP program above should be written, in order to run ASAL:
 
     SFA for univariate seqs:
     ------------------------
+    accepting(4).
+    transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2).
+    transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4).
+    transition(4,f(4,4),4).
     holds(f(1,2),SeqId,T) :- holds(equals(even(d1),1),SeqId,T), holds(equals(gt_6(d1),1),SeqId,T).
     holds(f(2,3),SeqId,T) :- holds(equals(odd(d1),1),SeqId,T), holds(equals(leq_6(d1),1),SeqId,T).
     holds(f(3,4),SeqId,T) :- holds(equals(leq_3(d1),1),SeqId,T).
@@ -432,6 +659,10 @@ def generate_seqs(seq_length, dimensionality, sfa_pattern, save_to_folder):
 
     SFA for multivariate seqs:
     --------------------------
+    accepting(4).
+    transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2).
+    transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4).
+    transition(4,f(4,4),4).
     holds(f(1,2),SeqId,T) :- holds(equals(even(d1),1),SeqId,T), holds(equals(gt_6(d2),1),SeqId,T).
     holds(f(2,3),SeqId,T) :- holds(equals(odd(d2),1),SeqId,T), holds(equals(leq_6(d1),1),SeqId,T).
     holds(f(3,4),SeqId,T) :- holds(equals(leq_3(d1),1),SeqId,T), holds(equals(gt_5(d2),1),SeqId,T).
