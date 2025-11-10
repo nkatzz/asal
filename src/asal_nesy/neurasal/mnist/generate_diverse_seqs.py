@@ -125,6 +125,7 @@ holds(f(4,4),T) :- time(T).  % No over-general self loop to avoid having accepta
 % holds(f(4,1),T) :- time(T), not holds(f(4,4),T).
 """
 
+
 sfa_2 = \
 """
 % Automaton Definition.
@@ -188,6 +189,7 @@ transition(7,f(7,7),7). transition(7,f(7,8),8).
 transition(8,f(8,8),8).
 
 holds(f(1,2),T) :- holds(equals(d1,odd),T), holds(equals(d1,gt_6),T).
+holds(f(1,2),T) :- holds(equals(d1,even),T), holds(equals(d1,leq_3),T).
 holds(f(2,3),T) :- holds(equals(d1,even),T), holds(equals(d1,leq_6),T).
 holds(f(3,4),T) :- holds(equals(d1,odd),T), holds(equals(d1,gt_3),T).
 holds(f(4,5),T) :- holds(equals(d1,even),T), holds(equals(d1,leq_3),T).
@@ -224,6 +226,51 @@ holds(f(4,4),T) :- time(T).  % No over-general self loop to avoid having accepta
 % holds(f(4,4),T) :- holds(equals(d1,leq_3),T).
 % holds(f(4,1),T) :- time(T), not holds(f(4,4),T).
 """
+
+sfa_5_ORs = \
+"""
+% Automaton Definition.
+accepting(4).
+transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2). 
+transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4). 
+transition(4,f(4,4),4).
+
+holds(f(1,2),T) :- holds(equals(d1,even),T), holds(equals(d2,odd),T).
+holds(f(1,2),T) :- holds(equals(d1,odd),T), holds(equals(d3,even),T).
+
+holds(f(2,3),T) :- holds(equals(d3,odd),T), holds(equals(d2,even),T).
+holds(f(2,3),T) :- holds(equals(d3,even),T), holds(equals(d1,even),T).
+
+holds(f(3,4),T) :- holds(equals(d2,odd),T).    %, holds(equals(d1,gt_6),T).
+holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
+holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
+holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
+
+holds(f(4,4),T) :- time(T).  % No over-general self loop to avoid having acceptance prob. increase indefinitely in the experiments.
+% holds(f(4,4),T) :- holds(equals(d1,leq_3),T).
+% holds(f(4,1),T) :- time(T), not holds(f(4,4),T).
+"""
+
+sfa_5_1 = \
+"""
+% Automaton Definition.
+accepting(4).
+transition(1,f(1,1),1). transition(1,f(1,2),2). transition(2,f(2,2),2). 
+transition(2,f(2,3),3). transition(3,f(3,3),3). transition(3,f(3,4),4). 
+transition(4,f(4,4),4).
+
+holds(f(1,2),T) :- holds(equals(d1,even),T), holds(equals(d2,odd),T), holds(equals(d3,gt_6),T).
+holds(f(2,3),T) :- holds(equals(d3,odd),T), holds(equals(d2,even),T), holds(equals(d1,leq_6),T).
+holds(f(3,4),T) :- holds(equals(d2,odd),T).    %, holds(equals(d1,gt_6),T).
+holds(f(1,1),T) :- time(T), not holds(f(1,2),T).
+holds(f(2,2),T) :- time(T), not holds(f(2,3),T).
+holds(f(3,3),T) :- time(T), not holds(f(3,4),T).
+
+holds(f(4,4),T) :- time(T).  % No over-general self loop to avoid having acceptance prob. increase indefinitely in the experiments.
+% holds(f(4,4),T) :- holds(equals(d1,leq_3),T).
+% holds(f(4,1),T) :- time(T), not holds(f(4,4),T).
+"""
+
 
 sfa_5_simple = \
 """
@@ -313,7 +360,8 @@ holds(f(4,4),T) :- time(T).  % No over-general self loop to avoid having accepta
 # For each new pattern defined a 'name' deeds to be added here.
 pattern_names = {sfa_1: 'sfa_1', sfa_2: 'sfa_2', sfa_3: 'sfa_3', sfa_4: 'sfa_4', sfa_5: 'sfa_5', sfa_6: 'sfa_6',
                  sfa_5_simple: 'sfa_5_simple', sfa_6_simple: 'sfa_6_simple', sfa_1_simple: 'sfa_1_simple',
-                 sfa_7_simple: 'sfa_7_simple', sfa_1_simple_mvar: 'sfa_1_simple_mvar',}
+                 sfa_7_simple: 'sfa_7_simple', sfa_1_simple_mvar: 'sfa_1_simple_mvar',sfa_5_1: 'sfa_5_1',
+                 sfa_5_ORs: 'sfa_5_ORs',}
 
 predicate_defs = \
 """

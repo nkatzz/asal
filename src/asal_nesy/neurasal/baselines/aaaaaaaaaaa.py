@@ -835,6 +835,49 @@ def summarize_edge_usage(model: NeSySFA, bank: PredicateBase, loader: DataLoader
         print(f"  {q}->{qp}: {val:.3f}")
     return usage
 
+import torch
+
+def combine_literals(lit_p: torch.Tensor,
+                     combiner: str = "prod",
+                     mask: torch.Tensor | None = None,
+                     eps: float = 1e-6) -> torch.Tensor:
+    """
+    Combine literal probabilities within a clause.
+
+    Args:
+        lit_p: tensor of literal probabilities in [0,1], shape (..., L)
+               (already includes negations, i.e., you've turned ¬x into (1 - p_x) upstream).
+        combiner: 'prod' or 'logit-sum'
+        mask: optional boolean/binary tensor same shape as lit_p indicating which literals are active.
+              Inactive positions are treated as neutral elements (1.0 for product, 0.0 logit for logit-sum).
+        eps: numerical clamp.
+
+    Returns:
+        clause probability tensor of shape (...,)
+    """
+    # Clamp away from 0/1 to avoid NaNs/inf in logit/product
+    lit_p = lit_p.clamp(eps, 1.0 - eps)
+
+    if mask is not None:
+        # Ensure boolean
+        if mask.dtype != torch.bool:
+            mask = mask != 0
+
+    if combiner == "prod":
+        if mask is not None:
+            # neutral element for product is 1
+            lit_p = torch.where(mask, lit_p, torch.ones_like(lit_p))
+        return lit_p.prod(dim=-1)
+
+    elif combiner == "logit-sum":
+        logits = torch.logit(lit_p)  # safe due to clamp
+        if mask is not None:
+            # neutral for sum-of-logits is 0
+            logits = torch.where(mask, logits, torch.zeros_like(logits))
+        return torch.sigmoid(logits.sum(dim=-1))
+
+    else:
+        raise ValueError(f"Unknown combiner: {combiner}")
 
 
 
@@ -996,6 +1039,15 @@ if __name__ == "__main__":
         default="",
         help="Comma-separated predicate names to DROP (others kept). "
              "Names can be 'd1_even' OR 'even_d1'. Ignored if --keep-preds is used."
+    )
+
+    # --- argparse additions ---
+    parser.add_argument(
+        "--lit-combiner",
+        choices=["prod", "logit-sum"],
+        default="prod",
+        help="How to combine literal probabilities within a clause. "
+             "'prod' = plain product; 'logit-sum' = sigmoid(sum(logit(p)))."
     )
 
     args = parser.parse_args()
