@@ -162,7 +162,7 @@ class ClauseCombiner:
         else:
             raise ValueError(f"Unknown combiner: {combiner}")
 
-class GuardR(nn.Module):
+class Guard(nn.Module):
     """
     One guard (clause) on a given edge.
     - local signed weights v_i  (tanh to [-1,1])
@@ -232,9 +232,9 @@ class GuardR(nn.Module):
             return self.global_gate.expected_L0().sum()
         return torch.zeros((), device=self.v.device)
 
-class EdgeGuards(nn.Module):
+class NeuralDNFGuard(nn.Module):
     """
-    Up to R guards (disjuncts) on a single directed edge.
+    Up to R guards (disjuncts) on an SFA transition.
     OR aggregation:
       - 'noisyor' : original noisy-OR with guard weights (sigmoid(guard_logit))
       - 'maxpool' : smooth max via log-sum-exp of per-clause scores + per-clause biases, then sigmoid
@@ -248,7 +248,7 @@ class EdgeGuards(nn.Module):
         self.or_mode = or_mode
         self.beta = beta
         self.guards = nn.ModuleList([
-            GuardR(m, weighting, combiner, kappa, reg_type, global_gate=share_global)
+            Guard(m, weighting, combiner, kappa, reg_type, global_gate=share_global)
             for _ in range(R)
         ])
         # noisy-OR params (kept for backward-compat/extraction)
@@ -348,7 +348,7 @@ class TransitionLayer(nn.Module):
                 if not torch.isfinite(self.mask[i,j]):
                     self.edges.append(nn.Identity())
                 else:
-                    self.edges.append(EdgeGuards(
+                    self.edges.append(NeuralDNFGuard(
                         m=m, R=R, weighting=weighting, combiner=combiner, kappa=kappa,
                         reg_type=reg_type, share_global=self.global_gate,
                         or_mode=self.or_mode, beta=self.beta
@@ -368,7 +368,7 @@ class TransitionLayer(nn.Module):
                     # defer self-loop; compute after we have all non-self guards for row i
                     continue
                 mod = self.edges[k]
-                if isinstance(mod, EdgeGuards):
+                if isinstance(mod, NeuralDNFGuard):
                     gmat[:, i, j] = mod(u_t, training=training)
                 else:
                     gmat[:, i, j] = 0.0
@@ -393,7 +393,7 @@ class TransitionLayer(nn.Module):
     def reg_pred_L1(self) -> torch.Tensor:
         tot = torch.zeros((), device=self.mask.device)
         for mod in self.edges:
-            if isinstance(mod, EdgeGuards):
+            if isinstance(mod, NeuralDNFGuard):
                 tot = tot + mod.reg_pred_L1()
         return tot
 
@@ -402,14 +402,14 @@ class TransitionLayer(nn.Module):
         if isinstance(self.global_gate, HardConcrete):
             tot = tot + self.global_gate.expected_L0().sum()
         for mod in self.edges:
-            if isinstance(mod, EdgeGuards):
+            if isinstance(mod, NeuralDNFGuard):
                 tot = tot + mod.reg_pred_L0()
         return tot
 
     def reg_guard_L1(self) -> torch.Tensor:
         tot = torch.zeros((), device=self.mask.device)
         for mod in self.edges:
-            if isinstance(mod, EdgeGuards):
+            if isinstance(mod, NeuralDNFGuard):
                 # includes bias L1 as well
                 tot = tot + mod.reg_guard_L1()
         return tot
@@ -464,7 +464,7 @@ def extract_guards(model: NeSySFA, names: List[str],
     for i in range(n):
         for j in range(n):
             mod = model.transition.edges[idx]; idx += 1
-            if not isinstance(mod, EdgeGuards):
+            if not isinstance(mod, NeuralDNFGuard):
                 continue
             # collect per-guard literals
             if mod.or_mode == "maxpool":
@@ -619,7 +619,7 @@ def main():
             # Split the reg into α-part and bias-part:
             reg_alpha, reg_bias = torch.zeros((), device=device), torch.zeros((), device=device)
             for mod in model.transition.edges:
-                if isinstance(mod, EdgeGuards):
+                if isinstance(mod, NeuralDNFGuard):
                     reg_alpha = reg_alpha + torch.sigmoid(mod.guard_logit).abs().sum()
                     reg_bias  = reg_bias  + mod.bias.abs().sum()
             loss = loss_bce + args.lambda_pred*reg_pred + args.lambda_guard*reg_alpha + args.lambda_bias*reg_bias
