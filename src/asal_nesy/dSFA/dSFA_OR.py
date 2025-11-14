@@ -21,6 +21,7 @@ except Exception:
     HAVE_EXT = False
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f'Running on {device}')
 torch.set_default_dtype(torch.float32)
 np.random.seed(1); random.seed(1); torch.manual_seed(1)
 
