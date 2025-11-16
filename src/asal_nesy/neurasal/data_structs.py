@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
-from typing import Optional, Callable, Tuple, List
+from typing import Optional, Callable, Tuple, List, Any
 
 
 class TensorSequence:
@@ -258,58 +258,125 @@ def get_data_loader(dataset: Dataset, batch_size: int, train=True):
     return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, collate_fn=seq_collate_fn)
 
 
+
+
+# ---------------------------------------------------------------------------
+# Helpers for loading the two formats
+# ---------------------------------------------------------------------------
+
+def _from_portable_dict(obj: dict) -> List[TensorSequence]:
+    """
+    New portable format:
+        {
+            "images":     [N, T, D, C, H, W],
+            "digits":     [N, T, D],
+            "seq_labels": [N],
+            "seq_ids":    [N],
+            "meta": {"dim_names": [...]}
+        }
+    """
+    images = obj["images"]          # [N, T, D, C, H, W]
+    digits = obj["digits"]          # [N, T, D]
+    seq_labels = obj["seq_labels"]  # [N]
+    seq_ids = obj.get("seq_ids", torch.arange(images.shape[0]))
+    dim_names = obj["meta"]["dim_names"]
+
+    N, T, D, C, H, W = images.shape
+    sequences: List[TensorSequence] = []
+
+    for i in range(N):
+        seq_imgs = images[i]             # [T, D, C, H, W]
+        seq_label = int(seq_labels[i])
+        seq_id = int(seq_ids[i])
+        seq_digits = digits[i]           # [T, D]
+
+        # Build list-of-list-of-dicts structure:
+        #   time-major: seq_labels[t][d] = { dim_name: digit }
+        seq_labels_struct = [
+            [
+                {dim_names[d]: int(seq_digits[t, d].item())}
+                for d in range(D)
+            ]
+            for t in range(T)
+        ]
+
+        sequences.append(TensorSequence(seq_id, seq_label, seq_imgs, seq_labels_struct))
+
+    return sequences
+
+
+def _from_legacy_list(obj: Any) -> List[TensorSequence]:
+    """
+    Legacy format:
+        list of (DigitSequence, assigned_images) tuples produced by old generate_data.py
+    where each element s is:
+        seq_metadata: DigitSequence
+        seq: list over t of list over d of (img_tensor, label, img_id)
+    """
+    sequences: List[TensorSequence] = []
+
+    for seq_metadata, assigned in obj:
+        seq_label = seq_metadata.seq_label
+        seq_id = seq_metadata.seq_id
+        symbolic_seq = seq_metadata.sequence    # dict dim_name -> list of digits
+
+        seq_length = len(assigned)
+        dim = len(assigned[0])
+
+        # images tensor (T, D, C, H, W)
+        img_tensors = []
+        for t in range(seq_length):
+            imgs_t = [assigned[t][d][0] for d in range(dim)]  # take img_tensor
+            img_tensors.append(torch.stack(imgs_t, dim=0))
+        img_tensors = torch.stack(img_tensors, dim=0)
+
+        # labels structure: list[time][dim] = {dim_name: digit}
+        seq_labels = [
+            [{dim_name: symbolic_seq[dim_name][t]} for dim_name in symbolic_seq]
+            for t in range(seq_length)
+        ]
+
+        sequences.append(TensorSequence(seq_id, seq_label, img_tensors, seq_labels))
+
+    return sequences
+
+
 def get_data(
-        train_path: Optional[str] = None,
-        test_path: Optional[str] = None,
-        data_generator: Optional[Callable[[], Tuple[List['TensorSequence'], List['TensorSequence']]]] = None
+    train_path: Optional[str] = None,
+    test_path: Optional[str] = None,
+    data_generator: Optional[Callable[[], Tuple[List['TensorSequence'], List['TensorSequence']]]] = None
 ) -> Tuple[SequenceDataset, SequenceDataset]:
     """
-    Returns a pair of TensorSequence lists for training and testing.
+    Returns a pair of SequenceDataset objects wrapping TensorSequence lists.
 
-    :param train_path: Path to training .pt file (optional)
-    :param test_path: Path to testing .pt file (optional)
-    :param data_generator: Function to generate data on the fly (optional)
-    :return: (train_sequences, test_sequences)
+    EITHER:
+        - provide train_path & test_path pointing to .pt files in:
+            * new portable format (dict with "images" key), OR
+            * legacy format (list of (DigitSequence, assigned) tuples), OR
+        - provide data_generator() that returns (train_seqs, test_seqs).
     """
     if train_path and test_path:
-        # Load from disk
-        train_sequences = torch.load(train_path, weights_only=False)
-        test_sequences = torch.load(test_path, weights_only=False)
+        train_obj = torch.load(train_path, weights_only=False)
+        test_obj = torch.load(test_path, weights_only=False)
 
-        def to_tensor_seq_obj(seqs):
-            tensor_seqs = []
-            for s in seqs:
-                seq_metadata, seq = s
-                seq_label = seq_metadata.seq_label
-                seq_id = seq_metadata.seq_id
-                symbolic_seq = seq_metadata.sequence
-                seq_length, dim = len(seq), len(seq[0])
-                tensors = [
-                    [seq[t][d][0] for d in range(dim)]
-                    for t in range(seq_length)
-                ]
-
-                tensors = torch.stack([torch.stack(inner) for inner in tensors])
-
-                seq_labels = [
-                    [{dim: symbolic_seq[dim][t]} for dim in symbolic_seq]
-                    for t in range(len(next(iter(symbolic_seq.values()))))
-                ]
-                tensor_seq_obj = TensorSequence(seq_id, seq_label, tensors, seq_labels)
-                tensor_seqs.append(tensor_seq_obj)
-            return tensor_seqs
-
-        train_sequences = to_tensor_seq_obj(train_sequences)
-        test_sequences = to_tensor_seq_obj(test_sequences)
+        # New portable format?
+        if isinstance(train_obj, dict) and "images" in train_obj:
+            train_sequences = _from_portable_dict(train_obj)
+            test_sequences = _from_portable_dict(test_obj)
+        else:
+            # Fall back to legacy conversion (for old datasets)
+            train_sequences = _from_legacy_list(train_obj)
+            test_sequences = _from_legacy_list(test_obj)
 
     elif data_generator:
-        # Generate on the fly
         train_sequences, test_sequences = data_generator()
-        print(f"Generated train and test sequences on the fly")
+        print("Generated train and test sequences on the fly")
     else:
         raise ValueError("Either (train_path and test_path) OR data_generator must be provided.")
 
     return SequenceDataset(train_sequences), SequenceDataset(test_sequences)
+
+
 
 
 if __name__ == "__main__":
