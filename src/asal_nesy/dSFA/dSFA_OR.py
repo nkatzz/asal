@@ -647,7 +647,7 @@ def main():
         topk = args.extract_topk
         thr  = args.extract_thresh
         if topk is None and thr is None:
-            topk = 5
+            topk = 3
         lines = extract_guards(model, names, topk=topk, thresh=thr)
         print("\n[Extracted guards]")
         if not lines:
