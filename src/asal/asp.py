@@ -211,7 +211,7 @@ cost_at_most = "cost(at_most(A,V),1) :- value(A,V)."
 cost_at_least = "cost(at_least(A,V),1) :- value(A,V)."
 
 #===================================================
-cost_equals = "cost(equals(A,V),200) :- value(A,V)."  # 200  # when you change the top-k most probable this has to change as well...
+cost_equals = "cost(equals(A,V),1) :- value(A,V)."  # 200  # when you change the top-k most probable this has to change as well...
 #===================================================
 
 cost_neg = "cost(neg(A,V),1) :- value(A,V)."
