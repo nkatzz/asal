@@ -246,12 +246,20 @@ def minimize_fps_fns(coverage_first=False, unsat_weight=1):
 """
 
 def minimize_fps_fns(args):
-    c = ["satisfied(Seq) :- positive(Seq), accepted(Seq).", "satisfied(Seq) :- negative(Seq), not accepted(Seq)."]
-    weight = args.unsat_weight if args.unsat_weight != 0 else 'W'
     level = 1 if args.coverage_first else 0
-    # c.append(f"#minimize{{{weight}@{level},Seq: sequence(Seq), weight(Seq,W), not satisfied(Seq)}}.")
-    c.append(f"#minimize{{W@{level},Seq: sequence(Seq), weight(Seq,W), not satisfied(Seq)}}.")
-    return '\n'.join(c)
+    if args.wpos == 1 and args.wneg == 1:
+        c = ["satisfied(Seq) :- positive(Seq), accepted(Seq).", "satisfied(Seq) :- negative(Seq), not accepted(Seq)."]
+        weight = args.unsat_weight if args.unsat_weight != 0 else 'W'
+        # c.append(f"#minimize{{{weight}@{level},Seq: sequence(Seq), weight(Seq,W), not satisfied(Seq)}}.")
+        c.append(f"#minimize{{W@{level},Seq: sequence(Seq), weight(Seq,W), not satisfied(Seq)}}.")
+        return '\n'.join(c)
+    else:
+        #minimize{1@2,Seq: falseNegative(Seq)}.
+        # minimize{1@2,Seq: falsePositive(Seq)}.
+        c = [f"#minimize{{{args.wpos}@{level},Seq: falseNegative(Seq)}}.", f"#minimize{{{args.wneg}@{level},Seq: falsePositive(Seq)}}."]
+        return '\n'.join(c)
+
+
 
 minimize_size = "#minimize{C@0,I,J,F: body(I,J,F), cost(F,C)}."
 mimimize_used_atts = "#minimize{1@0,X: used_attribute(X)}."

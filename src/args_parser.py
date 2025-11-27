@@ -93,6 +93,12 @@ or in a format that can be used for reasoning (r) with Clingo.""")
     parser.add_argument("--warns_off", action="store_true",
                         help="Suppress warnings from Clingo.")
 
+    parser.add_argument("--wpos", metavar="<n>",
+                        type=int, default=1, help="Positive weight for imbalanced data. Increases the penalty on FNs.")
+
+    parser.add_argument("--wneg", metavar="<n>",
+                        type=int, default=1, help="Negative weight for imbalanced data. Increases the penalty on FPs.")
+
     parser.add_argument(
         "--predicates",
         nargs="+",  # Accepts one or more values
